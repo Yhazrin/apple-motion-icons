@@ -318,23 +318,23 @@
 
   M.define('plus', {
     svg: `<g data-part="mark"><path data-part="h" d="${PLUS_H}"/><path data-part="v" d="${PLUS_V}"/></g>`,
-    state: {hx: 1, vy: 1, morph: 0, spin: 0},
-    poses: {idle: {}, confirmed: {morph: 1}, closed: {spin: 45}},
-    periodic: {spin: 360},
+    state: {hx: 1, vy: 1, bend: 0, turn: 0},
+    poses: {idle: {}, confirmed: {bend: 1}, closed: {turn: 45}},
+    periodic: {turn: 360},
     render(s, p) {
-      const t = Math.max(-.12, Math.min(1.12, s.morph));
+      const t = Math.max(-.12, Math.min(1.12, s.bend));
       p.h.setAttribute('d', lerpPath(PLUS_H, CHECK_LONG, t));
       p.v.setAttribute('d', lerpPath(PLUS_V, CHECK_SHORT, t));
-      const spin = `rotate(${s.spin} 60 60)`;
-      attr(p.h, 'transform', `${spin} ${aroundXY(s.hx, 1, 60, 60)}`);
-      attr(p.v, 'transform', `${spin} ${aroundXY(1, s.vy, 60, 60)}`);
+      const turn = `rotate(${s.turn} 60 60)`;
+      attr(p.h, 'transform', `${turn} ${aroundXY(s.hx, 1, 60, 60)}`);
+      attr(p.v, 'transform', `${turn} ${aroundXY(1, s.vy, 60, 60)}`);
     },
     actions: {
       tap: {label: '磁吸', async run(c) { await magnetic(c, 1); }},
       add: {label: '添加', async run(c) { await magnetic(c, 1.2); }},
       confirm: {label: '添加成功', pose: 'confirmed', from: 'idle', async run(c) {
         c.to('vy', .86, 'snap'); c.to('hx', 1.06, 'snap'); await c.wait(70);
-        c.to('morph', 1, 'gentle'); c.to('vy', 1, 'settle'); c.to('hx', 1, 'settle');
+        c.to('bend', 1, 'gentle'); c.to('vy', 1, 'settle'); c.to('hx', 1, 'settle');
         await c.wait(320);
       }},
       reject: {label: '没加上', async run(c) {
@@ -344,108 +344,219 @@
         c.to('vy', 1, 'settle'); c.to('hx', 1, 'settle'); await c.wait(150);
       }},
       reset: {label: '回到加号', pose: 'idle', from: 'confirmed', async run(c) {
-        c.to('morph', 0, 'gentle'); c.to('spin', 0, 'gentle'); await c.wait(150);
+        c.to('bend', 0, 'gentle'); c.to('turn', 0, 'gentle'); await c.wait(150);
         c.to('vy', 1.08, 'pop'); await c.wait(30);
         c.to('hx', .97, 'pop'); await c.wait(80);
         c.to('vy', 1, 'settle'); c.to('hx', 1, 'settle'); await c.wait(140);
       }},
       toClose: {label: '变成关闭', pose: 'closed', from: 'idle', async run(c) {
-        c.to('spin', -8, 'snap'); c.to('morph', 0, 'gentle'); await c.wait(70);
-        c.to('spin', 45, 'pop'); await c.wait(220);
+        c.to('turn', -8, 'snap'); c.to('bend', 0, 'gentle'); await c.wait(70);
+        c.to('turn', 45, 'pop'); await c.wait(220);
       }}
     }
   });
 
+  // The cat is traced from its reference drawing in source pixels. Each weight
+  // group thins the engine's optical stroke by the reference line ratio.
+  const CAT_K = .214, CAT_X = 520.5, CAT_Y = 338.5;
+  const catPt = (x, y) => [60 + (x - CAT_X) * CAT_K, 60 + (y - CAT_Y) * CAT_K];
+  const catAt = (x, y) => catPt(x, y).map(n => n.toFixed(2)).join(' ');
+  const catInk = (w, d) => { let i = 0; return d.replace(PATH_NUM, v => (60 + (+v - (i++ % 2 ? CAT_Y : CAT_X)) * CAT_K / w).toFixed(2)); };
+  const weigh = (w, body) => `<g transform="${around(w)}">${body}</g>`;
+  const INK = {line: .66, tail: .85, eye: .6, mouth: .42, whisker: .44};
+  const CAT_HEAD = 'M333 551L689 551Q718.5 551 718.5 521L718.5 400C718.5 255 642 212 511 212C380 212 303.5 255 303.5 400L303.5 521Q303.5 551 333 551Z';
+  const CAT_MOUTH = {
+    smile: 'M484 408Q511 426 538 408Q511 426 484 408',
+    open: 'M496 407Q511 440 526 407Q511 396 496 407',
+    grin: 'M478 403Q511 446 544 403Q511 411 478 403',
+    frown: 'M490 419Q511 402 532 419Q511 402 490 419'
+  };
+  const mouthBase = catInk(INK.mouth, CAT_MOUTH.smile);
+  const mouthNums = {};
+  for (const k of Object.keys(CAT_MOUTH)) mouthNums[k] = catInk(INK.mouth, CAT_MOUTH[k]).match(PATH_NUM).map(Number);
+  function mouthPath(open, grin, frown) {
+    const B = mouthNums.smile, O = mouthNums.open, G = mouthNums.grin, F = mouthNums.frown;
+    let i = 0;
+    return mouthBase.replace(PATH_NUM, () => {
+      const v = B[i] + open * (O[i] - B[i]) + grin * (G[i] - B[i]) + frown * (F[i] - B[i]);
+      i++;
+      return v.toFixed(2);
+    });
+  }
+  const catEar = (w, a, b, c) => `<path data-part="${w}" d="${catInk(INK.line, `M${a}L${b}L${c}Z`)}"/><path d="${catInk(INK.line, `M${a}L${b}L${c}`)}"/>`;
+  const [eyeLX, eyeLY] = catPt(421.5, 354), [eyeRX, eyeRY] = catPt(600.5, 354);
+  const EYE_R = (17.5 * CAT_K).toFixed(2);
+  const [blushLX, blushY] = catPt(392, 393), [blushRX] = catPt(630, 393);
+  const PIVOT = {
+    head: catAt(511, 400), earL: catAt(373, 207), earR: catAt(649, 207),
+    tail: catAt(720, 486), whiskL: catPt(331, 408), whiskR: catPt(691, 408)
+  };
+  const BODY_BASE = catPt(511, 551);
   const lidSpring = {stiffness: 1400, damping: 50};
+  const shut = (c, v = .06) => { c.to('blinkL', v, lidSpring); c.to('blinkR', v, lidSpring); };
+  const open = c => { c.to('blinkL', 1, 'pop'); c.to('blinkR', 1, 'pop'); };
+  const ease = t => 1 - Math.pow(1 - Math.min(1, t / .4), 3);
+  const blinkAt = (t, period) => 1 - .94 * Math.exp(-Math.pow(((t % period) - (period - .25)) / .05, 2));
+
   M.define('conversation', {
     svg: `<g data-part="cat">
-<g data-part="earL"><path d="M28 52 44 14 58 50Z"/><path data-part="innerL" d="M36 46 44 24 52 46Z"/></g>
-<g data-part="earR"><path d="M62 50 76 14 92 52Z"/><path data-part="innerR" d="M68 46 76 24 84 46Z"/></g>
-<path d="M40 48h40q16 0 16 16v20q0 18-18 18H42q-18 0-18-18V64q0-16 16-16Z"/>
-<g data-part="whiskL"><path d="M6 66h16"/><path d="M4 76h18"/></g>
-<g data-part="whiskR"><path d="M98 70h16"/><path d="M98 80h18"/></g>
-<path data-part="paw" d="M92 58c14-8 18 8 8 18"/>
-<circle data-part="eyeL" data-fill cx="48" cy="70" r="4.2"/>
-<circle data-part="eyeR" data-fill cx="74" cy="70" r="4.2"/>
-<path data-part="smile" d="M52 84q8 8 16 0"/>
+<g data-part="tail">${weigh(INK.tail, `<path d="${catInk(INK.tail, 'M747 353C762 380 762 440 718 488')}"/>`)}</g>
+${weigh(INK.line, `<path d="${catInk(INK.line, CAT_HEAD)}"/>`)}
+<g data-part="earL">${weigh(INK.line, catEar('innerL', '414 181', '309 130', '333 234'))}</g>
+<g data-part="earR">${weigh(INK.line, catEar('innerR', '608 181', '713 130', '689 234'))}</g>
+<ellipse data-part="blushL" cx="${blushLX.toFixed(2)}" cy="${blushY.toFixed(2)}" rx="3.3" ry="1.8"/>
+<ellipse data-part="blushR" cx="${blushRX.toFixed(2)}" cy="${blushY.toFixed(2)}" rx="3.3" ry="1.8"/>
+<circle data-part="eyeL" data-fill cx="${eyeLX.toFixed(2)}" cy="${eyeLY.toFixed(2)}" r="${EYE_R}"/>
+<circle data-part="eyeR" data-fill cx="${eyeRX.toFixed(2)}" cy="${eyeRY.toFixed(2)}" r="${EYE_R}"/>
+<g data-part="joyL">${weigh(INK.eye, `<path d="${catInk(INK.eye, 'M403 362Q421.5 334 440 362')}"/>`)}</g>
+<g data-part="joyR">${weigh(INK.eye, `<path d="${catInk(INK.eye, 'M582 362Q600.5 334 619 362')}"/>`)}</g>
+${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
+<g data-part="whiskL">${weigh(INK.whisker, `<path d="${catInk(INK.whisker, 'M279 389L331 400M279 416.5L331 416.5')}"/>`)}</g>
+<g data-part="whiskR">${weigh(INK.whisker, `<path d="${catInk(INK.whisker, 'M743 389L691 400M743 416.5L691 416.5')}"/>`)}</g>
 </g>`,
-    css: '.mi--conversation svg [data-part="innerL"],.mi--conversation svg [data-part="innerR"]{fill:#ff7d9a;stroke:none}',
-    state: {bodyY: 0, squash: 1, tilt: 0, gazeX: 0, gazeY: 0, blink: 1, earL: 0, earR: 0, paw: 0, whisk: 1},
-    poses: {idle: {}, selected: {bodyY: -2, earL: -4, earR: 6, paw: -10}},
+    css: '.mi--conversation svg [data-part^="inner"],.mi--conversation svg [data-part^="blush"]{fill:var(--mi-cat-ear,#f65a7d);stroke:none}',
+    state: {bodyY: 0, squash: 1, tilt: 0, gazeX: 0, gazeY: 0, blinkL: 1, blinkR: 1, eyeScale: 1,
+      joy: 0, talk: 0, grin: 0, frown: 0, blush: 0, earL: 0, earR: 0, tail: 0, whisk: 1},
+    poses: {idle: {}, selected: {bodyY: -1.5, earL: 4, earR: 4, tail: -8}},
     render(s, p) {
-      attr(p.cat, 'transform', `translate(0 ${s.bodyY}) rotate(${s.tilt} 60 80) ${aroundXY(1, s.squash, 60, 102)}`);
-      attr(p.earL, 'transform', `rotate(${s.earL} 46 50)`);
-      attr(p.earR, 'transform', `rotate(${s.earR} 74 50)`);
-      const lid = Math.max(.08, s.blink);
-      attr(p.eyeL, 'transform', `translate(${s.gazeX} ${s.gazeY}) ${aroundXY(1, lid, 48, 70)}`);
-      attr(p.eyeR, 'transform', `translate(${s.gazeX} ${s.gazeY}) ${aroundXY(1, lid, 74, 70)}`);
-      attr(p.whiskL, 'transform', aroundXY(s.whisk, 1, 22, 72));
-      attr(p.whiskR, 'transform', aroundXY(s.whisk, 1, 98, 76));
-      attr(p.paw, 'transform', `rotate(${s.paw} 92 64)`);
+      const sx = 1 + (1 - s.squash) * .5;
+      attr(p.cat, 'transform', `translate(0 ${s.bodyY}) rotate(${s.tilt} ${PIVOT.head}) ${aroundXY(sx, s.squash, ...BODY_BASE)}`);
+      attr(p.earL, 'transform', `rotate(${s.earL} ${PIVOT.earL})`);
+      attr(p.earR, 'transform', `rotate(${-s.earR} ${PIVOT.earR})`);
+      attr(p.tail, 'transform', `rotate(${s.tail} ${PIVOT.tail})`);
+      const joy = clamp01(s.joy);
+      const gaze = `translate(${s.gazeX} ${s.gazeY})`;
+      attr(p.eyeL, 'transform', `${gaze} ${aroundXY(s.eyeScale, Math.max(.06, s.blinkL) * s.eyeScale * (1 - .8 * joy), eyeLX, eyeLY)}`);
+      attr(p.eyeR, 'transform', `${gaze} ${aroundXY(s.eyeScale, Math.max(.06, s.blinkR) * s.eyeScale * (1 - .8 * joy), eyeRX, eyeRY)}`);
+      attr(p.eyeL, 'opacity', 1 - joy);
+      attr(p.eyeR, 'opacity', 1 - joy);
+      for (const part of [p.joyL, p.joyR]) {
+        attr(part, 'opacity', joy);
+        attr(part, 'transform', `translate(${s.gazeX} ${s.gazeY + (1 - joy) * 1.5})`);
+      }
+      attr(p.blushL, 'opacity', clamp01(s.blush));
+      attr(p.blushR, 'opacity', clamp01(s.blush));
+      const k = v => Math.max(-.15, Math.min(1.15, v));
+      p.mouth.setAttribute('d', mouthPath(k(s.talk), k(s.grin), k(s.frown)));
+      attr(p.whiskL, 'transform', aroundXY(s.whisk, 1, ...PIVOT.whiskL));
+      attr(p.whiskR, 'transform', aroundXY(s.whisk, 1, ...PIVOT.whiskR));
     },
     actions: {
       tap: {label: '轻触', async run(c) {
-        c.to('squash', .9, 'snap'); c.to('bodyY', c.goal('bodyY') + 3, 'snap');
-        c.to('blink', .08, lidSpring); await c.wait(70);
-        c.to('blink', 1, 'pop'); c.to('squash', 1.05, 'pop');
-        c.to('bodyY', c.goal('bodyY') - 3, 'pop');
-        c.to('earL', c.goal('earL') - 8, 'pop'); c.to('earR', c.goal('earR') + 8, 'pop');
-        await c.wait(110);
-        c.to('squash', 1, 'settle'); c.to('bodyY', c.goal('bodyY'), 'settle');
-        c.to('earL', c.goal('earL'), 'settle'); c.to('earR', c.goal('earR'), 'settle');
-        await c.wait(140);
+        c.to('squash', .9, 'snap'); c.to('bodyY', c.goal('bodyY') + 2, 'snap'); shut(c); await c.wait(70);
+        open(c); c.to('squash', 1.04, 'pop'); c.to('bodyY', c.goal('bodyY') - 3, 'pop');
+        c.to('earL', c.goal('earL') + 8, 'pop'); c.to('earR', c.goal('earR') + 8, 'pop');
+        c.to('whisk', 1.12, 'pop'); await c.wait(120);
       }},
       peek: {label: '看过来', async run(c) {
-        c.to('gazeX', 5, 'snap'); c.to('earL', c.goal('earL') - 10, 'snap');
-        c.to('paw', c.goal('paw') - 12, 'gentle'); await c.wait(90);
-        c.to('blink', .1, lidSpring); await c.wait(60);
-        c.to('blink', 1, 'pop'); c.to('gazeX', -2, 'pop'); await c.wait(120);
+        c.to('gazeX', 4, 'snap'); c.to('earL', c.goal('earL') + 10, 'snap');
+        c.to('tail', c.goal('tail') - 10, 'gentle'); await c.wait(90);
+        shut(c, .1); await c.wait(60);
+        open(c); c.to('gazeX', 2, 'pop'); await c.wait(140);
       }},
       select: {label: '醒过来', pose: 'selected', from: 'idle', async run(c) {
-        c.to('bodyY', 4, 'snap'); c.to('earL', 6, 'snap'); c.to('blink', .08, lidSpring); await c.wait(75);
-        c.to('blink', 1, 'pop'); c.to('bodyY', -6, 'pop');
-        c.to('earL', -8, 'pop'); c.to('earR', 10, 'pop');
-        c.to('paw', -22, 'pop'); c.to('whisk', 1.18, 'pop'); await c.wait(150);
-        c.to('bodyY', -2, 'gentle'); c.to('earL', -4, 'gentle'); c.to('earR', 6, 'gentle');
-        c.to('paw', -10, 'rebound'); c.to('whisk', 1, 'settle'); await c.wait(180);
+        c.to('bodyY', 3, 'snap'); c.to('squash', .93, 'snap'); shut(c);
+        c.to('earL', -4, 'snap'); c.to('earR', -4, 'snap'); await c.wait(80);
+        open(c); c.to('squash', 1.05, 'pop'); c.to('bodyY', -5, 'pop');
+        c.to('earL', 12, 'pop'); c.to('earR', 12, 'pop'); c.to('tail', -16, 'pop');
+        c.to('whisk', 1.16, 'pop'); c.to('grin', .35, 'pop'); await c.wait(160);
+        c.to('squash', 1, 'gentle'); c.to('bodyY', -1.5, 'gentle'); c.to('earL', 4, 'gentle');
+        c.to('earR', 4, 'gentle'); c.to('tail', -8, 'gentle'); c.to('whisk', 1, 'gentle');
+        c.to('grin', 0, 'gentle'); await c.wait(200);
       }},
       reply: {label: '点头', async run(c) {
-        c.to('tilt', 7, 'snap'); c.to('blink', .1, lidSpring);
-        c.to('bodyY', c.goal('bodyY') + 4, 'impact'); await c.wait(80);
-        c.to('blink', 1, 'pop'); c.to('tilt', -4, 'pop');
-        c.to('bodyY', c.goal('bodyY') - 2, 'rebound');
-        c.to('paw', c.goal('paw') - 8, 'pop'); await c.wait(150);
+        c.to('tilt', 5, 'snap'); shut(c, .1); c.to('bodyY', c.goal('bodyY') + 3, 'impact'); await c.wait(80);
+        open(c); c.to('tilt', -2, 'pop'); c.to('bodyY', c.goal('bodyY') - 2, 'rebound');
+        c.to('talk', .35, 'pop'); await c.wait(110);
+        c.to('talk', 0, 'gentle'); await c.wait(120);
       }},
       blink: {label: '眨眼', async run(c) {
-        c.to('blink', .08, lidSpring); await c.wait(70);
-        c.to('blink', 1, 'pop'); await c.wait(90);
+        shut(c); await c.wait(75);
+        open(c); await c.wait(100);
       }},
-      wave: {label: '招手', async run(c) {
-        c.to('paw', -26, 'snap'); c.to('earR', c.goal('earR') + 6, 'gentle'); await c.wait(90);
-        c.to('paw', 8, 'pop'); await c.wait(100);
-        c.to('paw', -16, 'pop'); await c.wait(90);
-        c.to('paw', c.goal('paw'), 'settle'); c.to('earR', c.goal('earR'), 'settle'); await c.wait(140);
+      wink: {label: '眨一只眼', async run(c) {
+        c.to('blinkR', .06, lidSpring); c.to('tilt', -4, 'snap'); c.to('grin', .5, 'pop');
+        c.to('earR', c.goal('earR') - 5, 'snap'); await c.wait(220);
+        c.to('blinkR', 1, 'pop'); await c.wait(120);
       }},
       happy: {label: '开心', async run(c) {
-        c.to('bodyY', c.goal('bodyY') + 3, 'snap'); c.to('squash', .92, 'snap'); await c.wait(70);
-        c.to('bodyY', c.goal('bodyY') - 6, 'pop'); c.to('squash', 1.04, 'pop');
-        c.to('earL', -12, 'pop'); c.to('earR', 12, 'pop');
-        c.to('whisk', 1.28, 'pop'); c.to('paw', -18, 'pop'); await c.wait(150);
-        c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'settle');
-        c.to('whisk', 1, 'gentle'); c.to('paw', c.goal('paw'), 'gentle');
-        c.to('earL', c.goal('earL'), 'gentle'); c.to('earR', c.goal('earR'), 'gentle');
-        await c.wait(160);
+        c.to('squash', .92, 'snap'); c.to('bodyY', c.goal('bodyY') + 2, 'snap');
+        c.to('joy', 1, {stiffness: 700, damping: 40}); await c.wait(80);
+        c.to('bodyY', c.goal('bodyY') - 6, 'pop'); c.to('squash', 1.05, 'pop'); c.to('grin', 1, 'pop');
+        c.to('blush', 1, 'fade'); c.to('earL', 12, 'pop'); c.to('earR', 12, 'pop'); c.to('whisk', 1.2, 'pop');
+        c.to('tail', 14, 'snap'); await c.wait(100);
+        c.to('tail', -12, 'snap'); await c.wait(100);
+        c.to('tail', 8, 'snap'); c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'settle'); await c.wait(120);
+        c.to('tail', c.goal('tail'), 'gentle'); await c.wait(300);
+      }},
+      surprised: {label: '惊讶', async run(c) {
+        c.to('earL', 14, 'snap'); c.to('earR', 14, 'snap'); c.to('eyeScale', 1.32, 'pop');
+        c.to('talk', 1, 'pop'); c.to('whisk', 1.25, 'pop'); c.to('bodyY', c.goal('bodyY') - 5, 'pop');
+        c.to('squash', 1.04, 'pop'); c.to('tail', -18, 'snap'); await c.wait(120);
+        c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'settle'); await c.wait(320);
+      }},
+      curious: {label: '歪头', async run(c) {
+        c.to('tilt', -9, 'gentle'); c.to('earL', -7, 'gentle'); c.to('earR', 11, 'snap');
+        c.to('gazeX', -3, 'gentle'); c.to('gazeY', -2, 'gentle'); c.to('tail', 10, 'gentle'); await c.wait(220);
+        shut(c, .1); await c.wait(70);
+        open(c); await c.wait(300);
+      }},
+      shy: {label: '害羞', async run(c) {
+        c.to('blush', 1, 'fade'); c.to('gazeX', -3, 'gentle'); c.to('gazeY', 1.8, 'gentle');
+        c.to('tilt', 6, 'gentle'); c.to('earL', -5, 'gentle'); c.to('earR', -5, 'gentle');
+        c.to('grin', .3, 'gentle'); c.to('squash', .97, 'gentle'); await c.wait(150);
+        shut(c, .3); await c.wait(80);
+        open(c); await c.wait(380);
+      }},
+      sad: {label: '委屈', async run(c) {
+        c.to('earL', -14, 'gentle'); c.to('earR', -14, 'gentle'); c.to('frown', 1, 'gentle');
+        c.to('gazeY', 2.2, 'gentle'); c.to('bodyY', c.goal('bodyY') + 1.5, 'gentle'); c.to('squash', .97, 'gentle');
+        c.to('tail', 16, 'slow'); c.to('eyeScale', .92, 'gentle'); await c.wait(260);
+        shut(c, .1); await c.wait(80);
+        open(c); await c.wait(350);
+      }},
+      wag: {label: '摇尾巴', async run(c) {
+        for (const angle of [14, -12, 10, -6]) { c.to('tail', c.goal('tail') + angle, 'snap'); await c.wait(90); }
+      }},
+      ears: {label: '动耳朵', async run(c) {
+        c.to('earR', c.goal('earR') + 14, 'snap'); await c.wait(50);
+        c.to('earL', c.goal('earL') + 8, 'snap'); await c.wait(60);
+        c.to('earR', c.goal('earR') - 5, 'pop'); await c.wait(50);
+        c.to('earL', c.goal('earL') - 3, 'pop'); await c.wait(120);
+      }},
+      talking: {label: '说话', loop: true, run(c) {
+        c.claim('talk', 'blinkL', 'blinkR', 'bodyY');
+        c.loop(t => {
+          const e = ease(t), w = M.util.wave(t, 3.2);
+          c.s.talk = e * (.15 + .4 * w);
+          c.s.bodyY = c.goal('bodyY') - e * .6 * w;
+          c.s.blinkL = c.s.blinkR = blinkAt(t, 2.6);
+        });
       }},
       thinking: {label: '想一想', loop: true, run(c) {
-        c.claim('gazeX', 'earL', 'paw', 'blink');
+        c.claim('gazeX', 'gazeY', 'tail', 'earL', 'blinkL', 'blinkR');
         c.loop(t => {
-          c.s.gazeX = 5 * Math.sin(t * 1.6);
-          c.s.earL = c.goal('earL') - 7 * Math.sin(t * 2.3);
-          c.s.paw = c.goal('paw') - 6 + 7 * Math.sin(t * 1.4);
-          c.s.blink = (t % 3.1) < .08 ? .12 : 1;
+          const e = ease(t);
+          c.s.gazeX = c.goal('gazeX') + e * 3.5 * Math.sin(t * 1.3);
+          c.s.gazeY = c.goal('gazeY') - e * (1.8 + .6 * Math.sin(t * 2.1));
+          c.s.tail = c.goal('tail') + e * 9 * Math.sin(t * 1.6);
+          c.s.earL = c.goal('earL') + e * 7 * Math.pow(Math.max(0, Math.sin(t * 2.7)), 4);
+          c.s.blinkL = c.s.blinkR = blinkAt(t, 2.8);
+        });
+      }},
+      dozing: {label: '打盹', loop: true, run(c) {
+        c.claim('blinkL', 'blinkR', 'squash', 'earL', 'earR', 'gazeY');
+        c.loop(t => {
+          const e = Math.min(1, t / .6), lid = 1 - .94 * e * e * (3 - 2 * e);
+          c.s.blinkL = c.s.blinkR = lid;
+          c.s.earL = c.goal('earL') - 7 * e;
+          c.s.earR = c.goal('earR') - 7 * e;
+          c.s.squash = 1 - e * (.015 + .02 * M.util.wave(t, .45));
+          c.s.gazeY = c.goal('gazeY') + 1.2 * e;
         });
       }}
-    }
+    },
+    task: {busy: 'thinking', success: 'happy', fail: 'sad'}
   });
 
   M.define('settings', {

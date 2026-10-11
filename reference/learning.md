@@ -14,7 +14,7 @@ unchanged; this file adds 14 subjects.
 | recall | Folded answer card | idle, revealed | tap, reveal, close, next, retry | — |
 | milestone | A finished word booklet and attached seal | idle, complete | tap, complete, restart | — |
 | plus | Two elastic strokes that stay a plus until a real success | idle, confirmed, closed | tap, add, confirm, reject, reset, toClose | — |
-| conversation | A simplified cat: ears, pink inner ears, a raised paw | idle, selected | tap, peek, select, reply, blink, wave, happy | thinking |
+| conversation | The cat assistant, traced from its reference drawing | idle, selected | tap, peek, select, reply, blink, wink, happy, surprised, curious, shy, sad, wag, ears | talking, thinking, dozing; task mapping |
 | settings | Engraved mechanical dial | idle, selected | tap, peek, select, turn | — |
 | sentence | Writing on a lined page | idle, selected | tap, peek, select, reveal, fail | writing; task mapping |
 | memory | Landscape inside a bookmarked frame | idle, selected | tap, peek, select, bind, fail | imagining; task mapping |
@@ -65,9 +65,18 @@ stop. `reset` returns from the check. `toClose` turns the plus 45° into a close
 mark and rests at `closed`. A navigation Add control plays `tap` on hover and
 `add` on activation, and keeps `idle`; a successful save is what plays `confirm`.
 
-`conversation` is the cat assistant. Ears, gaze and the raised paw move on the
-first frame of `peek` and `select`. `thinking` claims gaze, one ear, the paw and
-the blink so it can be stopped cleanly. The inner ears use a fixed pink fill;
+`conversation` is the cat assistant. Its outline is traced from the reference
+drawing in source pixels: a flat base, a loaf-shaped crown, open triangular ears,
+dot eyes, a thin smile, two whiskers each side and a curled tail. Each part sits
+in a weight group that scales the engine's optical stroke by the reference line
+ratio, so the line contrast follows the drawing at every size.
+
+Expressions are springs on the same strokes: `joy` turns the dots into ^ ^ eyes,
+the mouth mixes smile, open, grin and frown shapes, and `blush` fades in the
+cheeks. Ears, gaze and tail move on the first frame of `peek` and `select`.
+`talking`, `thinking` and `dozing` claim only the keys they drive, so `stop`
+settles them back. The task mapping is busy → `thinking`, success → `happy`,
+fail → `sad`. Inner ears and cheeks use `--mi-cat-ear` (default `#f65a7d`);
 every other stroke follows `currentColor`.
 
 ## Async actions
