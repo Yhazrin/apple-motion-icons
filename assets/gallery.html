@@ -4,57 +4,192 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Apple Motion Icons · Yhazrin</title>
+  <script>
+    if (location.search.includes('frames') || matchMedia('(prefers-reduced-motion: reduce)').matches)
+      document.documentElement.classList.add('skip-veil', 'is-open');
+  </script>
   <style>
-    :root{--bg:#f5f5f7;--card:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:rgb(0 0 0 / .08);--accent:#0071e3;--chip:rgb(120 120 128 / .14)}
-    @media (prefers-color-scheme:dark){:root{--bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--muted:#a1a1a6;--line:rgb(255 255 255 / .1);--accent:#2997ff;--chip:rgb(120 120 128 / .28)}}
+    :root{
+      --bg:#ececee;--card:#fbfbfc;--plate:#e4e4e7;--ink:#1c1c1e;--muted:#6e6e73;
+      --line:rgb(28 28 30 / .1);--chip:rgb(120 120 128 / .14);--material:rgb(236 236 238 / .82);
+      --on:#f7f7f8;--shadow:0 1px 1px rgb(28 28 30 / .04)
+    }
+    @media (prefers-color-scheme:dark){:root{
+      --bg:#1c1c1e;--card:#2c2c2e;--plate:#242426;--ink:#f5f5f7;--muted:#a1a1a6;
+      --line:rgb(255 255 255 / .12);--chip:rgb(120 120 128 / .28);--material:rgb(28 28 30 / .82);
+      --on:#1c1c1e;--shadow:0 1px 1px rgb(0 0 0 / .2)
+    }}
+    html[data-theme=light]{--bg:#ececee;--card:#fbfbfc;--plate:#e4e4e7;--ink:#1c1c1e;--muted:#6e6e73;--line:rgb(28 28 30 / .1);--chip:rgb(120 120 128 / .14);--material:rgb(236 236 238 / .82);--on:#f7f7f8;--shadow:0 1px 1px rgb(28 28 30 / .04)}
+    html[data-theme=dark]{--bg:#1c1c1e;--card:#2c2c2e;--plate:#242426;--ink:#f5f5f7;--muted:#a1a1a6;--line:rgb(255 255 255 / .12);--chip:rgb(120 120 128 / .28);--material:rgb(28 28 30 / .82);--on:#1c1c1e;--shadow:0 1px 1px rgb(0 0 0 / .2)}
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif}
-    main{max-width:1180px;margin:0 auto;padding:40px 24px 64px}
-    h1{font-size:32px;letter-spacing:-.01em;margin:0 0 4px}
-    h2{font-size:17px;margin:40px 0 14px}
-    p.sub{color:var(--muted);margin:0}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-    .card{background:var(--card);border-radius:20px;padding:18px 16px 16px;box-shadow:0 0 0 .5px var(--line);display:flex;flex-direction:column;align-items:center;gap:10px}
-    .stage{height:96px;display:grid;place-items:center;color:var(--ink);--mi-size:var(--preview-size,60px);cursor:pointer}
-    .head{display:flex;gap:8px;align-items:baseline}
-    .name{font-weight:600}
-    .pose{color:var(--muted);font-size:12px}
-    .row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-    .row.task{border-top:.5px solid var(--line);padding-top:10px;width:100%}
-    button{border:0;border-radius:999px;padding:6px 11px;background:var(--chip);color:var(--ink);font-family:inherit;font-weight:500;font-size:12px;line-height:1.2;cursor:pointer}
-    button:active{transform:scale(.96)}
-    button.loop::before{content:"↻ ";opacity:.6}
-    button.loop.on{background:var(--accent);color:#fff}
-    label.drive{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);width:100%;justify-content:center}
-    label.drive input{width:140px;accent-color:var(--accent)}
-    .inline{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:var(--accent);color:#fff;font-weight:600;font-size:15px}
-    .pill.small{padding:6px 12px;font-size:13px;gap:6px}
-    .pill.big{padding:14px 24px;font-size:17px;gap:10px}
-    .top{display:flex;justify-content:space-between;align-items:center;gap:20px}.links{display:flex;gap:18px;flex-wrap:wrap}a{color:inherit;text-underline-offset:4px}.toolbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:24px 0 20px}.toolbar input[type=search]{flex:1;min-width:220px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit}.toolbar label{display:flex;gap:8px;align-items:center}.toolbar input[type=range]{width:108px;accent-color:var(--ink)}.usage{font-size:12px;color:var(--muted);min-height:18px;text-align:center}.subject-id{font-size:12px;font-weight:400;color:var(--muted)}button:focus-visible,.stage:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:4px}.section[hidden],.card[hidden]{display:none}.section h2{display:flex;justify-content:space-between;align-items:baseline}.section h2 span{font-size:12px;color:var(--muted);font-weight:400}.group-note{margin:4px 0 16px;color:var(--muted);font-size:12px}.pose-buttons{border-top:1px solid var(--line);padding-top:8px}.pose-buttons button{background:transparent;border:1px solid var(--line)}footer{margin-top:40px;color:var(--muted);font-size:12px}details{margin-top:30px}summary{cursor:pointer;font-weight:600}html[data-theme=light]{--bg:#f5f5f7;--card:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:rgb(0 0 0 / .08);--accent:#252527;--chip:rgb(120 120 128 / .14)}html[data-theme=dark]{--bg:#151516;--card:#222224;--ink:#f5f5f7;--muted:#ababaf;--line:rgb(255 255 255 / .1);--accent:#77777d;--chip:rgb(120 120 128 / .28)}@media(max-width:620px){.top{align-items:flex-start;flex-direction:column}main{padding:24px 16px}.grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}}
-    #frames{position:fixed;inset:0;z-index:10;overflow:auto;padding:18px;background:var(--bg)}
+    html{color-scheme:light}
+    html[data-theme=dark]{color-scheme:dark}
+    @media (prefers-color-scheme:dark){html:not([data-theme=light]){color-scheme:dark}}
+    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif}
+    button,input{font:inherit;color:inherit}
+    button{border:0;background:transparent;cursor:pointer}
+    a{color:var(--muted);text-decoration:none}
+    a:hover{color:var(--ink)}
+    button:focus-visible,.stage:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+    .mast{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;padding:12px 22px;background:var(--material);backdrop-filter:saturate(1.5) blur(22px);box-shadow:inset 0 -.5px 0 var(--line)}
+    .brand{display:flex;align-items:center;gap:10px;min-width:180px;margin-right:auto}
+    .brand h1{margin:0;font-size:17px;font-weight:640;letter-spacing:-.022em;line-height:1.15}
+    .brand p{margin:1px 0 0;color:var(--muted);font-size:12px;letter-spacing:.01em}
+    #mark{display:grid;place-items:center;width:28px;height:28px;color:var(--ink)}
+    .segments{display:flex;gap:2px;padding:3px;border-radius:12px;background:var(--chip)}
+    .segments button{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:9px;color:var(--muted);font-size:13px;font-weight:560;white-space:nowrap}
+    .segments button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:var(--shadow),0 0 0 .5px var(--line)}
+    .segments button span{display:grid;place-items:center;width:16px;height:16px}
+    .tools{display:flex;align-items:center;gap:8px;flex:1 1 420px;justify-content:flex-end}
+    .search-field,.size-field{display:flex;align-items:center;gap:8px;height:36px;padding:0 10px;border-radius:11px;background:var(--chip)}
+    .search-field{flex:1 1 180px;min-width:160px;max-width:280px}
+    .search-field input{width:100%;border:0;background:transparent;outline:none;font-size:13px}
+    .search-field input::placeholder{color:var(--muted)}
+    #search-glyph,#size-glyph,#appearance-glyph{display:grid;place-items:center}
+    #search-glyph,#size-glyph{width:18px;height:18px}
+    .size-field{gap:8px;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+    input[type=range]{-webkit-appearance:none;appearance:none;width:92px;height:4px;border-radius:999px;background:color-mix(in srgb,var(--ink) 18%,transparent);outline:none}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--ink);border:2px solid var(--card);box-shadow:0 0 0 .5px var(--line)}
+    input[type=range]::-moz-range-thumb{width:16px;height:16px;border:2px solid var(--card);border-radius:50%;background:var(--ink)}
+    #appearance{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:var(--chip)}
+    #appearance:active,.segments button:active,.text-btn:active,.actions button:active,.pose-buttons button:active,.task button:active{transform:scale(.97)}
+    .links{display:flex;gap:14px;font-size:13px}
+    .text-btn{height:36px;padding:0 10px;border-radius:11px;color:var(--muted);font-size:13px;white-space:nowrap;flex:none}
+    .text-btn:hover{color:var(--ink);background:var(--chip)}
+    main{max-width:1180px;margin:0 auto;padding:22px 22px 72px}
+    .section-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:26px 2px 12px}
+    .section-head h2{margin:0;font-size:13px;font-weight:620;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+    .section-head span,.group-note{color:var(--muted);font-size:12px}
+    .group-note{margin:-4px 2px 12px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+    .card{background:var(--card);border-radius:22px;padding:8px;box-shadow:0 0 0 .5px var(--line);display:flex;flex-direction:column;gap:8px;min-width:0}
+    html.is-open .card{animation:rise .62s cubic-bezier(.22,.9,.3,1) both;animation-delay:calc(var(--i, 0) * 22ms)}
+    html:not(.is-open) .card{opacity:0}
+    @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+    .stage{height:calc(var(--preview-size, 60px) + 76px);border-radius:16px;background:var(--plate);display:grid;place-items:center;color:var(--ink);--mi-size:var(--preview-size, 60px);cursor:pointer}
+    .meta{padding:2px 8px 0}
+    .head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+    .name{font-size:16px;font-weight:630;letter-spacing:-.02em}
+    .subject-id{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+    .usage{margin:2px 0 0;color:var(--muted);font-size:12px;line-height:1.35;text-align:left}
+    .actions,.task{display:flex;flex-wrap:wrap;gap:4px;padding:0 4px}
+    .actions button,.task button{border-radius:8px;padding:6px 8px;color:var(--ink);font-size:12px;font-weight:520;line-height:1.2}
+    .actions button:hover,.task button:hover,.pose-buttons button:hover{background:var(--chip)}
+    button.loop{display:inline-flex;align-items:center}
+    button.loop::before{content:"";width:5px;height:5px;margin-right:6px;border:1.5px solid currentColor;border-radius:50%}
+    button.loop.on{background:var(--ink);color:var(--on)}
+    button.loop.on::before{background:currentColor}
+    .task{border-top:.5px solid var(--line);margin-top:2px;padding-top:8px}
+    label.drive{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px;padding:2px 10px 4px;color:var(--muted);font-size:12px}
+    label.drive input{width:100%}
+    .pose-line{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:0 4px 4px}
+    .pose-buttons{display:flex;flex:1;flex-wrap:wrap;gap:2px;min-width:0;padding:3px;border-radius:11px;background:var(--plate)}
+    .pose-buttons button{flex:1 1 auto;min-width:0;border-radius:8px;padding:6px 4px;color:var(--muted);font-size:11px;letter-spacing:-.01em}
+    .pose-buttons button.is-on{background:var(--card);color:var(--ink);font-weight:630;box-shadow:var(--shadow),0 0 0 .5px var(--line)}
+    .pose-line .text-btn{flex:none;height:30px;padding:0 8px}
+    .empty{display:flex;align-items:center;gap:10px;margin:28px 2px;color:var(--muted)}
+    .empty[hidden]{display:none}
+    #empty-glyph{width:28px;height:28px;display:grid;place-items:center;color:var(--ink)}
+    .more{margin-top:36px;border-top:.5px solid var(--line);padding-top:8px}
+    .more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);padding:10px 2px}
+    .more h2{font-size:15px;margin:18px 0 10px}
+    .inline{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;background:var(--ink);color:var(--on);font-weight:600}
+    .pill.small{padding:6px 11px;font-size:13px}
+    .pill.big{padding:12px 18px;font-size:16px}
+    .host-card{width:220px;padding:8px}
+    #native-status{color:var(--muted);font-size:12px}
+    footer{margin-top:28px;color:var(--muted);font-size:12px;line-height:1.5}
+    .section[hidden],.card[hidden]{display:none}
+    #veil{position:fixed;inset:0;z-index:6;display:grid;place-items:center;align-content:center;gap:18px;background:var(--bg);color:var(--ink);transition:opacity .42s ease,transform .42s ease}
+    #veil p{margin:0;color:var(--muted);font-size:13px;letter-spacing:.02em}
+    .veil-stage{display:flex;gap:22px;align-items:center}
+    .veil-icon{width:36px;height:36px;display:grid;place-items:center}
+    #veil.is-gone{opacity:0;transform:translateY(-12px);pointer-events:none}
+    html.skip-veil #veil{display:none}
+    #frames{position:fixed;inset:0;z-index:20;overflow:auto;padding:18px;background:var(--bg)}
     #frames .seq{display:flex;gap:6px;align-items:flex-start;margin-bottom:6px}
     #frames .seq > b{width:170px;flex:none;font:600 11px ui-monospace,Menlo,monospace;padding-top:22px}
     #frames figure{margin:0;width:80px;display:flex;flex-direction:column;align-items:center;gap:2px;--mi-size:60px}
     #frames figcaption{font:10px ui-monospace,Menlo,monospace;color:var(--muted);text-align:center}
     #frames .err{color:#ff3b30}
+    @media (prefers-reduced-motion:reduce){
+      html.is-open .card{animation:none;opacity:1}
+      #veil{transition:none}
+      button:active{transform:none}
+    }
+    @media (prefers-reduced-transparency:reduce){
+      .mast{background:var(--bg);backdrop-filter:none}
+    }
+    @media (max-width:720px){
+      .mast,.main{padding-left:16px;padding-right:16px}
+      .tools{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-start}
+      .search-field{flex:1 1 100%;max-width:none}
+      .grid{grid-template-columns:1fr}
+      .links{width:100%}
+    }
   </style>
 </head>
 <body>
+  <div id="veil" aria-hidden="true">
+    <div class="veil-stage" id="veil-stage"></div>
+    <p>正在铺开图库</p>
+  </div>
+  <header class="mast">
+    <div class="brand">
+      <span id="mark"></span>
+      <div>
+        <h1>Apple Motion Icons</h1>
+        <p id="collection-count">图标与动作</p>
+      </div>
+    </div>
+    <div class="segments" role="tablist" aria-label="分组">
+      <button type="button" data-filter="all" aria-pressed="true"><span data-seg="menu"></span>全部</button>
+      <button type="button" data-filter="navigation" aria-pressed="false"><span data-seg="daylight"></span>导航</button>
+      <button type="button" data-filter="actions" aria-pressed="false"><span data-seg="recall"></span>学习</button>
+      <button type="button" data-filter="library" aria-pressed="false"><span data-seg="eye"></span>图库</button>
+    </div>
+    <div class="tools">
+      <label class="search-field">
+        <span id="search-glyph"></span>
+        <input type="search" id="search" aria-label="搜索图标" placeholder="搜索名称、用途或动作">
+      </label>
+      <label class="size-field">
+        <span id="size-glyph"></span>
+        <input type="range" id="size" min="16" max="96" step="1" value="60" aria-label="尺寸">
+        <output id="size-value">60px</output>
+      </label>
+      <button type="button" id="stop-all" class="text-btn">全部归位</button>
+      <button type="button" id="appearance" aria-label="切换日夜"><span id="appearance-glyph"></span></button>
+    </div>
+    <nav class="links">
+      <a href="https://github.com/Yhazrin/apple-motion-icons">GitHub</a>
+      <a href="../examples/workflows.html">交互示例</a>
+      <a href="https://github.com/Yhazrin/apple-motion-icons/blob/main/docs/MAINTENANCE.md">维护</a>
+    </nav>
+  </header>
 <main>
-  <div class="top"><div><h1>Apple Motion Icons</h1><p class="sub" id="collection-count">图标与动作</p></div><div class="links"><a href="https://github.com/Yhazrin/apple-motion-icons">GitHub / 使用技能</a><a href="../examples/workflows.html">交互示例</a><a href="https://github.com/Yhazrin/apple-motion-icons/blob/main/docs/MAINTENANCE.md">维护说明</a><button id="appearance">切换日夜</button></div></div>
-  <div class="toolbar"><input type="search" id="search" aria-label="搜索图标" placeholder="搜索名称、用途或动作"><label for="size">尺寸 <input type="range" id="size" min="16" max="96" step="1" value="60"><output id="size-value">60px</output></label><button id="stop-all">停止并归位</button></div>
-  <section class="section" id="navigation-section"><h2>Vord · 导航 <span>6 个入口</span></h2><div class="grid" id="navigation-grid"></div></section>
-  <section class="section" id="actions-section"><h2>Vord · 业务动作 <span>查词、收录与学习反馈</span></h2><div class="grid" id="actions-grid"></div></section>
-  <section class="section" id="library-section"><h2>其余已设计图标 <span>通用动作与扩展配方</span></h2><p class="group-note">已可播放；这一组并非都已接入 Vord。</p><div class="grid" id="grid"></div></section>
-  <p class="sub" id="search-empty" hidden>没有匹配的图标。</p>
+  <section class="section" id="navigation-section" data-group="navigation">
+    <div class="section-head"><h2>导航</h2><span>今天、学习、词库、添加、助手、设置</span></div>
+    <div class="grid" id="navigation-grid"></div>
+  </section>
+  <section class="section" id="actions-section" data-group="actions">
+    <div class="section-head"><h2>学习</h2><span>查词、收录、例句与复习回执</span></div>
+    <div class="grid" id="actions-grid"></div>
+  </section>
+  <section class="section" id="library-section" data-group="library">
+    <div class="section-head"><h2>图库</h2><span>通用动作与扩展配方</span></div>
+    <p class="group-note">已可播放；这一组并非都已接入 Vord。</p>
+    <div class="grid" id="grid"></div>
+  </section>
+  <p class="empty" id="search-empty" hidden><span id="empty-glyph"></span>没有匹配的图标。</p>
 
-  <details><summary>宿主、内联尺寸与 HUD 示例</summary>
+  <details class="more"><summary>宿主、内联尺寸与 HUD 示例</summary>
   <h2>原生宿主预览</h2>
   <div class="inline">
     <iframe id="native-host" src="motion-icon-host.html" title="本地动效图标" style="width:80px;height:80px;border:0;background:transparent"></iframe>
-    <button data-native="searching">查词预览</button><button data-native="save">保存预览</button>
-    <button data-native="spin">同步预览</button><button data-native="stop">停止预览</button>
+    <button class="text-btn" data-native="searching">查词预览</button><button class="text-btn" data-native="save">保存预览</button>
+    <button class="text-btn" data-native="spin">同步预览</button><button class="text-btn" data-native="stop">停止预览</button>
     <span id="native-status">尚未播放</span>
   </div>
   <h2>内联尺寸（描边粗细随尺寸做光学补偿）</h2>
@@ -67,9 +202,9 @@
 
   <h2>可选：Face ID 外框与磨砂 HUD</h2>
   <div class="inline">
-    <div class="card" style="width:200px"><div class="stage" id="framed"></div><div class="row">
+    <div class="card host-card" style="--i:0"><div class="stage" id="framed"></div><div class="actions">
       <button data-framed="success">成功</button><button data-framed="fail">失败</button></div></div>
-    <div class="row">
+    <div class="actions">
       <button data-hud="lock success">HUD 加密</button>
       <button data-hud="unlock success">HUD 解锁</button>
       <button data-hud="unlock fail">HUD 验证失败</button>
@@ -78,7 +213,7 @@
     </div>
   </div>
   </details>
-  <footer>Yhazrin · MIT · 点图标可看点按反馈；循环可再次点击停止。新配方随仓库更新加入。<br><span id="release-info"></span></footer>
+  <footer>Yhazrin · MIT · 点舞台可看点按反馈；循环可再次点击停止。新配方随仓库更新加入。<br><span id="release-info"></span></footer>
 </main>
 
 <script src="motion-icons.js"></script>
@@ -86,6 +221,7 @@
 <script src="motion-icons-learning.js"></script>
 <script>
   const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const framesMode = new URLSearchParams(location.search).has('frames');
   const icons = window.galleryIcons = {};
   const grid = document.getElementById('grid');
   const subjects = {
@@ -105,6 +241,19 @@
   const restPose = (name, icon) => name === 'daylight' && isDark() ? 'night' : icon.poses[0];
   const ordered = [...Object.keys(subjects),...Object.keys(MotionIcon.recipes).filter(name=>!subjects[name])];
   const el = (tag, props = {}, parent) => { const e = Object.assign(document.createElement(tag), props); parent?.appendChild(e); return e; };
+  const glyph = (host, name, size, pose) => MotionIcon.create(host, name, pose ? {size, pose} : {size});
+  const mark = glyph(document.getElementById('mark'), 'refresh', 22);
+  const themeIcon = glyph(document.getElementById('appearance-glyph'), 'daylight', 22, isDark() ? 'night' : 'idle');
+  const searchIcon = glyph(document.getElementById('search-glyph'), 'lookup', 18);
+  const emptyIcon = glyph(document.getElementById('empty-glyph'), 'lookup', 26);
+  const sizeIcon = glyph(document.getElementById('size-glyph'), 'refresh', 18);
+  const segIcons = {};
+  document.querySelectorAll('[data-seg]').forEach(host => {
+    const name = host.dataset.seg;
+    segIcons[name] = glyph(host, name, 15, name === 'daylight' && isDark() ? 'night' : null);
+  });
+  let filter = 'all';
+  let searching = false;
 
   for (const name of ordered) {
     const recipe = MotionIcon.recipes[name];
@@ -113,18 +262,17 @@
     const parent = group === 'navigation' ? document.getElementById('navigation-grid') : group === 'actions' ? document.getElementById('actions-grid') : grid;
     const card = el('div', {className: 'card'}, parent);
     card.dataset.subject = name;
+    card.dataset.group = group;
+    card.style.setProperty('--i', String(Math.min(controls.length, 12)));
     card.dataset.search = [name,title,usage,...Object.values(recipe.actions).map(a=>a.label||'')].join(' ').toLowerCase();
     const stage = el('div', {className: 'stage',tabIndex:0}, card);
     stage.setAttribute('role','button');stage.setAttribute('aria-label',title+' · 点按反馈');
-    const head = el('div', {className: 'head'}, card);
+    const meta = el('div', {className: 'meta'}, card);
+    const head = el('div', {className: 'head'}, meta);
     el('span', {className: 'name', textContent: title}, head);
     el('span', {className: 'subject-id', textContent: name}, head);
-    el('div', {className:'usage',textContent:usage},card);
-    const poseLabel = el('span', {className: 'pose'}, head);
+    el('p', {className:'usage',textContent:usage}, meta);
     const icon = icons[name] = MotionIcon.create(stage, name, name === 'daylight' && isDark() ? {pose:'night'} : {});
-    const showPose = () => { poseLabel.textContent = icon.poses.length > 1 ? `姿态：${icon.pose}` : ''; };
-    icon.element.addEventListener('mi:pose', showPose);
-    showPose();
     let taskToken = 0, hoverRest = null;
     if (name === 'book') {
       stage.onpointerenter = () => { if (icon.pose === 'idle') { hoverRest = 'idle'; icon.play('peek'); } };
@@ -135,17 +283,19 @@
     stage.onclick = () => {taskToken++;hoverRest=null;if(name==='book')icon.play('select');else icon.tap();};
     stage.onkeydown = e => {if(e.key==='Enter'||e.key===' '){e.preventDefault();stage.click();}};
 
-    const row = el('div', {className: 'row'}, card);
+    const row = el('div', {className: 'actions'}, card);
     const loops = [];
     for (const [action, a] of Object.entries(recipe.actions)) {
       if (action === 'tap') continue;
       if (a.drive) {
-        const lab = el('label', {className: 'drive', textContent: a.label || action}, card);
+        const lab = el('label', {className: 'drive'}, card);
+        el('span', {textContent: a.label || action}, lab);
         const input = el('input', {type: 'range', min: 0, max: 1, step: 0.01, value: a.initial ?? 0}, lab);
+        input.setAttribute('aria-label', a.label || action);
         input.oninput = () => {taskToken++;icon.drive(action, +input.value);};
         continue;
       }
-      const b = el('button', {textContent: a.label || action, className: a.loop ? 'loop' : ''}, row);
+      const b = el('button', {type:'button', textContent: a.label || action, className: a.loop ? 'loop' : ''}, row);
       if (a.loop) loops.push(b);
       b.onclick = () => {
         taskToken++;hoverRest=null;
@@ -160,34 +310,84 @@
       if (!recipe.actions[e.detail.action]?.loop) loops.forEach(l => l.classList.remove('on'));
     });
     if (recipe.task) {
-      const task = el('div', {className: 'row task'}, card);
-      el('button', {textContent: '任务 · 成功', onclick: async () => { const token=++taskToken;icon.busy(); await sleep(900);if(token===taskToken)icon.success(); }}, task);
-      el('button', {textContent: '任务 · 失败', onclick: async () => { const token=++taskToken;icon.busy(); await sleep(900);if(token===taskToken)icon.fail(); }}, task);
+      const task = el('div', {className: 'task'}, card);
+      el('button', {type:'button', textContent: '任务 · 成功', onclick: async () => { const token=++taskToken;icon.busy(); await sleep(900);if(token===taskToken)icon.success(); }}, task);
+      el('button', {type:'button', textContent: '任务 · 失败', onclick: async () => { const token=++taskToken;icon.busy(); await sleep(900);if(token===taskToken)icon.fail(); }}, task);
     }
-    const poses = el('div',{className:'row pose-buttons'},card);
-    for (const pose of icon.poses) el('button',{textContent:pose,onclick:()=>{taskToken++;hoverRest=null;loops.forEach(b=>b.classList.remove('on'));icon.setPose(pose);}},poses);
+    const poseLine = el('div', {className:'pose-line'}, card);
+    const poses = el('div',{className:'pose-buttons'}, poseLine);
+    poses.setAttribute('role','group');
+    poses.setAttribute('aria-label','姿态');
+    const poseButtons = icon.poses.map(pose => {
+      const b = el('button',{type:'button', textContent:pose}, poses);
+      b.dataset.pose = pose;
+      b.onclick=()=>{taskToken++;hoverRest=null;loops.forEach(n=>n.classList.remove('on'));icon.setPose(pose);};
+      return b;
+    });
+    const showPose = () => poseButtons.forEach(b => { b.classList.toggle('is-on', b.dataset.pose === icon.pose); b.setAttribute('aria-pressed', b.dataset.pose === icon.pose ? 'true' : 'false'); });
+    icon.element.addEventListener('mi:pose', showPose);
+    showPose();
     const reset=()=>{taskToken++;hoverRest=null;loops.forEach(b=>b.classList.remove('on'));card.querySelectorAll('input[type=range]').forEach(input=>input.value=input.defaultValue);icon.reset({pose:restPose(name,icon)});};
-    el('button',{textContent:'归位',onclick:reset},poses);
+    el('button',{type:'button', className:'text-btn', textContent:'归位',onclick:reset}, poseLine);
     controls.push({card,icon,reset});
   }
-  document.getElementById('collection-count').textContent=controls.length+' 个已设计对象 · 每个动作单独播放';
-  document.getElementById('stop-all').onclick=()=>controls.forEach(c=>c.reset());
-  document.getElementById('size').oninput=e=>{document.documentElement.style.setProperty('--preview-size',e.target.value+'px');document.getElementById('size-value').textContent=e.target.value+'px';};
-  document.getElementById('search').oninput=e=>{
-    const query=e.target.value.trim().toLowerCase();let visible=0;
-    controls.forEach(({card,reset})=>{card.hidden=!card.dataset.search.includes(query);if(card.hidden)reset();else visible++;});
-    document.querySelectorAll('.section').forEach(section=>section.hidden=![...section.querySelectorAll('.card')].some(card=>!card.hidden));
-    document.getElementById('search-empty').hidden=visible>0;
+  document.getElementById('collection-count').textContent=controls.length+' 个对象 · 弹簧驱动';
+  const applyView = () => {
+    const query = document.getElementById('search').value.trim().toLowerCase();
+    let visible = 0;
+    controls.forEach(({card,reset}) => {
+      const show = card.dataset.search.includes(query) && (filter === 'all' || card.dataset.group === filter);
+      if (!show && !card.hidden) reset();
+      card.hidden = !show;
+      if (show) visible++;
+    });
+    document.querySelectorAll('.section').forEach(section => section.hidden = ![...section.querySelectorAll('.card')].some(card => !card.hidden));
+    const empty = document.getElementById('search-empty');
+    empty.hidden = visible > 0;
+    if (query && visible === 0) { setSearching(false); emptyIcon.play('empty'); }
+  };
+  function setSearching(on) {
+    if (on && !searching) { searchIcon.play('searching'); searching = true; }
+    if (!on && searching) { searchIcon.stop(); searching = false; }
+  }
+  document.getElementById('stop-all').onclick=()=>{mark.play('finish');controls.forEach(c=>c.reset());};
+  document.getElementById('size').oninput=e=>{
+    const value=+e.target.value;
+    document.documentElement.style.setProperty('--preview-size',value+'px');
+    document.getElementById('size-value').textContent=value+'px';
+    sizeIcon.drive('pull', (value-16)/80);
+  };
+  document.getElementById('size').onchange=()=>sizeIcon.play('finish');
+  document.getElementById('search').oninput=()=>{
+    const query=document.getElementById('search').value.trim();
+    setSearching(!!query);
+    applyView();
+  };
+  document.getElementById('search').addEventListener('focus', () => { if (document.getElementById('search').value.trim()) setSearching(true); });
+  document.getElementById('search').addEventListener('blur', () => setSearching(false));
+  document.querySelectorAll('.segments button').forEach(button => button.onclick = () => {
+    filter = button.dataset.filter;
+    document.querySelectorAll('.segments button').forEach(item => item.setAttribute('aria-pressed', item === button ? 'true' : 'false'));
+    segIcons[button.querySelector('[data-seg]').dataset.seg].tap();
+    applyView();
+  });
+  const syncThemeIcons = () => {
+    const night = isDark();
+    themeIcon.setPose(night ? 'night' : 'idle');
+    segIcons.daylight.setPose(night ? 'night' : 'idle');
   };
   document.getElementById('appearance').onclick=()=>{
     const root=document.documentElement;root.dataset.theme=isDark()?'light':'dark';
     const icon=icons.daylight;
+    const night=isDark();
     const selected=icon.pose==='selected'||icon.pose==='nightSelected';
-    if(selected)icon.setPose(isDark()?'nightSelected':'selected');
-    else icon.play(isDark()?'toNight':'toDay');
+    if(selected)icon.setPose(night?'nightSelected':'selected');
+    else icon.play(night?'toNight':'toDay');
+    themeIcon.play(night?'toNight':'toDay');
+    segIcons.daylight.setPose(night?'night':'idle');
   };
   matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{
-    if (!document.documentElement.dataset.theme && !new URLSearchParams(location.search).has('frames')) icons.daylight.setPose(isDark()?'night':'idle');
+    if (!document.documentElement.dataset.theme && !framesMode) { icons.daylight.setPose(isDark()?'night':'idle'); syncThemeIcons(); }
   });
   document.addEventListener('visibilitychange',()=>{if(document.hidden)controls.forEach(c=>c.reset());});
   fetch('../version.json',{cache:'no-store'}).then(response=>response.ok?response.json():null).then(v=>{if(v)document.getElementById('release-info').textContent='版本 '+v.commit.slice(0,7)+' · '+v.publishedAt;}).catch(()=>{});
@@ -200,7 +400,7 @@
     frame.contentWindow.vordMotion.apply({subject, action:action === 'stop' ? null : action,
       event:++nativeEvent, size:60, pose:subject === 'refresh' ? 'rest' : subject === 'lexicon' ? 'saved' : 'idle',
       playOnMount:true, active:action !== 'stop', reduced:false,
-      ink:matchMedia('(prefers-color-scheme:dark)').matches ? '#EFEFEF' : '#202020'});
+      ink:isDark() ? '#EFEFEF' : '#202020'});
     document.getElementById('native-status').textContent = action;
   });
 
@@ -229,7 +429,23 @@
     hud.busy(); await sleep(1100); hud[result]();
   });
 
-  if (new URLSearchParams(location.search).has('frames')) {
+  if (!document.documentElement.classList.contains('skip-veil')) {
+    const stage = document.getElementById('veil-stage');
+    const intro = [['refresh','spin'],['daylight','toNight'],['download','downloading'],['send','send'],['bell','ring']].map(([name, action]) => {
+      const icon = MotionIcon.create(el('span', {className:'veil-icon'}, stage), name, {size:34});
+      icon.play(action);
+      return icon;
+    });
+    sleep(1320).then(() => {
+      intro.forEach(icon => icon.stop());
+      document.getElementById('veil').classList.add('is-gone');
+      document.documentElement.classList.add('is-open');
+      mark.play('tap');
+      return sleep(460);
+    }).then(() => document.getElementById('veil')?.remove());
+  }
+
+  if (framesMode) {
     const s = document.createElement('script');
     s.src = '../scripts/capture-frames.js?' + Date.now();
     document.body.appendChild(s);
