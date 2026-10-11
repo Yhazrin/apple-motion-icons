@@ -13,8 +13,8 @@ unchanged; this file adds 14 subjects.
 | book | Closed cover unfolding around its spine | idle (closed), open, selected (open) | tap, peek, select, close, turn | — |
 | recall | Folded answer card | idle, revealed | tap, reveal, close, next, retry | — |
 | milestone | A finished word booklet and attached seal | idle, complete | tap, complete, restart | — |
-| capture | Folded paper with an attached plus | idle, selected | tap, peek, select, insert | — |
-| conversation | Two bubbles with answering dots | idle, selected | tap, peek, select, reply | thinking |
+| capture | A plus that grows when another plus lands on it | idle, selected | tap, peek, select, insert | — |
+| conversation | A face with a gaze and an orbiting mote | idle, selected | tap, peek, select, reply | thinking |
 | settings | Engraved mechanical dial | idle, selected | tap, peek, select, turn | — |
 | sentence | Writing on a lined page | idle, selected | tap, peek, select, reveal, fail | writing; task mapping |
 | memory | Landscape inside a bookmarked frame | idle, selected | tap, peek, select, bind, fail | imagining; task mapping |

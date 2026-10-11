@@ -300,64 +300,80 @@
   });
 
   M.define('capture', {
-    svg: `<g data-part="paper"><path data-part="outline" d="M36 22h37l19 19v49a10 10 0 0 1-10 10H36a10 10 0 0 1-10-10V32a10 10 0 0 1 10-10Z"/><path data-part="fold" d="M73 22v12a7 7 0 0 0 7 7h12"/><g data-part="plus"><path d="M46 68h28M60 54v28"/></g></g>`,
-    state: {paperY: 0, plusAngle: 0, foldAngle: 0, contact: 1},
-    poses: {idle: {}, selected: {plusAngle: 90}},
-    periodic: {plusAngle: 360},
+    svg: `<g data-part="mark"><path data-part="east" d="M60 60H90"/><path data-part="west" d="M60 60H30"/><path data-part="north" d="M60 60V30"/><path data-part="south" d="M60 60V90"/></g><g data-part="incoming"><path d="M52 16h16M60 8v16"/></g>`,
+    state: {plusScale: .72, plusY: 0, arm: .55, contact: 1, inY: 0, inOpacity: 0},
+    poses: {idle: {}, selected: {plusScale: 1, arm: 1}},
     render(s, p) {
-      attr(p.paper, 'transform', `translate(0 ${s.paperY}) ${aroundXY(1 + (1-s.contact)*.4, s.contact, 60, 100)}`);
-      attr(p.plus, 'transform', `rotate(${s.plusAngle} 60 68)`);
-      attr(p.fold, 'transform', `rotate(${s.foldAngle} 73 22)`);
-      const theta = s.foldAngle * Math.PI / 180;
-      const tipX = 73 + 19*Math.cos(theta) - 19*Math.sin(theta);
-      const tipY = 22 + 19*Math.sin(theta) + 19*Math.cos(theta);
-      attr(p.outline, 'd', `M36 22H73L${tipX} ${tipY}L92 56V90a10 10 0 0 1-10 10H36a10 10 0 0 1-10-10V32a10 10 0 0 1 10-10Z`);
+      attr(p.mark, 'transform', `translate(0 ${s.plusY}) ${aroundXY(s.plusScale, s.plusScale * s.contact, 60, 60)}`);
+      for (const name of ['east', 'west', 'north', 'south']) dash(p[name], 30, s.arm);
+      attr(p.incoming, 'transform', `translate(0 ${s.inY})`);
+      attr(p.incoming, 'opacity', clamp01(s.inOpacity));
     },
     actions: {
-      tap: {label: '轻触纸页', run: c => c.squash('contact', .95)},
-      peek: {label: '纸角扬起', async run(c) {
-        c.to('foldAngle', -9, 'swing'); c.to('plusAngle', c.goal('plusAngle') + 12, 'gentle'); await c.wait(230);
+      tap: {label: '轻触加号', run: c => c.nudge('plusScale', .06)},
+      peek: {label: '加上去', async run(c) {
+        c.to('inOpacity', .9, 'fade'); c.to('inY', 8, 'gentle');
+        c.to('arm', Math.min(1, c.goal('arm') + .1), 'gentle'); await c.wait(200);
       }},
-      select: {label: '准备收录', pose: 'selected', async run(c) {
-        c.to('plusAngle', c.goal('plusAngle') - 5, 'snap'); await c.wait(95);
-        c.to('plusAngle', 90, 'slow'); c.to('paperY', -4, 'pop'); await c.wait(220);
+      select: {label: '落在加号', pose: 'selected', from: 'idle', async run(c) {
+        c.to('inOpacity', 1, 'fade'); c.to('inY', -8, 'snap'); await c.wait(90);
+        c.to('inY', 42, {stiffness: 700, damping: 34}); await c.wait(110);
+        c.to('inOpacity', 0, 'fade');
+        c.to('plusScale', 1, 'pop'); c.to('arm', 1, 'draw'); c.to('plusY', 2, 'impact');
+        await c.wait(70); c.squash('contact', .86); c.to('plusY', 0, 'rebound'); await c.wait(200);
       }},
-      insert: {label: '放下纸页', async run(c) {
-        c.to('paperY', -6, 'snap'); await c.wait(100);
-        c.to('paperY', 0, 'impact'); await c.wait(70);
-        c.squash('contact', .90); c.to('foldAngle', -7, 'swing'); await c.wait(220);
+      insert: {label: '再落一次', pose: 'selected', from: 'idle', async run(c) {
+        c.to('inOpacity', 1, 'fade'); c.to('inY', -6, 'snap'); await c.wait(80);
+        c.to('inY', 42, {stiffness: 700, damping: 34}); await c.wait(100);
+        c.to('inOpacity', 0, 'fade'); c.to('arm', 1, 'draw'); c.to('plusScale', 1, 'pop');
+        c.squash('contact', .88); await c.wait(180);
       }}
     }
   });
 
   M.define('conversation', {
-    svg: `<g data-part="back"><path d="M53 50h39a10 10 0 0 1 10 10v22a10 10 0 0 1-10 10h-4l-10 10V92H53a10 10 0 0 1-10-10V60a10 10 0 0 1 10-10Z"/></g><g data-part="front"><path d="M28 23h47a10 10 0 0 1 10 10v25a10 10 0 0 1-10 10H44L30 81V68h-2a10 10 0 0 1-10-10V33a10 10 0 0 1 10-10Z"/><circle data-part="dotA" data-fill cx="36" cy="46" r="2.8"/><circle data-part="dotB" data-fill cx="51" cy="46" r="2.8"/><circle data-part="dotC" data-fill cx="66" cy="46" r="2.8"/></g>`,
-    state: {frontY: 0, backY: 0, frontAngle: 0, dotA: 1, dotB: 1, dotC: 1},
-    poses: {idle: {}, selected: {backY: -3}},
+    svg: `<g data-part="body"><circle cx="60" cy="64" r="26"/><path data-part="eyeL" d="M49 60v10"/><path data-part="eyeR" d="M71 60v10"/></g><circle data-part="mote" data-fill cx="0" cy="0" r="3.5"/>`,
+    state: {bodyY: 0, tilt: 0, gazeX: 0, gazeY: 0, blink: 1, moteAngle: -40, moteScale: .72},
+    poses: {idle: {}, selected: {bodyY: -2, gazeY: -1, moteAngle: -90, moteScale: 1}},
+    periodic: {moteAngle: 360},
     render(s, p) {
-      attr(p.front, 'transform', `translate(0 ${s.frontY}) rotate(${s.frontAngle} 51 68)`);
-      attr(p.back, 'transform', `translate(0 ${s.backY})`);
-      ['dotA', 'dotB', 'dotC'].forEach(k => attr(p[k], 'opacity', clamp01(s[k])));
+      attr(p.body, 'transform', `translate(0 ${s.bodyY}) rotate(${s.tilt} 60 64)`);
+      const lid = Math.max(.08, s.blink);
+      attr(p.eyeL, 'transform', `translate(${s.gazeX} ${s.gazeY}) ${aroundXY(1, lid, 49, 65)}`);
+      attr(p.eyeR, 'transform', `translate(${s.gazeX} ${s.gazeY}) ${aroundXY(1, lid, 71, 65)}`);
+      const ang = s.moteAngle * Math.PI / 180;
+      attr(p.mote, 'transform', `translate(${60 + Math.cos(ang) * 22} ${40 + Math.sin(ang) * 12}) scale(${Math.max(.2, s.moteScale)})`);
     },
     actions: {
-      tap: {label: '轻触对话', run: c => c.nudge('frontY', -4)},
-      peek: {label: '倾听一下', async run(c) {
-        c.to('frontAngle', -4, 'gentle'); await c.wait(50);
-        c.to('backY', c.goal('backY') + 3, 'gentle'); await c.wait(190);
+      tap: {label: '轻触助手', run: c => c.nudge('bodyY', -3)},
+      peek: {label: '看过来', async run(c) {
+        c.to('gazeX', 5, 'snap'); c.to('tilt', -5, 'gentle');
+        c.to('moteAngle', c.goal('moteAngle') + 18, 'gentle'); await c.wait(140);
+        c.to('gazeX', -1, 'pop'); await c.wait(120);
       }},
-      select: {label: '展开对话', pose: 'selected', async run(c) {
-        c.to('frontY', 4, 'snap'); await c.wait(95);
-        c.to('frontY', -4, 'pop'); await c.wait(55);
-        c.to('backY', -3, 'rebound'); await c.wait(180);
+      select: {label: '醒过来', pose: 'selected', from: 'idle', async run(c) {
+        c.to('bodyY', 3, 'snap'); c.to('tilt', -6, 'snap');
+        c.to('blink', .12, {stiffness: 1400, damping: 50}); await c.wait(80);
+        c.to('blink', 1, 'pop'); c.to('bodyY', -4, 'pop'); c.to('tilt', 4, 'pop');
+        c.to('gazeY', -2, 'gentle'); c.to('moteAngle', -8, 'gentle'); c.to('moteScale', 1.15, 'pop');
+        await c.wait(150);
+        c.to('moteAngle', -90, 'slow'); c.to('tilt', 0, 'gentle'); c.to('bodyY', -2, 'gentle');
+        await c.wait(220);
       }},
-      reply: {label: '接上回答', async run(c) {
-        c.to('backY', c.goal('backY') + 4, 'snap'); await c.wait(100);
-        c.to('backY', c.goal('backY') - 4, 'pop'); await c.wait(70);
-        c.to('frontY', -3, 'gentle'); await c.wait(210);
+      reply: {label: '点一下头', async run(c) {
+        c.to('blink', .14, {stiffness: 1400, damping: 50});
+        c.to('bodyY', c.goal('bodyY') + 5, 'impact'); await c.wait(90);
+        c.to('blink', 1, 'pop'); c.to('bodyY', c.goal('bodyY') - 3, 'rebound');
+        c.to('moteScale', c.goal('moteScale') + .16, 'pop'); await c.wait(180);
       }},
-      thinking: {label: '组织表达', loop: true, run(c) {
-        c.claim('dotA', 'dotB', 'dotC');
-        c.loop(t => ['dotA', 'dotB', 'dotC'].forEach((k, i) => { c.s[k] = .35 + .65 * M.util.wave(t, 1.1, i * .7); }));
+      thinking: {label: '想一想', loop: true, run(c) {
+        c.claim('gazeX', 'moteAngle', 'blink');
+        c.loop((t, dt) => {
+          c.s.gazeX = 4 * Math.sin(t * 2.2);
+          c.s.moteAngle += 160 * dt;
+          c.setVelocity('moteAngle', 160);
+          c.s.blink = (t % 2.6) < .1 ? .14 : 1;
+        });
       }}
     }
   });
