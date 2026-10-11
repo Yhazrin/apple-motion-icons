@@ -14,7 +14,7 @@ unchanged; this file adds 14 subjects.
 | recall | Folded answer card | idle, revealed | tap, reveal, close, next, retry | — |
 | milestone | A finished word booklet and attached seal | idle, complete | tap, complete, restart | — |
 | plus | Two elastic strokes that stay a plus until a real success | idle, confirmed, closed | tap, add, confirm, reject, reset, toClose | — |
-| conversation | The cat assistant, traced from its reference drawing | idle, selected | tap, peek, select, reply, blink, wink, happy, surprised, curious, shy, sad, wag, ears | talking, thinking, dozing; task mapping |
+| conversation | The cat assistant, traced from its reference drawing | idle, selected | tap, peek, select, reply, blink, wink, happy, squeeze, surprised, curious, shy, blank, sad, wiggle, pounce, wag, ears | talking, thinking, dozing; task mapping |
 | settings | Engraved mechanical dial | idle, selected | tap, peek, select, turn | — |
 | sentence | Writing on a lined page | idle, selected | tap, peek, select, reveal, fail | writing; task mapping |
 | memory | Landscape inside a bookmarked frame | idle, selected | tap, peek, select, bind, fail | imagining; task mapping |
@@ -71,9 +71,13 @@ dot eyes, a thin smile, two whiskers each side and a curled tail. Each part sits
 in a weight group that scales the engine's optical stroke by the reference line
 ratio, so the line contrast follows the drawing at every size.
 
-Expressions are springs on the same strokes: `joy` turns the dots into ^ ^ eyes,
-the mouth mixes smile, open, grin and frown shapes, and `blush` fades in the
-cheeks. Ears, gaze and tail move on the first frame of `peek` and `select`.
+Expressions are springs on the same strokes, in the manner of kaomoji. `joy`
+swaps the dots for ^ ^ (`^_^`), `cross` for inward chevrons (`>_<`), `cry` for
+T marks with a short tear (`T_T`), and `flat` for level lines (`-_-`). Bigger
+dots with an open mouth read as `O_O`. The mouth mixes smile, open, grin, frown
+and ω. `blush` fades in the cheeks. The body crouches, leaps and lands in
+`pounce`, and sways through `wiggle` and `squeeze`. Ears, gaze and tail move on
+the first frame of `peek` and `select`.
 `talking`, `thinking` and `dozing` claim only the keys they drive, so `stop`
 settles them back. The task mapping is busy → `thinking`, success → `happy`,
 fail → `sad`. Inner ears and cheeks use `--mi-cat-ear` (default `#f65a7d`);

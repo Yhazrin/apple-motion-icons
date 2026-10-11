@@ -369,20 +369,22 @@
     smile: 'M484 408Q511 426 538 408Q511 426 484 408',
     open: 'M496 407Q511 440 526 407Q511 396 496 407',
     grin: 'M478 403Q511 446 544 403Q511 411 478 403',
-    frown: 'M490 419Q511 402 532 419Q511 402 490 419'
+    frown: 'M490 419Q511 402 532 419Q511 402 490 419',
+    omega: 'M470 406Q492 388 511 408Q530 388 552 406'
   };
   const mouthBase = catInk(INK.mouth, CAT_MOUTH.smile);
   const mouthNums = {};
   for (const k of Object.keys(CAT_MOUTH)) mouthNums[k] = catInk(INK.mouth, CAT_MOUTH[k]).match(PATH_NUM).map(Number);
-  function mouthPath(open, grin, frown) {
-    const B = mouthNums.smile, O = mouthNums.open, G = mouthNums.grin, F = mouthNums.frown;
+  function mouthPath(open, grin, frown, soft) {
+    const B = mouthNums.smile, O = mouthNums.open, G = mouthNums.grin, F = mouthNums.frown, W = mouthNums.omega;
     let i = 0;
     return mouthBase.replace(PATH_NUM, () => {
-      const v = B[i] + open * (O[i] - B[i]) + grin * (G[i] - B[i]) + frown * (F[i] - B[i]);
+      const v = B[i] + open * (O[i] - B[i]) + grin * (G[i] - B[i]) + frown * (F[i] - B[i]) + soft * (W[i] - B[i]);
       i++;
       return v.toFixed(2);
     });
   }
+  const mark = (part, d) => `<g data-part="${part}">${weigh(INK.eye, `<path d="${catInk(INK.eye, d)}"/>`)}</g>`;
   const catEar = (w, a, b, c) => `<path data-part="${w}" d="${catInk(INK.line, `M${a}L${b}L${c}Z`)}"/><path d="${catInk(INK.line, `M${a}L${b}L${c}`)}"/>`;
   const [eyeLX, eyeLY] = catPt(421.5, 354), [eyeRX, eyeRY] = catPt(600.5, 354);
   const EYE_R = (17.5 * CAT_K).toFixed(2);
@@ -410,13 +412,17 @@ ${weigh(INK.line, `<path d="${catInk(INK.line, CAT_HEAD)}"/>`)}
 <circle data-part="eyeR" data-fill cx="${eyeRX.toFixed(2)}" cy="${eyeRY.toFixed(2)}" r="${EYE_R}"/>
 <g data-part="joyL">${weigh(INK.eye, `<path d="${catInk(INK.eye, 'M403 362Q421.5 334 440 362')}"/>`)}</g>
 <g data-part="joyR">${weigh(INK.eye, `<path d="${catInk(INK.eye, 'M582 362Q600.5 334 619 362')}"/>`)}</g>
+${mark('flatL', 'M404 354L439 354')}${mark('flatR', 'M583 354L618 354')}
+${mark('crossL', 'M406 340L428 354L406 368')}${mark('crossR', 'M616 340L594 354L616 368')}
+${mark('cryL', 'M406 340L437 340M421.5 340L421.5 368')}${mark('cryR', 'M585 340L616 340M600.5 340L600.5 368')}
+${mark('tearL', 'M421.5 372L421.5 390')}${mark('tearR', 'M600.5 372L600.5 390')}
 ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
 <g data-part="whiskL">${weigh(INK.whisker, `<path d="${catInk(INK.whisker, 'M279 389L331 400M279 416.5L331 416.5')}"/>`)}</g>
 <g data-part="whiskR">${weigh(INK.whisker, `<path d="${catInk(INK.whisker, 'M743 389L691 400M743 416.5L691 416.5')}"/>`)}</g>
 </g>`,
     css: '.mi--conversation svg [data-part^="inner"],.mi--conversation svg [data-part^="blush"]{fill:var(--mi-cat-ear,#f65a7d);stroke:none}',
     state: {bodyY: 0, squash: 1, tilt: 0, gazeX: 0, gazeY: 0, blinkL: 1, blinkR: 1, eyeScale: 1,
-      joy: 0, talk: 0, grin: 0, frown: 0, blush: 0, earL: 0, earR: 0, tail: 0, whisk: 1},
+      joy: 0, flat: 0, cross: 0, cry: 0, talk: 0, grin: 0, frown: 0, soft: 0, blush: 0, earL: 0, earR: 0, tail: 0, whisk: 1},
     poses: {idle: {}, selected: {bodyY: -1.5, earL: 4, earR: 4, tail: -8}},
     render(s, p) {
       const sx = 1 + (1 - s.squash) * .5;
@@ -424,20 +430,28 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
       attr(p.earL, 'transform', `rotate(${s.earL} ${PIVOT.earL})`);
       attr(p.earR, 'transform', `rotate(${-s.earR} ${PIVOT.earR})`);
       attr(p.tail, 'transform', `rotate(${s.tail} ${PIVOT.tail})`);
-      const joy = clamp01(s.joy);
       const gaze = `translate(${s.gazeX} ${s.gazeY})`;
-      attr(p.eyeL, 'transform', `${gaze} ${aroundXY(s.eyeScale, Math.max(.06, s.blinkL) * s.eyeScale * (1 - .8 * joy), eyeLX, eyeLY)}`);
-      attr(p.eyeR, 'transform', `${gaze} ${aroundXY(s.eyeScale, Math.max(.06, s.blinkR) * s.eyeScale * (1 - .8 * joy), eyeRX, eyeRY)}`);
-      attr(p.eyeL, 'opacity', 1 - joy);
-      attr(p.eyeR, 'opacity', 1 - joy);
-      for (const part of [p.joyL, p.joyR]) {
-        attr(part, 'opacity', joy);
-        attr(part, 'transform', `translate(${s.gazeX} ${s.gazeY + (1 - joy) * 1.5})`);
-      }
+      const cover = clamp01(Math.max(s.joy, s.flat, s.cross, s.cry));
+      attr(p.eyeL, 'transform', `${gaze} ${aroundXY(s.eyeScale, Math.max(.06, s.blinkL) * s.eyeScale, eyeLX, eyeLY)}`);
+      attr(p.eyeR, 'transform', `${gaze} ${aroundXY(s.eyeScale, Math.max(.06, s.blinkR) * s.eyeScale, eyeRX, eyeRY)}`);
+      attr(p.eyeL, 'opacity', 1 - cover);
+      attr(p.eyeR, 'opacity', 1 - cover);
+      const show = (part, amount) => {
+        attr(part, 'opacity', clamp01(amount));
+        attr(part, 'transform', `${gaze} translate(0 ${(1 - clamp01(amount)) * 1.5})`);
+      };
+      show(p.joyL, s.joy); show(p.joyR, s.joy);
+      show(p.flatL, s.flat); show(p.flatR, s.flat);
+      show(p.crossL, s.cross); show(p.crossR, s.cross);
+      show(p.cryL, s.cry); show(p.cryR, s.cry);
+      attr(p.tearL, 'opacity', clamp01(s.cry));
+      attr(p.tearR, 'opacity', clamp01(s.cry));
+      attr(p.tearL, 'transform', `${gaze} translate(0 ${clamp01(s.cry) * 3.5})`);
+      attr(p.tearR, 'transform', `${gaze} translate(0 ${clamp01(s.cry) * 3.5})`);
       attr(p.blushL, 'opacity', clamp01(s.blush));
       attr(p.blushR, 'opacity', clamp01(s.blush));
       const k = v => Math.max(-.15, Math.min(1.15, v));
-      p.mouth.setAttribute('d', mouthPath(k(s.talk), k(s.grin), k(s.frown)));
+      p.mouth.setAttribute('d', mouthPath(k(s.talk), k(s.grin), k(s.frown), k(s.soft)));
       attr(p.whiskL, 'transform', aroundXY(s.whisk, 1, ...PIVOT.whiskL));
       attr(p.whiskR, 'transform', aroundXY(s.whisk, 1, ...PIVOT.whiskR));
     },
@@ -479,21 +493,32 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
         c.to('earR', c.goal('earR') - 5, 'snap'); await c.wait(220);
         c.to('blinkR', 1, 'pop'); await c.wait(120);
       }},
-      happy: {label: '开心', async run(c) {
-        c.to('squash', .92, 'snap'); c.to('bodyY', c.goal('bodyY') + 2, 'snap');
-        c.to('joy', 1, {stiffness: 700, damping: 40}); await c.wait(80);
-        c.to('bodyY', c.goal('bodyY') - 6, 'pop'); c.to('squash', 1.05, 'pop'); c.to('grin', 1, 'pop');
-        c.to('blush', 1, 'fade'); c.to('earL', 12, 'pop'); c.to('earR', 12, 'pop'); c.to('whisk', 1.2, 'pop');
-        c.to('tail', 14, 'snap'); await c.wait(100);
-        c.to('tail', -12, 'snap'); await c.wait(100);
-        c.to('tail', 8, 'snap'); c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'settle'); await c.wait(120);
-        c.to('tail', c.goal('tail'), 'gentle'); await c.wait(300);
+      happy: {label: '开心 ^_^', async run(c) {
+        c.to('squash', .86, 'snap'); c.to('bodyY', c.goal('bodyY') + 3, 'snap');
+        c.to('joy', 1, {stiffness: 700, damping: 40}); c.to('soft', 1, 'pop'); await c.wait(70);
+        c.to('bodyY', c.goal('bodyY') - 8, 'pop'); c.to('squash', 1.08, 'pop');
+        c.to('blush', 1, 'fade'); c.to('earL', 14, 'pop'); c.to('earR', 14, 'pop'); c.to('whisk', 1.22, 'pop');
+        c.to('tail', 16, 'snap'); await c.wait(90);
+        c.to('bodyY', c.goal('bodyY') + 2, 'impact'); c.to('squash', .9, 'impact'); c.to('tail', -14, 'snap'); await c.wait(80);
+        c.to('bodyY', c.goal('bodyY') - 5, 'pop'); c.to('squash', 1.04, 'pop'); c.to('tail', 10, 'pop'); await c.wait(90);
+        c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'settle'); c.to('tail', c.goal('tail'), 'gentle');
+        await c.wait(280);
       }},
-      surprised: {label: '惊讶', async run(c) {
-        c.to('earL', 14, 'snap'); c.to('earR', 14, 'snap'); c.to('eyeScale', 1.32, 'pop');
-        c.to('talk', 1, 'pop'); c.to('whisk', 1.25, 'pop'); c.to('bodyY', c.goal('bodyY') - 5, 'pop');
-        c.to('squash', 1.04, 'pop'); c.to('tail', -18, 'snap'); await c.wait(120);
-        c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'settle'); await c.wait(320);
+      squeeze: {label: '>_<', async run(c) {
+        c.to('cross', 1, 'snap'); c.to('squash', .82, 'impact'); c.to('bodyY', c.goal('bodyY') + 3, 'impact');
+        c.to('blush', 1, 'fade'); c.to('soft', 1, 'pop'); c.to('earL', -10, 'snap'); c.to('earR', -10, 'snap');
+        c.to('whisk', 1.3, 'pop'); await c.wait(90);
+        c.to('tilt', 6, 'snap'); await c.wait(60);
+        c.to('tilt', -6, 'snap'); c.to('squash', .78, 'snap'); await c.wait(70);
+        c.to('tilt', 0, 'pop'); c.to('squash', 1.06, 'pop'); c.to('bodyY', c.goal('bodyY') - 4, 'pop'); await c.wait(200);
+      }},
+      surprised: {label: '惊讶 O_O', async run(c) {
+        c.to('squash', 1.02, 'snap'); c.to('bodyY', c.goal('bodyY') + 1, 'snap'); await c.wait(50);
+        c.to('earL', 16, 'snap'); c.to('earR', 16, 'snap'); c.to('eyeScale', 1.55, 'pop');
+        c.to('talk', 1, 'pop'); c.to('whisk', 1.3, 'pop'); c.to('bodyY', c.goal('bodyY') - 7, 'pop');
+        c.to('squash', 1.08, 'pop'); c.to('tail', -20, 'snap'); await c.wait(140);
+        c.to('bodyY', c.goal('bodyY') + 2, 'impact'); c.to('squash', .94, 'impact'); await c.wait(70);
+        c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'settle'); await c.wait(280);
       }},
       curious: {label: '歪头', async run(c) {
         c.to('tilt', -9, 'gentle'); c.to('earL', -7, 'gentle'); c.to('earR', 11, 'snap');
@@ -502,18 +527,42 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
         open(c); await c.wait(300);
       }},
       shy: {label: '害羞', async run(c) {
-        c.to('blush', 1, 'fade'); c.to('gazeX', -3, 'gentle'); c.to('gazeY', 1.8, 'gentle');
-        c.to('tilt', 6, 'gentle'); c.to('earL', -5, 'gentle'); c.to('earR', -5, 'gentle');
-        c.to('grin', .3, 'gentle'); c.to('squash', .97, 'gentle'); await c.wait(150);
-        shut(c, .3); await c.wait(80);
-        open(c); await c.wait(380);
+        c.to('blush', 1, 'fade'); c.to('cross', .85, 'gentle'); c.to('soft', .6, 'gentle');
+        c.to('gazeY', 1.6, 'gentle'); c.to('tilt', 7, 'gentle'); c.to('squash', .95, 'gentle');
+        c.to('earL', -6, 'gentle'); c.to('earR', -6, 'gentle'); c.to('bodyY', c.goal('bodyY') + 1, 'gentle');
+        await c.wait(160);
+        c.to('tilt', -4, 'pop'); await c.wait(280);
       }},
-      sad: {label: '委屈', async run(c) {
-        c.to('earL', -14, 'gentle'); c.to('earR', -14, 'gentle'); c.to('frown', 1, 'gentle');
-        c.to('gazeY', 2.2, 'gentle'); c.to('bodyY', c.goal('bodyY') + 1.5, 'gentle'); c.to('squash', .97, 'gentle');
-        c.to('tail', 16, 'slow'); c.to('eyeScale', .92, 'gentle'); await c.wait(260);
-        shut(c, .1); await c.wait(80);
-        open(c); await c.wait(350);
+      blank: {label: '-_-', async run(c) {
+        c.to('flat', 1, 'snap'); c.to('earL', -6, 'gentle'); c.to('earR', -6, 'gentle');
+        c.to('squash', .98, 'gentle'); c.to('tail', 6, 'gentle'); await c.wait(120);
+        c.to('tilt', 3, 'gentle'); await c.wait(260);
+      }},
+      sad: {label: '委屈 T_T', async run(c) {
+        c.to('cry', 1, 'gentle'); c.to('frown', 1, 'gentle');
+        c.to('earL', -16, 'gentle'); c.to('earR', -16, 'gentle');
+        c.to('bodyY', c.goal('bodyY') + 3, 'gentle'); c.to('squash', .95, 'gentle');
+        c.to('tail', 18, 'slow'); await c.wait(200);
+        c.to('bodyY', c.goal('bodyY') + 1, 'gentle'); await c.wait(240);
+      }},
+      wiggle: {label: '扭一扭', async run(c) {
+        c.to('squash', .9, 'snap'); c.to('joy', .7, 'snap'); c.to('tail', 12, 'snap'); await c.wait(60);
+        for (const angle of [-8, 9, -7, 6, -3]) {
+          c.to('tilt', angle, 'snap'); c.to('tail', -angle * 1.6, 'pop'); await c.wait(65);
+        }
+        c.to('squash', 1, 'settle'); await c.wait(140);
+      }},
+      pounce: {label: '扑一下', async run(c) {
+        c.to('squash', .8, 'snap'); c.to('bodyY', c.goal('bodyY') + 4, 'snap');
+        c.to('cross', 1, 'snap'); c.to('tail', 14, 'snap'); c.to('earL', -6, 'snap'); c.to('earR', -6, 'snap');
+        await c.wait(90);
+        c.to('cross', 0, 'fade'); c.to('joy', 1, 'snap'); c.to('squash', 1.1, 'pop');
+        c.to('bodyY', c.goal('bodyY') - 9, 'pop'); c.to('earL', 16, 'pop'); c.to('earR', 16, 'pop');
+        c.to('tail', -18, 'snap'); await c.wait(110);
+        c.to('bodyY', c.goal('bodyY') + 3, 'impact'); c.to('squash', .86, 'impact'); c.to('joy', 0, 'fade');
+        await c.wait(70);
+        c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'rebound'); c.to('tail', c.goal('tail'), 'gentle');
+        await c.wait(180);
       }},
       wag: {label: '摇尾巴', async run(c) {
         for (const angle of [14, -12, 10, -6]) { c.to('tail', c.goal('tail') + angle, 'snap'); await c.wait(90); }
@@ -545,10 +594,11 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
         });
       }},
       dozing: {label: '打盹', loop: true, run(c) {
-        c.claim('blinkL', 'blinkR', 'squash', 'earL', 'earR', 'gazeY');
+        c.claim('blinkL', 'blinkR', 'squash', 'earL', 'earR', 'gazeY', 'flat');
         c.loop(t => {
           const e = Math.min(1, t / .6), lid = 1 - .94 * e * e * (3 - 2 * e);
           c.s.blinkL = c.s.blinkR = lid;
+          c.s.flat = e;
           c.s.earL = c.goal('earL') - 7 * e;
           c.s.earR = c.goal('earR') - 7 * e;
           c.s.squash = 1 - e * (.015 + .02 * M.util.wave(t, .45));
