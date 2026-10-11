@@ -5,7 +5,7 @@ object. A Codex / Cursor skill and a dependency-free browser library.
 
 **[Live gallery →](https://skills.yhazrin.xyz/motion-icons/)** — play every icon action, search by use, change size and appearance. The gallery follows the public `main` branch; published changes are checked about every five minutes.
 
-**25 subjects:** 13 general-purpose icons plus 12 learning, capture and navigation
+**27 subjects:** 13 general-purpose icons plus 14 learning, capture and navigation
 icons. Hover, selection, lookup, card insertion, recall, page-turning, writing and
 scene binding have their own movements. Motion stops when the object is at rest.
 
@@ -54,9 +54,17 @@ python3 -m http.server 8080 --bind 127.0.0.1
   sheet, exact-rest/pose/error checks; no package dependencies or build step.
 - [Native SwiftUI adapter](examples/MotionIconView.swift) — transparent, decorative
   WKWebViews, native focus/accessibility, lifecycle cleanup and event replay.
-- [Learning vocabulary](reference/learning.md) — the 12 added subjects and their verbs.
+- [Learning vocabulary](reference/learning.md) — the 14 added subjects and their verbs.
 - [Recipe authoring](reference/authoring.md) — extension rules and spring choices.
 
 The runtime retains its 480 Hz spring integration, display-refresh rendering,
 run-token cancellation, optical stroke weight and reduced-motion support.
 Add new subjects in a recipe file; do not fork the animator for a new icon.
+
+## Maintain the collection
+
+[Publishing and maintenance](docs/MAINTENANCE.md) covers the source-of-truth rules,
+static deployment, version checks, adding subjects and rollback.
+[Cursor maintenance prompt](docs/CURSOR_PROMPT.md) is ready to paste into an agent.
+Recipe changes become gallery cards automatically; declare a subject’s catalogue
+label and actual product usage before publishing.

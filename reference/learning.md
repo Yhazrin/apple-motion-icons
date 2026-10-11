@@ -2,15 +2,17 @@
 
 The collection is additive: load `motion-icons.js`, `motion-icons-recipes.js`,
 then `motion-icons-learning.js`. The 13 original recipes and their runtime are
-unchanged; this file adds 12 subjects.
+unchanged; this file adds 14 subjects.
 
 | Subject | Object | Rest poses | One-shot actions | Ongoing / driven |
 | --- | --- | --- | --- | --- |
 | lookup | Page and attached magnifying lens | idle | tap, found, empty, fail | searching |
 | lexicon | Word card sliding into a book | empty, saved | tap, save, reopen, fail | saving |
-| daylight | Sun outline morphing into a crescent | idle, selected, night, nightSelected | tap, peek, select, selectNight, toNight, toDay | — |
+| daylight | Sun revolving on its axis into a crescent | idle, selected, night, nightSelected | tap, peek, select, selectNight, toNight, toDay | — |
 | cards | A staggered word-card deck | idle, selected | tap, peek, select, remember, revisit | preparing |
 | book | Closed cover unfolding around its spine | idle (closed), open, selected (open) | tap, peek, select, close, turn | — |
+| recall | Folded answer card | idle, revealed | tap, reveal, close, next, retry | — |
+| milestone | A finished word booklet and attached seal | idle, complete | tap, complete, restart | — |
 | capture | Folded paper with an attached plus | idle, selected | tap, peek, select, insert | — |
 | conversation | Two bubbles with answering dots | idle, selected | tap, peek, select, reply | thinking |
 | settings | Engraved mechanical dial | idle, selected | tap, peek, select, turn | — |
@@ -39,13 +41,20 @@ the same selection change, and the button owns focus and `aria-current`.
 
 Daylight follows the effective color scheme: use `night` / `nightSelected` in
 dark appearance and `idle` / `selected` in light appearance. Theme changes call
-`setPose` on the existing instance; the crescent and sun share one continuous
-outline. The gallery also exposes `toNight` / `toDay` as replayable transitions.
-Never recreate the host or flash the day pose during a dark-mode selection.
+`setPose` on the existing instance so a second change reverses the turn while
+it is still moving. The disc revolves around a vertical axis: the near side
+swings out of the icon and the far side recedes, and the crescent replaces the
+sun only at the edge. Rays leave with that turn; stars arrive on the moon.
+The gallery’s appearance control plays `toNight` / `toDay`
+only from an unselected pose, and those actions retarget the phase on the first
+frame. A selected Today icon keeps `selected` or `nightSelected`. Never recreate
+the host or flash the day pose during a dark-mode selection.
 
-Book rests closed until hover, keyboard focus or selection opens it. Pointer
-leave restores its navigation pose; selected books remain open. `close` explicitly
-returns to the closed cover, and `turn` keeps the page attached to its spine.
+Book rests closed until hover, keyboard focus or selection opens it. `peek`,
+`select` and `close` move the cover on the first frame; the tilt is only
+follow-through, so leaving and re-entering reverses the hinge instead of
+finishing the previous anticipation. Pointer leave restores the navigation pose;
+selected books remain open. `turn` keeps the page attached to its spine.
 
 ## Async actions
 
@@ -82,3 +91,15 @@ repository. The app should wire the same events to its real services.
 The gallery frame sheet covers every declared action, stopped loop, drive and
 mapped task. It checks NaN, target pose, exact rest, error reset and completion
 within four seconds; visual inspection at 60 px still checks metaphor and bounds.
+
+## Recall and round completion
+
+`recall.reveal` unfolds the answer flap. A confirmed good rating starts `next`;
+`retry` keeps a forgotten card in the round. A failed persistence attempt triggers
+neither. Event tokens distinguish new ratings without remounting the native host.
+`milestone.complete` closes the final page and stamps the booklet, once a round
+actually finishes. Starting a fresh round uses `restart`.
+
+The host uses an action’s `from` pose only for an active, animated `playOnMount`.
+Reduced motion and reactivation use the stable requested pose, so completed results
+do not replay on every visit. See [maintenance](../docs/MAINTENANCE.md) for publishing.

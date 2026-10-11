@@ -42,7 +42,7 @@
 </head>
 <body>
 <main>
-  <div class="top"><div><h1>Apple Motion Icons</h1><p class="sub" id="collection-count">图标与动作</p></div><div class="links"><a href="https://github.com/Yhazrin/apple-motion-icons">GitHub / 使用技能</a><a href="../examples/workflows.html">交互示例</a><button id="appearance">切换日夜</button></div></div>
+  <div class="top"><div><h1>Apple Motion Icons</h1><p class="sub" id="collection-count">图标与动作</p></div><div class="links"><a href="https://github.com/Yhazrin/apple-motion-icons">GitHub / 使用技能</a><a href="../examples/workflows.html">交互示例</a><a href="https://github.com/Yhazrin/apple-motion-icons/blob/main/docs/MAINTENANCE.md">维护说明</a><button id="appearance">切换日夜</button></div></div>
   <div class="toolbar"><input type="search" id="search" aria-label="搜索图标" placeholder="搜索名称、用途或动作"><label for="size">尺寸 <input type="range" id="size" min="16" max="96" step="1" value="60"><output id="size-value">60px</output></label><button id="stop-all">停止并归位</button></div>
   <section class="section" id="navigation-section"><h2>Vord · 导航 <span>6 个入口</span></h2><div class="grid" id="navigation-grid"></div></section>
   <section class="section" id="actions-section"><h2>Vord · 业务动作 <span>查词、收录与学习反馈</span></h2><div class="grid" id="actions-grid"></div></section>
@@ -94,7 +94,7 @@
     conversation:['助手','Companion · 主导航','navigation'],settings:['设置','Settings · 主导航','navigation'],
     lookup:['查词','添加页与快加浮窗','actions'],lexicon:['词汇收录','保存中与确认入库','actions'],
     sentence:['例句','复习页 · 生成与结果反馈','actions'],memory:['记忆情景','生成与绑定词条','actions'],
-    refresh:['同步','同步状态与完成反馈','actions'],pencil:['笔尖','默写 / 打字扩展配方','library'],voice:['话筒','口语扩展配方','library'],
+    refresh:['同步','同步状态与完成反馈','actions'],recall:['回忆卡','展开答案 / 记住过词 / 留待重温','actions'],milestone:['整轮词本','复习与默写完成 / 开始新一轮','actions'],pencil:['笔尖','默写 / 打字扩展配方','library'],voice:['话筒','口语扩展配方','library'],
     lock:['锁','上锁 / 解锁','library'],pay:['支付卡','感应 / 翻面 / 拒绝','library'],enter:['进入','敲门 / 进入 / 被拒','library'],
     download:['下载','连续进度 / 完成 / 取消','library'],send:['发送','发送 / 撤回','library'],delete:['删除','打开 / 丢入 / 恢复','library'],
     heart:['喜欢','喜欢 / 取消 / 心跳','library'],menu:['菜单','菜单 / 关闭 / 返回','library'],bell:['通知','响铃 / 已读 / 静音','library'],
@@ -181,7 +181,10 @@
   };
   document.getElementById('appearance').onclick=()=>{
     const root=document.documentElement;root.dataset.theme=isDark()?'light':'dark';
-    icons.daylight.play(isDark()?'toNight':'toDay');
+    const icon=icons.daylight;
+    const selected=icon.pose==='selected'||icon.pose==='nightSelected';
+    if(selected)icon.setPose(isDark()?'nightSelected':'selected');
+    else icon.play(isDark()?'toNight':'toDay');
   };
   matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{
     if (!document.documentElement.dataset.theme && !new URLSearchParams(location.search).has('frames')) icons.daylight.setPose(isDark()?'night':'idle');

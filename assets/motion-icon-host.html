@@ -13,7 +13,8 @@
     const fresh = !icon || previous?.subject !== next.subject;
     if (fresh) {
       icon?.destroy(); host.replaceChildren();
-      icon = MotionIcon.create(host, next.subject, {size:next.size, weight:'regular', pose:next.pose});
+      const from = next.active && !next.reduced && next.playOnMount ? MotionIcon.recipes[next.subject].actions[next.action]?.from : null;
+      icon = MotionIcon.create(host, next.subject, {size:next.size, weight:'regular', pose:from || next.pose});
       previous = undefined;
     }
     icon.element.style.setProperty('--mi-size', next.size + 'px');

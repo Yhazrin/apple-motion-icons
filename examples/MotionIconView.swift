@@ -4,10 +4,10 @@ import SwiftUI
 import WebKit
 
 enum MotionIconSubject: String {
-    case lookup, lexicon, daylight, cards, book, capture, conversation, settings, sentence, memory, pencil, voice
+    case lookup, lexicon, daylight, cards, book, capture, conversation, settings, sentence, memory, pencil, voice, recall, milestone
     case sync = "refresh"
     var restPose: String {
-        switch self { case .lexicon: return "saved"; case .sync: return "rest"; default: return "idle" }
+        switch self { case .lexicon: return "saved"; case .sync: return "rest"; case .milestone: return "complete"; default: return "idle" }
     }
 
 }

@@ -89,18 +89,48 @@
 
   const sunOutline = 'M60 40C48.95 40 40 48.95 40 60C40 71.05 48.95 80 60 80C71.05 80 80 71.05 80 60C80 48.95 71.05 40 60 40Z';
   const moonOutline = 'M73 32C49 24 31 43 33 63C35 86 59 98 80 82C61 84 45 66 47 50C49 41 58 34 73 32Z';
+  const rayOutline = 'M60 18L60 28M60 92L60 102M18 60L28 60M92 60L102 60M30 30L37 37M83 83L90 90M30 90L37 83M83 37L90 30';
+  const starOutline = 'M86 34L86 44M81 39L91 39M92 58L92 64M89 61L95 61';
+  const PATH_NUM = /-?\d*\.?\d+(?:e-?\d+)?/g;
+  function turnPath(d, angle, spin, warmth, travel) {
+    const nums = d.match(PATH_NUM);
+    if (!nums || nums.length % 2) return d;
+    const cosA = Math.cos(angle), sinA = Math.sin(angle);
+    const cosS = Math.cos(spin), sinS = Math.sin(spin);
+    const focal = 48;
+    const out = [];
+    for (let i = 0; i < nums.length; i += 2) {
+      const x0 = (+nums[i] - 60) * warmth, y0 = (+nums[i + 1] - 60) * warmth;
+      const x = x0 * cosS - y0 * sinS, y = x0 * sinS + y0 * cosS;
+      const z = x * sinA;
+      const persp = Math.min(3.1, focal / Math.max(16, focal - z));
+      out.push((60 + x * cosA * persp + travel).toFixed(2), (60 + y * persp).toFixed(2));
+    }
+    let n = 0;
+    return d.replace(PATH_NUM, () => out[n++]);
+  }
   M.define('daylight', {
-    svg: `<g data-part="sun"><path data-part="outline" d="${sunOutline}"/><g data-part="rays"><path d="M60 18v10M60 92v10M18 60h10M92 60h10M30 30l7 7M83 83l7 7M30 90l7-7M83 37l7-7"/></g><path data-part="stars" d="M86 34v10M81 39h10M92 58v6M89 61h6"/></g>`,
+    svg: `<g data-part="sun"><path data-part="outline" d="${sunOutline}"/></g><path data-part="rays" d="${rayOutline}"/><path data-part="stars" d="${starOutline}"/>`,
     state: {phase: 0, rise: 0, warmth: 1, rayAngle: 0},
     poses: {idle: {}, selected: {rayAngle: 12}, night: {phase: 1}, nightSelected: {phase: 1, rayAngle: 12}},
     periodic: {rayAngle: 360},
     render(s, p) {
       const phase = clamp01(s.phase);
-      attr(p.sun, 'transform', `translate(0 ${s.rise}) ${around(s.warmth, 60, 60)}`);
-      attr(p.outline, 'd', M.util.lerpPath(sunOutline, moonOutline, phase));
-      attr(p.rays, 'transform', `rotate(${s.rayAngle} 60 60) ${around(1 - phase * .24, 60, 60)}`);
-      attr(p.rays, 'opacity', clamp01(1 - phase * 1.6));
-      attr(p.stars, 'opacity', clamp01((phase - .45) / .55));
+      const moon = phase >= 0.5;
+      const angle = (moon ? phase - 1 : phase) * Math.PI;
+      const travel = Math.sin(phase * Math.PI) * 8;
+      const lift = `translate(0 ${s.rise - travel * 0.08})`;
+      const facing = Math.cos(phase * Math.PI);
+      const day = clamp01((facing - 0.12) / 0.7);
+      const night = clamp01((-facing - 0.12) / 0.7);
+      attr(p.sun, 'transform', lift);
+      attr(p.outline, 'd', turnPath(moon ? moonOutline : sunOutline, angle, 0, s.warmth, travel));
+      attr(p.rays, 'transform', lift);
+      attr(p.rays, 'opacity', day);
+      attr(p.rays, 'd', turnPath(rayOutline, Math.min(phase, 0.48) * Math.PI, s.rayAngle * Math.PI / 180, s.warmth, travel));
+      attr(p.stars, 'transform', lift);
+      attr(p.stars, 'opacity', night);
+      attr(p.stars, 'd', turnPath(starOutline, angle, 0, 0.62 + 0.38 * night, travel));
     },
     actions: {
       tap: {label: '轻触天光', run: c => c.nudge('warmth', .06)},
@@ -109,22 +139,24 @@
         await c.wait(220);
       }},
       select: {label: '迎接白昼', pose: 'selected', async run(c) {
+        c.to('phase', 0, 'slow');
         c.to('rise', 3, 'snap'); await c.wait(95);
-        c.to('phase', 0, 'gentle'); c.to('rise', -2, 'pop'); await c.wait(240);
+        c.to('rise', -2, 'pop'); await c.wait(240);
       }},
       selectNight: {label: '迎接夜晚', pose: 'nightSelected', from: 'night', async run(c) {
+        c.to('phase', 1, 'slow');
         c.to('rise', 3, 'snap'); await c.wait(95);
-        c.to('phase', 1, 'gentle'); c.to('rise', -2, 'pop'); await c.wait(240);
+        c.to('rise', -2, 'pop'); await c.wait(240);
       }},
       toNight: {label: '太阳变月亮', pose: 'night', from: 'idle', async run(c) {
-        c.to('warmth', .96, 'snap'); await c.wait(85);
-        c.to('phase', 1, 'gentle'); c.to('rayAngle', 35, 'slow');
-        c.to('warmth', 1, 'pop'); await c.wait(260);
+        c.to('phase', 1, 'slow'); c.to('rise', -3, 'snap');
+        await c.wait(150);
+        c.to('rise', 1, 'pop'); await c.wait(320);
       }},
       toDay: {label: '月亮变太阳', pose: 'idle', from: 'night', async run(c) {
-        c.to('warmth', .96, 'snap'); await c.wait(85);
-        c.to('phase', 0, 'gentle'); c.to('rayAngle', -25, 'slow');
-        c.to('warmth', 1, 'pop'); await c.wait(260);
+        c.to('phase', 0, 'slow'); c.to('rise', -3, 'snap');
+        await c.wait(150);
+        c.to('rise', 1, 'pop'); await c.wait(320);
       }}
     }
   });
@@ -187,21 +219,84 @@
     actions: {
       tap: {label: '轻触词本', run: c => c.nudge('bodyAngle', -3)},
       peek: {label: '展开词本', pose: 'open', from: 'idle', async run(c) {
-        c.to('bodyAngle', 2, 'snap'); await c.wait(85);
-        c.to('opening', 1, 'gentle'); c.to('bodyAngle', -2, 'pop'); await c.wait(260);
+        c.to('opening', 1, 'gentle'); c.to('bodyAngle', 2, 'snap');
+        await c.wait(85);
+        c.to('bodyAngle', -2, 'pop'); await c.wait(260);
       }},
       select: {label: '选中词本', pose: 'selected', async run(c) {
-        c.to('bodyAngle', 3, 'snap'); await c.wait(90);
-        c.to('opening', 1, 'gentle'); c.to('bodyAngle', -2, 'pop'); await c.wait(260);
+        c.to('opening', 1, 'gentle'); c.to('bodyAngle', 3, 'snap');
+        await c.wait(90);
+        c.to('bodyAngle', -2, 'pop'); await c.wait(260);
       }},
       close: {label: '合上词本', pose: 'idle', from: 'open', async run(c) {
-        c.to('bodyAngle', -2, 'snap'); await c.wait(85);
-        c.to('opening', 0, 'gentle'); c.to('bodyAngle', 0, 'pop'); await c.wait(260);
+        c.to('opening', 0, 'gentle'); c.to('bodyAngle', -2, 'snap');
+        await c.wait(85);
+        c.to('bodyAngle', 0, 'pop'); await c.wait(260);
       }},
       turn: {label: '翻过一页', pose: 'open', from: 'open', async run(c) {
         c.to('leafOpacity', 1, 'fade'); c.to('leafWidth', 1.04, 'snap'); await c.wait(100);
         c.to('leafWidth', -.90, 'gentle'); await c.wait(260);
         await c.to('leafOpacity', 0, 'fade'); c.set({leafWidth: 1});
+      }}
+    }
+  });
+
+  M.define('recall', {
+    svg: `<g data-part="card"><rect x="24" y="24" width="72" height="72" rx="12"/><g data-part="answer"><path d="M37 61h46M37 73h34M37 85h24"/></g><g data-part="flap"><path d="M24 34h72v38a8 8 0 0 1-8 8H32a8 8 0 0 1-8-8Z"/><path d="M53 47c0-9 15-9 15-1 0 6-8 5-8 12M60 67v1"/></g></g>`,
+    state: {opening: 0, cardX: 0, cardY: 0, tilt: 0, opacity: 1},
+    poses: {idle: {}, revealed: {opening: 1}},
+    render(s, p) {
+      const opening = clamp01(s.opening);
+      attr(p.card, 'transform', `translate(${s.cardX} ${s.cardY}) rotate(${s.tilt} 60 96)`);
+      attr(p.card, 'opacity', clamp01(s.opacity));
+      attr(p.flap, 'transform', aroundXY(1, 1-opening*.86, 60, 34));
+      attr(p.answer, 'opacity', clamp01((opening-.2)/.8));
+    },
+    actions: {
+      tap: {label: '轻触回忆卡', run: c => c.nudge('tilt', -3)},
+      reveal: {label: '展开答案', pose: 'revealed', from: 'idle', async run(c) {
+        c.to('cardY', 3, 'snap'); await c.wait(90);
+        c.to('opening', 1, 'gentle'); c.to('cardY', -2, 'pop'); await c.wait(260);
+      }},
+      close: {label: '收起答案', pose: 'idle', from: 'revealed', async run(c) {
+        c.to('opening', 0, 'gentle'); await c.wait(240);
+      }},
+      next: {label: '记住 · 过一词', pose: 'idle', from: 'revealed', async run(c) {
+        c.to('cardX', -3, 'snap'); await c.wait(90);
+        c.to('cardX', 12, 'gentle'); c.to('cardY', -4, 'gentle');
+        await c.to('opacity', 0, 'fade');
+        c.set({cardX:-10, cardY:0, opening:0});
+        c.to('opacity', 1, 'fade'); c.to('cardX', 0, 'pop'); await c.wait(210);
+      }},
+      retry: {label: '留待重温', pose: 'idle', from: 'revealed', async run(c) {
+        c.to('cardY', -4, 'gentle'); c.to('tilt', -6, 'gentle'); await c.wait(180);
+        c.to('opening', 0, 'gentle'); c.to('tilt', 0, 'pop'); await c.wait(180);
+      }}
+    }
+  });
+
+  M.define('milestone', {
+    svg: `<g data-part="book"><path d="M30 34h42a8 8 0 0 1 8 8v47H34a8 8 0 0 1-8-8V42a8 8 0 0 1 4-8ZM26 79h54M36 35v42"/><path data-part="page" d="M40 24h40a8 8 0 0 1 8 8v47H44a8 8 0 0 1-8-8V32a8 8 0 0 1 4-8ZM48 40h28M48 53h20M48 66h25"/></g><g data-part="seal"><circle cx="88" cy="86" r="14"/><path data-part="check" d="M81 86l5 5 10-11"/></g>`,
+    state: {pageY: -5, pageAngle: 5, contact: 1, sealScale: .72, sealOpacity: 0, check: 0},
+    poses: {idle: {}, complete: {pageY: 0, pageAngle: 0, sealScale: 1, sealOpacity: 1, check: 1}},
+    render(s, p) {
+      attr(p.book, 'transform', aroundXY(1+(1-s.contact)*.4, s.contact, 60, 89));
+      attr(p.page, 'transform', `translate(0 ${s.pageY}) rotate(${s.pageAngle} 36 79)`);
+      attr(p.seal, 'transform', around(s.sealScale, 88, 86));
+      attr(p.seal, 'opacity', clamp01(s.sealOpacity));
+      dash(p.check, 24, s.check);
+    },
+    actions: {
+      tap: {label: '轻触整轮词本', run: c => c.nudge('pageAngle', 3)},
+      complete: {label: '背完一轮', pose: 'complete', from: 'idle', async run(c) {
+        c.to('pageY', -8, 'snap'); await c.wait(100);
+        c.to('pageY', 0, 'impact'); c.to('pageAngle', 0, 'gentle'); await c.wait(100);
+        c.squash('contact', .92); c.to('sealOpacity', 1, 'fade'); c.to('sealScale', 1, 'pop');
+        await c.wait(85); c.to('check', 1, 'draw'); await c.wait(240);
+      }},
+      restart: {label: '开始新一轮', pose: 'idle', from: 'complete', async run(c) {
+        c.to('sealOpacity', 0, 'fade'); await c.wait(90);
+        c.to('pageY', -5, 'gentle'); c.to('pageAngle', 5, 'gentle'); await c.wait(240);
       }}
     }
   });

@@ -160,9 +160,9 @@ Every icon also has the generic `press`, `pulse`, `progress`, `confirm` and
 
 ## Learning, capture and navigation collection
 
-Load `assets/motion-icons-learning.js` after the engine and built-ins for 12
+Load `assets/motion-icons-learning.js` after the engine and built-ins for 14
 additional subjects: `lookup`, `lexicon`, `daylight`, `cards`, `book`, `capture`,
-`conversation`, `settings`, `sentence`, `memory`, `pencil` and `voice`.
+`conversation`, `settings`, `sentence`, `memory`, `pencil`, `voice`, `recall` and `milestone`.
 Use [reference/learning.md](reference/learning.md) to choose verbs and integration
 patterns; [examples/workflows.html](examples/workflows.html) demonstrates real
 controls with local simulated async operations. Do not put a loading loop on a

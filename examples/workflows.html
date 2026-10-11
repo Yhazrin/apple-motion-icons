@@ -41,8 +41,12 @@
 <label class="controls">Progress<input id="progress" type="range" min="0" max="1" value="0" step="0.01"><output id="percentage">0%</output></label>
 <div class="row wrap controls"><button id="complete">Complete</button><button id="reset">Reset</button><span class="muted">Spring-driven, no CSS animation</span></div>
 </section>
+<section class="panel" style="grid-column:1/-1"><div class="panel-head"><span id="recall" class="glyph" aria-hidden="true"></span><h2>Recall → next word → round complete</h2><span id="round-mark" class="glyph" aria-hidden="true" style="margin-left:auto;width:44px;height:44px"></span></div>
+<p id="recall-word" class="sentence">amicable</p><p id="recall-answer" class="meaning" aria-live="polite">Recall the meaning, then reveal.</p>
+<div class="row wrap"><button id="reveal-word">Reveal answer</button><button id="retry-word" disabled>Again</button><button id="known-word" class="primary" disabled>Known</button><button id="restart-round" disabled>New round</button><span id="recall-progress" class="muted" aria-live="polite">0 / 3 saved · local simulation</span></div>
+</section>
 </div>
-<div class="footer"><p class="muted">Local simulations only · no AI requests or persistent storage</p><a href="../assets/gallery.html">All 25 subjects & key-frame sheet →</a></div>
+<div class="footer"><p class="muted">Local simulations only · no AI requests or persistent storage</p><a href="../assets/gallery.html">All 27 subjects & key-frame sheet →</a></div>
 </main>
 <script src="../assets/motion-icons.js"></script><script src="../assets/motion-icons-recipes.js"></script><script src="../assets/motion-icons-learning.js"></script>
 <script>
@@ -68,6 +72,7 @@ const navigation=[...document.querySelectorAll('nav button')].map(button=>{
 const lookup=make('lookup','lookup'),lexicon=make('lexicon','lexicon',28,'empty');
 const sentence=make('sentence','sentence'),memory=make('memory','memory');
 const download=make('download','download',64,'rest');
+const recall=make('recall','recall',34),milestone=make('round-mark','milestone',44,'idle');
 const dictionary={condense:'v. 浓缩；凝结 · make something shorter or more concentrated',amicable:'adj. 友好的；和睦的 · showing friendliness and goodwill',stagnant:'adj. 停滞的；不流动的 · not moving or developing'};
 let lookupToken=0,currentWord='',saving=false;const collection=new Set();
 function cancelLookup(){lookupToken++;lookup.stop();$('cancel-lookup').disabled=true;}
@@ -103,6 +108,25 @@ $('sentence-fail').onclick=()=>{cancelSentence();sentence.play('fail');$('senten
 $('progress').oninput=()=>{const value=+$('progress').value;download.drive('progress',value);$('percentage').textContent=Math.round(value*100)+'%';};
 $('complete').onclick=()=>{$('progress').value='1';$('percentage').textContent='100%';download.play('complete');};
 $('reset').onclick=()=>{$('progress').value='0';$('percentage').textContent='0%';download.reset({pose:'rest'});};
+const recallWords=[['amicable','adj. 友好的；和睦的'],['condense','v. 浓缩；凝结'],['stagnant','adj. 停滞的；不流动的']];
+let recallIndex=0,recallShown=false,recallSaving=false;
+function displayRecall(){
+ const finished=recallIndex===recallWords.length;
+ $('recall-word').textContent=finished?'Round complete':recallWords[recallIndex][0];
+ $('recall-answer').textContent=finished?'Three local ratings saved. Start a fresh round when ready.':recallShown?recallWords[recallIndex][1]:'Recall the meaning, then reveal.';
+ $('reveal-word').disabled=finished||recallShown||recallSaving;
+ $('known-word').disabled=finished||!recallShown||recallSaving;$('retry-word').disabled=$('known-word').disabled;
+ $('restart-round').disabled=!finished||recallSaving;
+ $('recall-progress').textContent=recallIndex+' / 3 saved · local simulation';
+}
+$('reveal-word').onclick=()=>{recallShown=true;recall.play('reveal');displayRecall();};
+$('retry-word').onclick=()=>{recallShown=false;recall.play('retry');displayRecall();};
+$('known-word').onclick=async()=>{
+ if(!recallShown||recallSaving)return;recallSaving=true;displayRecall();
+ await sleep(180);recallIndex++;recallSaving=false;recallShown=false;recall.play('next');
+ if(recallIndex===recallWords.length)milestone.play('complete');displayRecall();
+};
+$('restart-round').onclick=()=>{recallIndex=0;recallShown=false;milestone.play('restart');recall.setPose('idle');displayRecall();};
 $('theme').onclick=()=>{document.documentElement.dataset.theme=isDark()?'light':'dark';navigation.filter(item=>item.button.dataset.subject==='daylight').forEach(item=>item.icon.setPose(navPose(item.button)));};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)allIcons.forEach(icon=>icon.reset({instant:true}));});
 window.addEventListener('pagehide',()=>allIcons.forEach(icon=>icon.destroy()));
