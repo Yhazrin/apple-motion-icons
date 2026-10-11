@@ -3,6 +3,8 @@
 Apple-inspired SVG motion icons with spring physics and a vocabulary for each
 object. A Codex / Cursor skill and a dependency-free browser library.
 
+**[Live gallery →](https://skills.yhazrin.xyz/motion-icons/)** — play every icon action, search by use, change size and appearance. The gallery follows the public `main` branch; published changes are checked about every five minutes.
+
 **25 subjects:** 13 general-purpose icons plus 12 learning, capture and navigation
 icons. Hover, selection, lookup, card insertion, recall, page-turning, writing and
 scene binding have their own movements. Motion stops when the object is at rest.

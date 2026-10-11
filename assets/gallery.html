@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Motion Icons</title>
+  <title>Apple Motion Icons · Yhazrin</title>
   <style>
     :root{--bg:#f5f5f7;--card:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:rgb(0 0 0 / .08);--accent:#0071e3;--chip:rgb(120 120 128 / .14)}
     @media (prefers-color-scheme:dark){:root{--bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--muted:#a1a1a6;--line:rgb(255 255 255 / .1);--accent:#2997ff;--chip:rgb(120 120 128 / .28)}}
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif}
     main{max-width:1180px;margin:0 auto;padding:40px 24px 64px}
-    h1{font-size:28px;letter-spacing:-.01em;margin:0 0 4px}
+    h1{font-size:32px;letter-spacing:-.01em;margin:0 0 4px}
     h2{font-size:17px;margin:40px 0 14px}
     p.sub{color:var(--muted);margin:0}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
     .card{background:var(--card);border-radius:20px;padding:18px 16px 16px;box-shadow:0 0 0 .5px var(--line);display:flex;flex-direction:column;align-items:center;gap:10px}
-    .stage{height:96px;display:grid;place-items:center;color:var(--ink);--mi-size:76px;cursor:pointer}
+    .stage{height:96px;display:grid;place-items:center;color:var(--ink);--mi-size:var(--preview-size,60px);cursor:pointer}
     .head{display:flex;gap:8px;align-items:baseline}
     .name{font-weight:600}
     .pose{color:var(--muted);font-size:12px}
@@ -31,6 +31,7 @@
     .pill{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:var(--accent);color:#fff;font-weight:600;font-size:15px}
     .pill.small{padding:6px 12px;font-size:13px;gap:6px}
     .pill.big{padding:14px 24px;font-size:17px;gap:10px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:20px}.links{display:flex;gap:18px;flex-wrap:wrap}a{color:inherit;text-underline-offset:4px}.toolbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:24px 0 20px}.toolbar input[type=search]{flex:1;min-width:220px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit}.toolbar label{display:flex;gap:8px;align-items:center}.toolbar input[type=range]{width:108px;accent-color:var(--ink)}.usage{font-size:12px;color:var(--muted);min-height:18px;text-align:center}.subject-id{font-size:12px;font-weight:400;color:var(--muted)}button:focus-visible,.stage:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:4px}.section[hidden],.card[hidden]{display:none}.section h2{display:flex;justify-content:space-between;align-items:baseline}.section h2 span{font-size:12px;color:var(--muted);font-weight:400}.group-note{margin:4px 0 16px;color:var(--muted);font-size:12px}.pose-buttons{border-top:1px solid var(--line);padding-top:8px}.pose-buttons button{background:transparent;border:1px solid var(--line)}footer{margin-top:40px;color:var(--muted);font-size:12px}details{margin-top:30px}summary{cursor:pointer;font-weight:600}html[data-theme=light]{--bg:#f5f5f7;--card:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:rgb(0 0 0 / .08);--accent:#252527;--chip:rgb(120 120 128 / .14)}html[data-theme=dark]{--bg:#151516;--card:#222224;--ink:#f5f5f7;--muted:#ababaf;--line:rgb(255 255 255 / .1);--accent:#77777d;--chip:rgb(120 120 128 / .28)}@media(max-width:620px){.top{align-items:flex-start;flex-direction:column}main{padding:24px 16px}.grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}}
     #frames{position:fixed;inset:0;z-index:10;overflow:auto;padding:18px;background:var(--bg)}
     #frames .seq{display:flex;gap:6px;align-items:flex-start;margin-bottom:6px}
     #frames .seq > b{width:170px;flex:none;font:600 11px ui-monospace,Menlo,monospace;padding-top:22px}
@@ -41,13 +42,14 @@
 </head>
 <body>
 <main>
-  <h1>Motion Icons</h1>
-  <p class="sub">每个图标有自己的姿态、动作、循环和拖拽驱动 · 弹簧物理 · 显示器原生刷新率 · 点图标本身是点按反馈</p>
+  <div class="top"><div><h1>Apple Motion Icons</h1><p class="sub" id="collection-count">图标与动作</p></div><div class="links"><a href="https://github.com/Yhazrin/apple-motion-icons">GitHub / 使用技能</a><a href="../examples/workflows.html">交互示例</a><button id="appearance">切换日夜</button></div></div>
+  <div class="toolbar"><input type="search" id="search" aria-label="搜索图标" placeholder="搜索名称、用途或动作"><label for="size">尺寸 <input type="range" id="size" min="16" max="96" step="1" value="60"><output id="size-value">60px</output></label><button id="stop-all">停止并归位</button></div>
+  <section class="section" id="navigation-section"><h2>Vord · 导航 <span>6 个入口</span></h2><div class="grid" id="navigation-grid"></div></section>
+  <section class="section" id="actions-section"><h2>Vord · 业务动作 <span>查词、收录与学习反馈</span></h2><div class="grid" id="actions-grid"></div></section>
+  <section class="section" id="library-section"><h2>其余已设计图标 <span>通用动作与扩展配方</span></h2><p class="group-note">已可播放；这一组并非都已接入 Vord。</p><div class="grid" id="grid"></div></section>
+  <p class="sub" id="search-empty" hidden>没有匹配的图标。</p>
 
-  <h2>图标与各自的动作</h2>
-  <div class="grid" id="grid"></div>
-
-  <p class="sub"><a href="../examples/workflows.html">学习、采集与导航的完整交互示例 →</a></p>
+  <details><summary>宿主、内联尺寸与 HUD 示例</summary>
   <h2>原生宿主预览</h2>
   <div class="inline">
     <iframe id="native-host" src="motion-icon-host.html" title="本地动效图标" style="width:80px;height:80px;border:0;background:transparent"></iframe>
@@ -75,6 +77,8 @@
       <button data-hud="refresh success">HUD 刷新</button>
     </div>
   </div>
+  </details>
+  <footer>Yhazrin · MIT · 点图标可看点按反馈；循环可再次点击停止。新配方随仓库更新加入。<br><span id="release-info"></span></footer>
 </main>
 
 <script src="motion-icons.js"></script>
@@ -84,19 +88,44 @@
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const icons = window.galleryIcons = {};
   const grid = document.getElementById('grid');
+  const subjects = {
+    daylight:['今天','Today · 主导航','navigation'],cards:['学习词卡','Study · 导航 / Known 与 Again 评分回执','navigation'],
+    book:['词库','Library · 主导航','navigation'],capture:['添加','Add · 主导航','navigation'],
+    conversation:['助手','Companion · 主导航','navigation'],settings:['设置','Settings · 主导航','navigation'],
+    lookup:['查词','添加页与快加浮窗','actions'],lexicon:['词汇收录','保存中与确认入库','actions'],
+    sentence:['例句','复习页 · 生成与结果反馈','actions'],memory:['记忆情景','生成与绑定词条','actions'],
+    refresh:['同步','同步状态与完成反馈','actions'],pencil:['笔尖','默写 / 打字扩展配方','library'],voice:['话筒','口语扩展配方','library'],
+    lock:['锁','上锁 / 解锁','library'],pay:['支付卡','感应 / 翻面 / 拒绝','library'],enter:['进入','敲门 / 进入 / 被拒','library'],
+    download:['下载','连续进度 / 完成 / 取消','library'],send:['发送','发送 / 撤回','library'],delete:['删除','打开 / 丢入 / 恢复','library'],
+    heart:['喜欢','喜欢 / 取消 / 心跳','library'],menu:['菜单','菜单 / 关闭 / 返回','library'],bell:['通知','响铃 / 已读 / 静音','library'],
+    play:['播放','播放 / 暂停 / 下一首','library'],volume:['音量','发声 / 静音 / 连续音量','library'],eye:['眼睛','眨眼 / 看向 / 显隐','library']
+  };
+  const controls = [];
+  const ordered = [...Object.keys(subjects),...Object.keys(MotionIcon.recipes).filter(name=>!subjects[name])];
   const el = (tag, props = {}, parent) => { const e = Object.assign(document.createElement(tag), props); parent?.appendChild(e); return e; };
 
-  for (const [name, recipe] of Object.entries(MotionIcon.recipes)) {
-    const card = el('div', {className: 'card'}, grid);
-    const stage = el('div', {className: 'stage'}, card);
+  for (const name of ordered) {
+    const recipe = MotionIcon.recipes[name];
+    if (!recipe) continue;
+    const [title,usage,group] = subjects[name] || [name,'扩展配方','library'];
+    const parent = group === 'navigation' ? document.getElementById('navigation-grid') : group === 'actions' ? document.getElementById('actions-grid') : grid;
+    const card = el('div', {className: 'card'}, parent);
+    card.dataset.subject = name;
+    card.dataset.search = [name,title,usage,...Object.values(recipe.actions).map(a=>a.label||'')].join(' ').toLowerCase();
+    const stage = el('div', {className: 'stage',tabIndex:0}, card);
+    stage.setAttribute('role','button');stage.setAttribute('aria-label',title+' · 点按反馈');
     const head = el('div', {className: 'head'}, card);
-    el('span', {className: 'name', textContent: name}, head);
+    el('span', {className: 'name', textContent: title}, head);
+    el('span', {className: 'subject-id', textContent: name}, head);
+    el('div', {className:'usage',textContent:usage},card);
     const poseLabel = el('span', {className: 'pose'}, head);
     const icon = icons[name] = MotionIcon.create(stage, name);
     const showPose = () => { poseLabel.textContent = icon.poses.length > 1 ? `姿态：${icon.pose}` : ''; };
     icon.element.addEventListener('mi:pose', showPose);
     showPose();
-    stage.onclick = () => icon.tap();
+    let taskToken = 0;
+    stage.onclick = () => {taskToken++;icon.tap();};
+    stage.onkeydown = e => {if(e.key==='Enter'||e.key===' '){e.preventDefault();stage.click();}};
 
     const row = el('div', {className: 'row'}, card);
     const loops = [];
@@ -105,12 +134,13 @@
       if (a.drive) {
         const lab = el('label', {className: 'drive', textContent: a.label || action}, card);
         const input = el('input', {type: 'range', min: 0, max: 1, step: 0.01, value: a.initial ?? 0}, lab);
-        input.oninput = () => icon.drive(action, +input.value);
+        input.oninput = () => {taskToken++;icon.drive(action, +input.value);};
         continue;
       }
       const b = el('button', {textContent: a.label || action, className: a.loop ? 'loop' : ''}, row);
       if (a.loop) loops.push(b);
       b.onclick = () => {
+        taskToken++;
         const wasOn = b.classList.contains('on');
         loops.forEach(l => l.classList.remove('on'));
         if (a.loop && wasOn) { icon.stop(); return; }
@@ -123,10 +153,27 @@
     });
     if (recipe.task) {
       const task = el('div', {className: 'row task'}, card);
-      el('button', {textContent: '任务 · 成功', onclick: async () => { icon.busy(); await sleep(900); icon.success(); }}, task);
-      el('button', {textContent: '任务 · 失败', onclick: async () => { icon.busy(); await sleep(900); icon.fail(); }}, task);
+      el('button', {textContent: '任务 · 成功', onclick: async () => { const token=++taskToken;icon.busy(); await sleep(900);if(token===taskToken)icon.success(); }}, task);
+      el('button', {textContent: '任务 · 失败', onclick: async () => { const token=++taskToken;icon.busy(); await sleep(900);if(token===taskToken)icon.fail(); }}, task);
     }
+    const poses = el('div',{className:'row pose-buttons'},card);
+    for (const pose of icon.poses) el('button',{textContent:pose,onclick:()=>{taskToken++;loops.forEach(b=>b.classList.remove('on'));icon.setPose(pose);}},poses);
+    const reset=()=>{taskToken++;loops.forEach(b=>b.classList.remove('on'));card.querySelectorAll('input[type=range]').forEach(input=>input.value=input.defaultValue);icon.reset({pose:icon.poses[0]});};
+    el('button',{textContent:'归位',onclick:reset},poses);
+    controls.push({card,icon,reset});
   }
+  document.getElementById('collection-count').textContent=controls.length+' 个已设计对象 · 每个动作单独播放';
+  document.getElementById('stop-all').onclick=()=>controls.forEach(c=>c.reset());
+  document.getElementById('size').oninput=e=>{document.documentElement.style.setProperty('--preview-size',e.target.value+'px');document.getElementById('size-value').textContent=e.target.value+'px';};
+  document.getElementById('search').oninput=e=>{
+    const query=e.target.value.trim().toLowerCase();let visible=0;
+    controls.forEach(({card,reset})=>{card.hidden=!card.dataset.search.includes(query);if(card.hidden)reset();else visible++;});
+    document.querySelectorAll('.section').forEach(section=>section.hidden=![...section.querySelectorAll('.card')].some(card=>!card.hidden));
+    document.getElementById('search-empty').hidden=visible>0;
+  };
+  document.getElementById('appearance').onclick=()=>{const root=document.documentElement;root.dataset.theme=(root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches)?'light':'dark';};
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)controls.forEach(c=>c.reset());});
+  fetch('../version.json',{cache:'no-store'}).then(response=>response.ok?response.json():null).then(v=>{if(v)document.getElementById('release-info').textContent='版本 '+v.commit.slice(0,7)+' · '+v.publishedAt;}).catch(()=>{});
 
   let nativeEvent = 0;
   document.querySelectorAll('[data-native]').forEach(button => button.onclick = () => {

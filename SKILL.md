@@ -39,6 +39,9 @@ Ask, for each icon:
 [reference/vocabulary.md](reference/vocabulary.md) lists full vocabularies for
 ~50 common icons. Use it to diverge, not to copy one row.
 
+Explore the [live icon gallery](https://skills.yhazrin.xyz/motion-icons/) for visual review; the local
+`assets/gallery.html` is the same catalogue and supports `?frames`.
+
 ## Quick start
 
 1. Copy `assets/motion-icons.js` and `assets/motion-icons-recipes.js` into the
