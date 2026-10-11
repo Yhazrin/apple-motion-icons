@@ -101,6 +101,8 @@
     play:['播放','播放 / 暂停 / 下一首','library'],volume:['音量','发声 / 静音 / 连续音量','library'],eye:['眼睛','眨眼 / 看向 / 显隐','library']
   };
   const controls = [];
+  const isDark = () => document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme:dark)').matches;
+  const restPose = (name, icon) => name === 'daylight' && isDark() ? 'night' : icon.poses[0];
   const ordered = [...Object.keys(subjects),...Object.keys(MotionIcon.recipes).filter(name=>!subjects[name])];
   const el = (tag, props = {}, parent) => { const e = Object.assign(document.createElement(tag), props); parent?.appendChild(e); return e; };
 
@@ -119,12 +121,18 @@
     el('span', {className: 'subject-id', textContent: name}, head);
     el('div', {className:'usage',textContent:usage},card);
     const poseLabel = el('span', {className: 'pose'}, head);
-    const icon = icons[name] = MotionIcon.create(stage, name);
+    const icon = icons[name] = MotionIcon.create(stage, name, name === 'daylight' && isDark() ? {pose:'night'} : {});
     const showPose = () => { poseLabel.textContent = icon.poses.length > 1 ? `姿态：${icon.pose}` : ''; };
     icon.element.addEventListener('mi:pose', showPose);
     showPose();
-    let taskToken = 0;
-    stage.onclick = () => {taskToken++;icon.tap();};
+    let taskToken = 0, hoverRest = null;
+    if (name === 'book') {
+      stage.onpointerenter = () => { if (icon.pose === 'idle') { hoverRest = 'idle'; icon.play('peek'); } };
+      stage.onpointerleave = () => { if (hoverRest) { icon.setPose(hoverRest); hoverRest = null; } };
+      stage.onfocus = stage.onpointerenter;
+      stage.onblur = stage.onpointerleave;
+    }
+    stage.onclick = () => {taskToken++;hoverRest=null;if(name==='book')icon.play('select');else icon.tap();};
     stage.onkeydown = e => {if(e.key==='Enter'||e.key===' '){e.preventDefault();stage.click();}};
 
     const row = el('div', {className: 'row'}, card);
@@ -140,7 +148,7 @@
       const b = el('button', {textContent: a.label || action, className: a.loop ? 'loop' : ''}, row);
       if (a.loop) loops.push(b);
       b.onclick = () => {
-        taskToken++;
+        taskToken++;hoverRest=null;
         const wasOn = b.classList.contains('on');
         loops.forEach(l => l.classList.remove('on'));
         if (a.loop && wasOn) { icon.stop(); return; }
@@ -157,8 +165,8 @@
       el('button', {textContent: '任务 · 失败', onclick: async () => { const token=++taskToken;icon.busy(); await sleep(900);if(token===taskToken)icon.fail(); }}, task);
     }
     const poses = el('div',{className:'row pose-buttons'},card);
-    for (const pose of icon.poses) el('button',{textContent:pose,onclick:()=>{taskToken++;loops.forEach(b=>b.classList.remove('on'));icon.setPose(pose);}},poses);
-    const reset=()=>{taskToken++;loops.forEach(b=>b.classList.remove('on'));card.querySelectorAll('input[type=range]').forEach(input=>input.value=input.defaultValue);icon.reset({pose:icon.poses[0]});};
+    for (const pose of icon.poses) el('button',{textContent:pose,onclick:()=>{taskToken++;hoverRest=null;loops.forEach(b=>b.classList.remove('on'));icon.setPose(pose);}},poses);
+    const reset=()=>{taskToken++;hoverRest=null;loops.forEach(b=>b.classList.remove('on'));card.querySelectorAll('input[type=range]').forEach(input=>input.value=input.defaultValue);icon.reset({pose:restPose(name,icon)});};
     el('button',{textContent:'归位',onclick:reset},poses);
     controls.push({card,icon,reset});
   }
@@ -171,7 +179,13 @@
     document.querySelectorAll('.section').forEach(section=>section.hidden=![...section.querySelectorAll('.card')].some(card=>!card.hidden));
     document.getElementById('search-empty').hidden=visible>0;
   };
-  document.getElementById('appearance').onclick=()=>{const root=document.documentElement;root.dataset.theme=(root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches)?'light':'dark';};
+  document.getElementById('appearance').onclick=()=>{
+    const root=document.documentElement;root.dataset.theme=isDark()?'light':'dark';
+    icons.daylight.play(isDark()?'toNight':'toDay');
+  };
+  matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{
+    if (!document.documentElement.dataset.theme && !new URLSearchParams(location.search).has('frames')) icons.daylight.setPose(isDark()?'night':'idle');
+  });
   document.addEventListener('visibilitychange',()=>{if(document.hidden)controls.forEach(c=>c.reset());});
   fetch('../version.json',{cache:'no-store'}).then(response=>response.ok?response.json():null).then(v=>{if(v)document.getElementById('release-info').textContent='版本 '+v.commit.slice(0,7)+' · '+v.publishedAt;}).catch(()=>{});
 

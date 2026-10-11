@@ -51,13 +51,17 @@ const $=id=>document.getElementById(id), sleep=ms=>new Promise(resolve=>setTimeo
 const allIcons=[];
 function make(id,name,size=30,pose='idle'){const icon=MotionIcon.create($(id),name,{size,pose});allIcons.push(icon);return icon;}
 function playVisible(icon,action,pose){if(document.hidden){icon.reset({instant:true,pose:pose||icon.pose});}else{icon.play(action);}}
+const isDark=()=>document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+function navPose(button){const selected=button.hasAttribute('aria-current');return button.dataset.subject==='daylight'&&isDark()?(selected?'nightSelected':'night'):(selected?'selected':'idle');}
 const navigation=[...document.querySelectorAll('nav button')].map(button=>{
- const icon=MotionIcon.create(button.querySelector('span'),button.dataset.subject,{size:26,pose:button.hasAttribute('aria-current')?'selected':'idle'});allIcons.push(icon);
- button.addEventListener('pointerenter',()=>icon.play('peek'));button.addEventListener('pointerleave',()=>icon.stop());
- button.addEventListener('focus',()=>icon.play('peek'));button.addEventListener('blur',()=>icon.stop());
+ const icon=MotionIcon.create(button.querySelector('span'),button.dataset.subject,{size:26,pose:navPose(button)});allIcons.push(icon);
+ const peek=()=>icon.play(button.dataset.subject==='book'&&button.hasAttribute('aria-current')?'tap':'peek');
+ const rest=()=>icon.setPose(navPose(button));
+ button.addEventListener('pointerenter',peek);button.addEventListener('pointerleave',rest);
+ button.addEventListener('focus',peek);button.addEventListener('blur',rest);
  button.addEventListener('click',()=>{
-  navigation.forEach(item=>{if(item.button!==button){item.button.removeAttribute('aria-current');item.icon.setPose('idle');}});
-  button.setAttribute('aria-current','page');icon.play('select');
+  navigation.forEach(item=>{if(item.button!==button){item.button.removeAttribute('aria-current');item.icon.setPose(navPose(item.button));}});
+  button.setAttribute('aria-current','page');icon.play(button.dataset.subject==='daylight'&&isDark()?'selectNight':'select');
   $('selection').textContent=button.textContent.trim()+' · selected pose, no background loop';
  });return {button,icon};
 });
@@ -99,7 +103,7 @@ $('sentence-fail').onclick=()=>{cancelSentence();sentence.play('fail');$('senten
 $('progress').oninput=()=>{const value=+$('progress').value;download.drive('progress',value);$('percentage').textContent=Math.round(value*100)+'%';};
 $('complete').onclick=()=>{$('progress').value='1';$('percentage').textContent='100%';download.play('complete');};
 $('reset').onclick=()=>{$('progress').value='0';$('percentage').textContent='0%';download.reset({pose:'rest'});};
-$('theme').onclick=()=>{const root=document.documentElement,dark=root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;root.dataset.theme=dark?'light':'dark';};
+$('theme').onclick=()=>{document.documentElement.dataset.theme=isDark()?'light':'dark';navigation.filter(item=>item.button.dataset.subject==='daylight').forEach(item=>item.icon.setPose(navPose(item.button)));};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)allIcons.forEach(icon=>icon.reset({instant:true}));});
 window.addEventListener('pagehide',()=>allIcons.forEach(icon=>icon.destroy()));
 </script></body></html>

@@ -8,9 +8,9 @@ unchanged; this file adds 12 subjects.
 | --- | --- | --- | --- | --- |
 | lookup | Page and attached magnifying lens | idle | tap, found, empty, fail | searching |
 | lexicon | Word card sliding into a book | empty, saved | tap, save, reopen, fail | saving |
-| daylight | Sun with attached rays | idle, selected | tap, peek, select | — |
+| daylight | Sun outline morphing into a crescent | idle, selected, night, nightSelected | tap, peek, select, selectNight, toNight, toDay | — |
 | cards | A staggered word-card deck | idle, selected | tap, peek, select, remember, revisit | preparing |
-| book | Open book, page hinged at its spine | idle, selected | tap, peek, select, turn | — |
+| book | Closed cover unfolding around its spine | idle (closed), open, selected (open) | tap, peek, select, close, turn | — |
 | capture | Folded paper with an attached plus | idle, selected | tap, peek, select, insert | — |
 | conversation | Two bubbles with answering dots | idle, selected | tap, peek, select, reply | thinking |
 | settings | Engraved mechanical dial | idle, selected | tap, peek, select, turn | — |
@@ -26,15 +26,26 @@ is decoration, never the label. Navigation has no background activity loop.
 
 ```js
 const icon = MotionIcon.create(container, 'book', {size: 24, pose: 'idle'});
-button.addEventListener('pointerenter', () => icon.play('peek'));
-button.addEventListener('pointerleave', () => icon.stop());
-button.addEventListener('click', () => icon.play('select'));
+let selected = false;
+button.addEventListener('pointerenter', () => icon.play(selected ? 'tap' : 'peek'));
+button.addEventListener('pointerleave', () => icon.setPose(selected ? 'selected' : 'idle'));
+button.addEventListener('click', () => { selected = true; icon.play('select'); });
 // When another section becomes active:
-icon.setPose('idle');
+selected = false; icon.setPose('idle');
 ```
 
 Keep the selected pose when the pointer leaves. Keyboard activation must trigger
 the same selection change, and the button owns focus and `aria-current`.
+
+Daylight follows the effective color scheme: use `night` / `nightSelected` in
+dark appearance and `idle` / `selected` in light appearance. Theme changes call
+`setPose` on the existing instance; the crescent and sun share one continuous
+outline. The gallery also exposes `toNight` / `toDay` as replayable transitions.
+Never recreate the host or flash the day pose during a dark-mode selection.
+
+Book rests closed until hover, keyboard focus or selection opens it. Pointer
+leave restores its navigation pose; selected books remain open. `close` explicitly
+returns to the closed cover, and `turn` keeps the page attached to its spine.
 
 ## Async actions
 

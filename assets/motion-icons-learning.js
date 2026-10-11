@@ -87,24 +87,44 @@
     attr(part, 'opacity', clamp01(value * 8));
   };
 
+  const sunOutline = 'M60 40C48.95 40 40 48.95 40 60C40 71.05 48.95 80 60 80C71.05 80 80 71.05 80 60C80 48.95 71.05 40 60 40Z';
+  const moonOutline = 'M73 32C49 24 31 43 33 63C35 86 59 98 80 82C61 84 45 66 47 50C49 41 58 34 73 32Z';
   M.define('daylight', {
-    svg: `<g data-part="sun"><circle cx="60" cy="60" r="20"/><g data-part="rays"><path d="M60 18v10M60 92v10M18 60h10M92 60h10M30 30l7 7M83 83l7 7M30 90l7-7M83 37l7-7"/></g></g>`,
-    state: {rise: 0, warmth: 1, rayAngle: 0},
-    poses: {idle: {}, selected: {rayAngle: 12}},
+    svg: `<g data-part="sun"><path data-part="outline" d="${sunOutline}"/><g data-part="rays"><path d="M60 18v10M60 92v10M18 60h10M92 60h10M30 30l7 7M83 83l7 7M30 90l7-7M83 37l7-7"/></g><path data-part="stars" d="M86 34v10M81 39h10M92 58v6M89 61h6"/></g>`,
+    state: {phase: 0, rise: 0, warmth: 1, rayAngle: 0},
+    poses: {idle: {}, selected: {rayAngle: 12}, night: {phase: 1}, nightSelected: {phase: 1, rayAngle: 12}},
     periodic: {rayAngle: 360},
     render(s, p) {
+      const phase = clamp01(s.phase);
       attr(p.sun, 'transform', `translate(0 ${s.rise}) ${around(s.warmth, 60, 60)}`);
-      attr(p.rays, 'transform', `rotate(${s.rayAngle} 60 60)`);
+      attr(p.outline, 'd', M.util.lerpPath(sunOutline, moonOutline, phase));
+      attr(p.rays, 'transform', `rotate(${s.rayAngle} 60 60) ${around(1 - phase * .24, 60, 60)}`);
+      attr(p.rays, 'opacity', clamp01(1 - phase * 1.6));
+      attr(p.stars, 'opacity', clamp01((phase - .45) / .55));
     },
     actions: {
-      tap: {label: '轻触日光', run: c => c.nudge('warmth', .06)},
-      peek: {label: '日光舒展', async run(c) {
-        c.to('warmth', 1.06, 'gentle'); c.to('rayAngle', c.goal('rayAngle') + 9, 'slow');
+      tap: {label: '轻触天光', run: c => c.nudge('warmth', .06)},
+      peek: {label: '天光舒展', async run(c) {
+        c.to('warmth', 1.04, 'gentle'); c.to('rayAngle', c.goal('rayAngle') + 9, 'slow');
         await c.wait(220);
       }},
-      select: {label: '迎接今日', pose: 'selected', async run(c) {
-        c.to('rise', 4, 'snap'); await c.wait(95);
-        c.to('rise', -4, 'pop'); c.to('rayAngle', 12, 'slow'); await c.wait(240);
+      select: {label: '迎接白昼', pose: 'selected', async run(c) {
+        c.to('rise', 3, 'snap'); await c.wait(95);
+        c.to('phase', 0, 'gentle'); c.to('rise', -2, 'pop'); await c.wait(240);
+      }},
+      selectNight: {label: '迎接夜晚', pose: 'nightSelected', from: 'night', async run(c) {
+        c.to('rise', 3, 'snap'); await c.wait(95);
+        c.to('phase', 1, 'gentle'); c.to('rise', -2, 'pop'); await c.wait(240);
+      }},
+      toNight: {label: '太阳变月亮', pose: 'night', from: 'idle', async run(c) {
+        c.to('warmth', .96, 'snap'); await c.wait(85);
+        c.to('phase', 1, 'gentle'); c.to('rayAngle', 35, 'slow');
+        c.to('warmth', 1, 'pop'); await c.wait(260);
+      }},
+      toDay: {label: '月亮变太阳', pose: 'idle', from: 'night', async run(c) {
+        c.to('warmth', .96, 'snap'); await c.wait(85);
+        c.to('phase', 0, 'gentle'); c.to('rayAngle', -25, 'slow');
+        c.to('warmth', 1, 'pop'); await c.wait(260);
       }}
     }
   });
@@ -141,27 +161,47 @@
     }
   });
 
+  const closedCover = 'M38 28C53 28 69 28 80 28Q84 28 84 32L84 88Q84 92 80 92C65 92 53 92 38 92L38 28Z';
+  const openCover = 'M60 34C72 26 88 26 98 29Q102 30 102 34L102 86Q102 90 98 89C84 87 73 89 60 96L60 34Z';
   M.define('book', {
-    svg: `<g data-part="body"><path d="M60 32C48 24 32 24 19 28v59c15-4 28-2 41 5"/><g data-part="leaf"><path d="M60 32c12-8 28-8 41-4v59c-15-4-28-2-41 5"/><path d="M71 44c7-2 13-2 20-1M71 57c7-2 13-2 20-1M71 70c7-2 13-2 20-1"/></g><path d="M60 32v60M30 43c7-1 13 0 20 2M30 56c7-1 13 0 20 2M30 69c7-1 13 0 20 2"/></g>`,
-    state: {bodyAngle: 0, leafWidth: 1},
-    poses: {idle: {}, selected: {leafWidth: .93}},
+    svg: `<g data-part="body"><path data-part="left"/><path data-part="cover" d="${closedCover}"/><path data-part="spine"/><path data-part="mark" d="M69 29v22l-5-4-5 4V29"/><g data-part="lines"><path d="M72 44c7-2 13-2 20-1M72 57c7-2 13-2 20-1M72 70c7-2 13-2 20-1M28 44c8-1 14 0 21 2M28 57c8-1 14 0 21 2M28 70c8-1 14 0 21 2"/></g><g data-part="leaf"><path data-part="turning"/></g></g>`,
+    state: {opening: 0, bodyAngle: 0, leafWidth: 1, leafOpacity: 0},
+    poses: {idle: {}, open: {opening: 1}, selected: {opening: 1}},
     render(s, p) {
+      const opening = clamp01(s.opening), hinge = 38 + 22 * opening;
+      const top = 28 + 6 * opening, bottom = 92 + 4 * opening;
+      const left = hinge - 42 * opening;
+      const cover = M.util.lerpPath(closedCover, openCover, opening);
       attr(p.body, 'transform', `rotate(${s.bodyAngle} 60 92)`);
-      attr(p.leaf, 'transform', aroundXY(s.leafWidth, 1, 60, 60));
+      attr(p.cover, 'd', cover);
+      attr(p.left, 'd', `M${hinge} ${top}C${hinge-12*opening} ${top-8*opening} ${left+14*opening} ${top-8*opening} ${left} ${top-4*opening}V${bottom-9*opening}C${left+15*opening} ${bottom-13*opening} ${hinge-13*opening} ${bottom-11*opening} ${hinge} ${bottom}Z`);
+      attr(p.left, 'opacity', opening);
+      attr(p.spine, 'd', `M38 28C30 28 30 31 30 36V84Q30 92 38 92M38 84h46`);
+      attr(p.spine, 'opacity', clamp01(1-opening*2));
+      attr(p.mark, 'opacity', clamp01(1-opening*2.5));
+      attr(p.lines, 'opacity', clamp01((opening-.35)/.65));
+      attr(p.turning, 'd', cover);
+      attr(p.leaf, 'transform', aroundXY(s.leafWidth, 1, hinge, 60));
+      attr(p.leaf, 'opacity', clamp01(s.leafOpacity)*opening);
     },
     actions: {
-      tap: {label: '轻触词本', run: c => c.nudge('leafWidth', -.09)},
-      peek: {label: '掀起书页', async run(c) {
-        c.to('leafWidth', .70, 'gentle'); c.to('bodyAngle', -2, 'gentle'); await c.wait(240);
+      tap: {label: '轻触词本', run: c => c.nudge('bodyAngle', -3)},
+      peek: {label: '展开词本', pose: 'open', from: 'idle', async run(c) {
+        c.to('bodyAngle', 2, 'snap'); await c.wait(85);
+        c.to('opening', 1, 'gentle'); c.to('bodyAngle', -2, 'pop'); await c.wait(260);
       }},
-      select: {label: '翻开词本', pose: 'selected', async run(c) {
-        c.to('bodyAngle', 4, 'snap'); await c.wait(100);
-        c.to('bodyAngle', -3, 'pop'); c.to('leafWidth', .65, 'gentle'); await c.wait(230);
+      select: {label: '选中词本', pose: 'selected', async run(c) {
+        c.to('bodyAngle', 3, 'snap'); await c.wait(90);
+        c.to('opening', 1, 'gentle'); c.to('bodyAngle', -2, 'pop'); await c.wait(260);
       }},
-      turn: {label: '翻过一页', async run(c) {
-        c.to('leafWidth', c.goal('leafWidth') + .04, 'snap'); await c.wait(100);
-        c.to('leafWidth', .12, 'gentle'); await c.wait(190);
-        c.to('leafWidth', c.goal('leafWidth'), 'pop'); await c.wait(240);
+      close: {label: '合上词本', pose: 'idle', from: 'open', async run(c) {
+        c.to('bodyAngle', -2, 'snap'); await c.wait(85);
+        c.to('opening', 0, 'gentle'); c.to('bodyAngle', 0, 'pop'); await c.wait(260);
+      }},
+      turn: {label: '翻过一页', pose: 'open', from: 'open', async run(c) {
+        c.to('leafOpacity', 1, 'fade'); c.to('leafWidth', 1.04, 'snap'); await c.wait(100);
+        c.to('leafWidth', -.90, 'gentle'); await c.wait(260);
+        await c.to('leafOpacity', 0, 'fade'); c.set({leafWidth: 1});
       }}
     }
   });
