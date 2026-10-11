@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'">
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}body{display:flex;align-items:center;justify-content:center;pointer-events:none}#icon{display:flex;align-items:center;justify-content:center}</style>
+</head><body><div id="icon"></div>
+<script src="motion-icons.js"></script><script src="motion-icons-recipes.js"></script><script src="motion-icons-learning.js"></script>
+<script>
+(function () {
+  let icon, previous, latest;
+  const host = document.getElementById('icon');
+  function apply(next) {
+    latest = next;
+    host.style.color = next.ink;
+    const fresh = !icon || previous?.subject !== next.subject;
+    if (fresh) {
+      icon?.destroy(); host.replaceChildren();
+      icon = MotionIcon.create(host, next.subject, {size:next.size, weight:'regular', pose:next.pose});
+      previous = undefined;
+    }
+    icon.element.style.setProperty('--mi-size', next.size + 'px');
+    if (!fresh && previous.pose !== next.pose) icon.setPose(next.pose, {instant:!next.active || next.reduced});
+    if (!next.active || document.hidden || next.reduced) {
+      icon.reset({instant:true, pose:next.pose});
+    } else if (fresh || previous.action !== next.action || previous.event !== next.event) {
+      if (!next.action) icon.stop();
+      else if (!fresh || next.playOnMount || MotionIcon.recipes[next.subject].actions[next.action]?.loop) icon.play(next.action);
+      else icon.reset({instant:true, pose:next.pose});
+    } else if ((!previous.active || previous.reduced) && MotionIcon.recipes[next.subject].actions[next.action]?.loop) {
+      icon.play(next.action);
+    }
+    previous = next;
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) icon?.reset({instant:true});
+    else if (latest?.active && !latest.reduced && MotionIcon.recipes[latest.subject].actions[latest.action]?.loop) icon.play(latest.action);
+  });
+  window.vordMotion = {apply, destroy() { icon?.destroy(); icon=undefined; previous=undefined; latest=undefined; }};
+})();
+</script></body></html>

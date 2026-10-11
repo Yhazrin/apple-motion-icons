@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Motion Icons</title>
+  <style>
+    :root{--bg:#f5f5f7;--card:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:rgb(0 0 0 / .08);--accent:#0071e3;--chip:rgb(120 120 128 / .14)}
+    @media (prefers-color-scheme:dark){:root{--bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--muted:#a1a1a6;--line:rgb(255 255 255 / .1);--accent:#2997ff;--chip:rgb(120 120 128 / .28)}}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif}
+    main{max-width:1180px;margin:0 auto;padding:40px 24px 64px}
+    h1{font-size:28px;letter-spacing:-.01em;margin:0 0 4px}
+    h2{font-size:17px;margin:40px 0 14px}
+    p.sub{color:var(--muted);margin:0}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+    .card{background:var(--card);border-radius:20px;padding:18px 16px 16px;box-shadow:0 0 0 .5px var(--line);display:flex;flex-direction:column;align-items:center;gap:10px}
+    .stage{height:96px;display:grid;place-items:center;color:var(--ink);--mi-size:76px;cursor:pointer}
+    .head{display:flex;gap:8px;align-items:baseline}
+    .name{font-weight:600}
+    .pose{color:var(--muted);font-size:12px}
+    .row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+    .row.task{border-top:.5px solid var(--line);padding-top:10px;width:100%}
+    button{border:0;border-radius:999px;padding:6px 11px;background:var(--chip);color:var(--ink);font-family:inherit;font-weight:500;font-size:12px;line-height:1.2;cursor:pointer}
+    button:active{transform:scale(.96)}
+    button.loop::before{content:"↻ ";opacity:.6}
+    button.loop.on{background:var(--accent);color:#fff}
+    label.drive{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);width:100%;justify-content:center}
+    label.drive input{width:140px;accent-color:var(--accent)}
+    .inline{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:var(--accent);color:#fff;font-weight:600;font-size:15px}
+    .pill.small{padding:6px 12px;font-size:13px;gap:6px}
+    .pill.big{padding:14px 24px;font-size:17px;gap:10px}
+    #frames{position:fixed;inset:0;z-index:10;overflow:auto;padding:18px;background:var(--bg)}
+    #frames .seq{display:flex;gap:6px;align-items:flex-start;margin-bottom:6px}
+    #frames .seq > b{width:170px;flex:none;font:600 11px ui-monospace,Menlo,monospace;padding-top:22px}
+    #frames figure{margin:0;width:80px;display:flex;flex-direction:column;align-items:center;gap:2px;--mi-size:60px}
+    #frames figcaption{font:10px ui-monospace,Menlo,monospace;color:var(--muted);text-align:center}
+    #frames .err{color:#ff3b30}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Motion Icons</h1>
+  <p class="sub">每个图标有自己的姿态、动作、循环和拖拽驱动 · 弹簧物理 · 显示器原生刷新率 · 点图标本身是点按反馈</p>
+
+  <h2>图标与各自的动作</h2>
+  <div class="grid" id="grid"></div>
+
+  <p class="sub"><a href="../examples/workflows.html">学习、采集与导航的完整交互示例 →</a></p>
+  <h2>原生宿主预览</h2>
+  <div class="inline">
+    <iframe id="native-host" src="motion-icon-host.html" title="本地动效图标" style="width:80px;height:80px;border:0;background:transparent"></iframe>
+    <button data-native="searching">查词预览</button><button data-native="save">保存预览</button>
+    <button data-native="spin">同步预览</button><button data-native="stop">停止预览</button>
+    <span id="native-status">尚未播放</span>
+  </div>
+  <h2>内联尺寸（描边粗细随尺寸做光学补偿）</h2>
+  <div class="inline">
+    <button class="pill small" data-inline="refresh" data-size="16">刷新</button>
+    <button class="pill" data-inline="pay" data-size="20">立即支付</button>
+    <button class="pill big" data-inline="send" data-size="28">发送</button>
+    <button class="pill" data-inline="enter" data-size="20">登录</button>
+  </div>
+
+  <h2>可选：Face ID 外框与磨砂 HUD</h2>
+  <div class="inline">
+    <div class="card" style="width:200px"><div class="stage" id="framed"></div><div class="row">
+      <button data-framed="success">成功</button><button data-framed="fail">失败</button></div></div>
+    <div class="row">
+      <button data-hud="lock success">HUD 加密</button>
+      <button data-hud="unlock success">HUD 解锁</button>
+      <button data-hud="unlock fail">HUD 验证失败</button>
+      <button data-hud="pay success">HUD 支付</button>
+      <button data-hud="refresh success">HUD 刷新</button>
+    </div>
+  </div>
+</main>
+
+<script src="motion-icons.js"></script>
+<script src="motion-icons-recipes.js"></script>
+<script src="motion-icons-learning.js"></script>
+<script>
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const icons = window.galleryIcons = {};
+  const grid = document.getElementById('grid');
+  const el = (tag, props = {}, parent) => { const e = Object.assign(document.createElement(tag), props); parent?.appendChild(e); return e; };
+
+  for (const [name, recipe] of Object.entries(MotionIcon.recipes)) {
+    const card = el('div', {className: 'card'}, grid);
+    const stage = el('div', {className: 'stage'}, card);
+    const head = el('div', {className: 'head'}, card);
+    el('span', {className: 'name', textContent: name}, head);
+    const poseLabel = el('span', {className: 'pose'}, head);
+    const icon = icons[name] = MotionIcon.create(stage, name);
+    const showPose = () => { poseLabel.textContent = icon.poses.length > 1 ? `姿态：${icon.pose}` : ''; };
+    icon.element.addEventListener('mi:pose', showPose);
+    showPose();
+    stage.onclick = () => icon.tap();
+
+    const row = el('div', {className: 'row'}, card);
+    const loops = [];
+    for (const [action, a] of Object.entries(recipe.actions)) {
+      if (action === 'tap') continue;
+      if (a.drive) {
+        const lab = el('label', {className: 'drive', textContent: a.label || action}, card);
+        const input = el('input', {type: 'range', min: 0, max: 1, step: 0.01, value: a.initial ?? 0}, lab);
+        input.oninput = () => icon.drive(action, +input.value);
+        continue;
+      }
+      const b = el('button', {textContent: a.label || action, className: a.loop ? 'loop' : ''}, row);
+      if (a.loop) loops.push(b);
+      b.onclick = () => {
+        const wasOn = b.classList.contains('on');
+        loops.forEach(l => l.classList.remove('on'));
+        if (a.loop && wasOn) { icon.stop(); return; }
+        if (a.loop) b.classList.add('on');
+        icon.play(action);
+      };
+    }
+    icon.element.addEventListener('mi:action', e => {
+      if (!recipe.actions[e.detail.action]?.loop) loops.forEach(l => l.classList.remove('on'));
+    });
+    if (recipe.task) {
+      const task = el('div', {className: 'row task'}, card);
+      el('button', {textContent: '任务 · 成功', onclick: async () => { icon.busy(); await sleep(900); icon.success(); }}, task);
+      el('button', {textContent: '任务 · 失败', onclick: async () => { icon.busy(); await sleep(900); icon.fail(); }}, task);
+    }
+  }
+
+  let nativeEvent = 0;
+  document.querySelectorAll('[data-native]').forEach(button => button.onclick = () => {
+    const action = button.dataset.native;
+    const subject = action === 'save' ? 'lexicon' : action === 'spin' ? 'refresh' : 'lookup';
+    const frame = document.getElementById('native-host');
+    frame.contentWindow.vordMotion.apply({subject, action:action === 'stop' ? null : action,
+      event:++nativeEvent, size:60, pose:subject === 'refresh' ? 'rest' : subject === 'lexicon' ? 'saved' : 'idle',
+      playOnMount:true, active:action !== 'stop', reduced:false,
+      ink:matchMedia('(prefers-color-scheme:dark)').matches ? '#EFEFEF' : '#202020'});
+    document.getElementById('native-status').textContent = action;
+  });
+
+  document.querySelectorAll('[data-inline]').forEach(btn => {
+    const icon = MotionIcon.create(btn, btn.dataset.inline, {size: +btn.dataset.size, weight: 'semibold'});
+    btn.prepend(icon.element);
+    btn.onclick = async () => { icon.busy(); await sleep(1000); icon.success(); };
+  });
+
+  const framed = window.galleryFramed = MotionIcon.create(document.getElementById('framed'), 'lock', {frame: true});
+  document.querySelectorAll('[data-framed]').forEach(b => b.onclick = async () => {
+    framed.busy(); await sleep(900); framed[b.dataset.framed]();
+  });
+
+  const HUDS = {
+    lock: () => MotionIcon.hud('lock'),
+    unlock: () => MotionIcon.hud('lock', {pose: 'locked', task: {success: ['unlock', 'confirm'], fail: 'deny'},
+      labels: {busy: '正在验证', done: '已解锁', fail: '验证失败'}}),
+    pay: () => MotionIcon.hud('pay'),
+    refresh: () => MotionIcon.hud('refresh')
+  };
+  const huds = {};
+  document.querySelectorAll('[data-hud]').forEach(b => b.onclick = async () => {
+    const [name, result] = b.dataset.hud.split(' ');
+    const hud = huds[name] ||= HUDS[name]();
+    hud.busy(); await sleep(1100); hud[result]();
+  });
+
+  if (new URLSearchParams(location.search).has('frames')) {
+    const s = document.createElement('script');
+    s.src = '../scripts/capture-frames.js?' + Date.now();
+    document.body.appendChild(s);
+  }
+</script>
+</body>
+</html>

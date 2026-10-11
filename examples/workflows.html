@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Small objects · Motion Icons</title>
+<style>
+:root{color-scheme:light;--paper:#f7f7f5;--card:#fff;--ink:#252524;--muted:#72716c;--line:#e5e4de;--well:#f0f0ec}
+@media(prefers-color-scheme:dark){:root{color-scheme:dark;--paper:#171716;--card:#232322;--ink:#efeee9;--muted:#a2a098;--line:#363633;--well:#2d2d2a}}
+:root[data-theme=dark]{color-scheme:dark;--paper:#171716;--card:#232322;--ink:#efeee9;--muted:#a2a098;--line:#363633;--well:#2d2d2a}
+:root[data-theme=light]{color-scheme:light;--paper:#f7f7f5;--card:#fff;--ink:#252524;--muted:#72716c;--line:#e5e4de;--well:#f0f0ec}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1080px;margin:auto;padding:36px 28px 60px}header{display:flex;justify-content:space-between;align-items:start;gap:16px}h1{font-size:36px;font-weight:600;letter-spacing:-1.3px;line-height:1.2;margin:0 0 8px}h2{font-size:17px;letter-spacing:-.2px;margin:0}p{margin:0}.muted{color:var(--muted);font-size:13px}button,input{font:inherit;color:inherit}button{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 14px;cursor:pointer}button:disabled{opacity:.42;cursor:default}button:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:3px}button{white-space:nowrap}button.primary{background:var(--ink);color:var(--card);border-color:var(--ink)}a{color:inherit;text-decoration-color:var(--muted);text-underline-offset:3px}nav{display:flex;justify-content:space-between;gap:8px;margin:26px 0 24px;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:20px}nav button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:0;background:transparent;padding:10px 6px;border-radius:12px;font-size:13px}nav button[aria-current=page]{background:var(--well);font-weight:600}.nav-icon{width:26px;height:26px;display:grid;place-items:center}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px}.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:18px}.glyph{display:grid;place-items:center;width:36px;height:36px}.row{display:flex;align-items:center;gap:10px}.row.wrap{flex-wrap:wrap}input[type=text]{width:100%;min-width:0;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:10px 12px}.meaning{min-height:66px;margin:16px 0 10px}.receipt{display:flex;align-items:center;gap:10px;margin-top:14px;min-height:38px}.receipt .glyph{width:30px;height:30px}.scene{min-height:128px;margin-bottom:16px}.sentence{font-size:19px;line-height:1.55;margin-top:12px}.scene p+p{margin-top:10px}.controls{display:flex;align-items:center;gap:12px;margin-top:16px}input[type=range]{flex:1;accent-color:var(--ink)}.stage{display:grid;place-items:center;height:100px}.footer{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-top:22px}.caption{margin-top:7px}.library-size{display:flex;gap:14px;align-items:center}.library-size span{display:grid;place-items:center}#selection{min-height:20px;font-size:12px;color:var(--muted);margin-top:-12px;margin-bottom:20px}
+@media(max-width:720px){main{padding:24px 16px}.grid{grid-template-columns:1fr}nav{flex-wrap:wrap}nav button{flex:0 0 calc(33.33% - 6px)}h1{font-size:30px}}
+</style>
+</head>
+<body><main>
+<header><div><h1>Small objects.<br>Clear actions.</h1><p class="muted">Subject-based spring motion, from navigation to learning.</p></div><button id="theme">Change appearance</button></header>
+<nav aria-label="Workspace">
+<button data-subject="daylight" aria-current="page"><span class="nav-icon"></span>Today</button>
+<button data-subject="cards"><span class="nav-icon"></span>Study</button>
+<button data-subject="book"><span class="nav-icon"></span>Library</button>
+<button data-subject="capture"><span class="nav-icon"></span>Add</button>
+<button data-subject="conversation"><span class="nav-icon"></span>Companion</button>
+<button data-subject="settings"><span class="nav-icon"></span>Settings</button>
+</nav><p id="selection" aria-live="polite">Today · selected pose, no background loop</p>
+<div class="grid">
+<section class="panel"><div class="panel-head"><span id="lookup" class="glyph" aria-hidden="true"></span><h2>Lookup & capture</h2></div>
+<form id="lookup-form"><div class="row"><input id="word" type="text" value="condense" aria-label="Word to look up" autocomplete="off"><button class="primary" type="submit">Look up</button></div></form>
+<div class="meaning" aria-live="polite"><p id="definition">Try condense, amicable or stagnant.</p><p id="lookup-status" class="muted caption">Local dictionary fixture</p></div>
+<div class="row wrap"><button id="add" disabled>Add to collection</button><button id="cancel-lookup" disabled>Cancel lookup</button></div>
+<div class="receipt"><span id="lexicon" class="glyph" aria-hidden="true"></span><span id="receipt" class="muted" aria-live="polite">Your collection is empty.</span></div>
+</section>
+<section class="panel"><div class="panel-head"><span id="sentence" class="glyph" aria-hidden="true"></span><h2>A sentence takes shape</h2></div>
+<div class="scene" aria-live="polite"><p class="muted">condense · example</p><p id="sentence-text" class="sentence">The article condenses years of research into a few clear pages.</p></div>
+<div class="row wrap"><button id="generate-sentence" class="primary">New example</button><button id="sentence-fail">Show failure</button><button id="cancel-sentence" disabled>Cancel</button></div>
+</section>
+<section class="panel"><div class="panel-head"><span id="memory" class="glyph" aria-hidden="true"></span><h2>A scene stays with you</h2></div>
+<div class="scene" aria-live="polite"><p id="memory-text">Think of a long letter becoming a small, folded note: the important ideas remain.</p><p class="muted">The landscape moves inside its frame. Its bookmark settles when saved.</p></div>
+<div class="row wrap"><button id="generate-memory" class="primary">Create scene</button><button id="cancel-memory" disabled>Cancel</button></div>
+</section>
+<section class="panel"><div class="panel-head"><h2>Follow a real input</h2></div><div id="download" class="stage" aria-hidden="true"></div>
+<label class="controls">Progress<input id="progress" type="range" min="0" max="1" value="0" step="0.01"><output id="percentage">0%</output></label>
+<div class="row wrap controls"><button id="complete">Complete</button><button id="reset">Reset</button><span class="muted">Spring-driven, no CSS animation</span></div>
+</section>
+</div>
+<div class="footer"><p class="muted">Local simulations only · no AI requests or persistent storage</p><a href="../assets/gallery.html">All 25 subjects & key-frame sheet →</a></div>
+</main>
+<script src="../assets/motion-icons.js"></script><script src="../assets/motion-icons-recipes.js"></script><script src="../assets/motion-icons-learning.js"></script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const allIcons=[];
+function make(id,name,size=30,pose='idle'){const icon=MotionIcon.create($(id),name,{size,pose});allIcons.push(icon);return icon;}
+function playVisible(icon,action,pose){if(document.hidden){icon.reset({instant:true,pose:pose||icon.pose});}else{icon.play(action);}}
+const navigation=[...document.querySelectorAll('nav button')].map(button=>{
+ const icon=MotionIcon.create(button.querySelector('span'),button.dataset.subject,{size:26,pose:button.hasAttribute('aria-current')?'selected':'idle'});allIcons.push(icon);
+ button.addEventListener('pointerenter',()=>icon.play('peek'));button.addEventListener('pointerleave',()=>icon.stop());
+ button.addEventListener('focus',()=>icon.play('peek'));button.addEventListener('blur',()=>icon.stop());
+ button.addEventListener('click',()=>{
+  navigation.forEach(item=>{if(item.button!==button){item.button.removeAttribute('aria-current');item.icon.setPose('idle');}});
+  button.setAttribute('aria-current','page');icon.play('select');
+  $('selection').textContent=button.textContent.trim()+' · selected pose, no background loop';
+ });return {button,icon};
+});
+const lookup=make('lookup','lookup'),lexicon=make('lexicon','lexicon',28,'empty');
+const sentence=make('sentence','sentence'),memory=make('memory','memory');
+const download=make('download','download',64,'rest');
+const dictionary={condense:'v. 浓缩；凝结 · make something shorter or more concentrated',amicable:'adj. 友好的；和睦的 · showing friendliness and goodwill',stagnant:'adj. 停滞的；不流动的 · not moving or developing'};
+let lookupToken=0,currentWord='',saving=false;const collection=new Set();
+function cancelLookup(){lookupToken++;lookup.stop();$('cancel-lookup').disabled=true;}
+$('word').addEventListener('input',()=>{cancelLookup();currentWord='';$('add').disabled=true;$('lookup-status').textContent='Ready to look up.';});
+$('lookup-form').addEventListener('submit',async event=>{
+ event.preventDefault();const word=$('word').value.trim().toLowerCase(),token=++lookupToken;
+ currentWord='';$('add').disabled=true;$('cancel-lookup').disabled=false;lookup.play('searching');$('lookup-status').textContent='Looking up…';
+ await sleep(600);if(token!==lookupToken)return;
+ $('cancel-lookup').disabled=true;
+ if(dictionary[word]){currentWord=word;$('definition').textContent=dictionary[word];$('lookup-status').textContent='Definition ready.';$('add').disabled=saving||collection.has(word);playVisible(lookup,'found');}
+ else{$('definition').textContent='No fixture for this word. Try condense, amicable or stagnant.';$('lookup-status').textContent='No result.';playVisible(lookup,'empty');}
+});
+$('cancel-lookup').onclick=()=>{cancelLookup();$('lookup-status').textContent='Lookup cancelled.';};
+$('add').onclick=async()=>{
+ if(!currentWord||saving||collection.has(currentWord))return;
+ const word=currentWord;saving=true;$('add').disabled=true;lexicon.play('saving');$('receipt').textContent='Saving '+word+'…';
+ await sleep(250);collection.add(word);saving=false;
+ $('receipt').textContent=word+' added · '+collection.size+(collection.size===1?' word':' words');playVisible(lexicon,'save','saved');
+ $('add').disabled=!currentWord||collection.has(currentWord);
+};
+function generation(startID,cancelID,icon,busy,done,output,text,restPose){
+ let token=0;
+ $(startID).onclick=async()=>{const request=++token;$(startID).disabled=true;$(cancelID).disabled=false;icon.play(busy);$(output).textContent='Preparing…';
+  await sleep(850);if(request!==token)return;
+  $(output).textContent=text;$(startID).disabled=false;$(cancelID).disabled=true;playVisible(icon,done,restPose);
+ };
+ $(cancelID).onclick=()=>{token++;icon.stop();$(startID).disabled=false;$(cancelID).disabled=true;$(output).textContent='Cancelled. Your previous saved content is unchanged.';};
+ return ()=>{token++;$(startID).disabled=false;$(cancelID).disabled=true;};
+}
+const cancelSentence=generation('generate-sentence','cancel-sentence',sentence,'writing','reveal','sentence-text','She condensed the story into a single paragraph.','idle');
+generation('generate-memory','cancel-memory',memory,'imagining','bind','memory-text','Imagine squeezing a long letter into a small note. The words condense, while the meaning stays.','selected');
+$('sentence-fail').onclick=()=>{cancelSentence();sentence.play('fail');$('sentence-text').textContent='The request failed. Your saved example remains available.';};
+$('progress').oninput=()=>{const value=+$('progress').value;download.drive('progress',value);$('percentage').textContent=Math.round(value*100)+'%';};
+$('complete').onclick=()=>{$('progress').value='1';$('percentage').textContent='100%';download.play('complete');};
+$('reset').onclick=()=>{$('progress').value='0';$('percentage').textContent='0%';download.reset({pose:'rest'});};
+$('theme').onclick=()=>{const root=document.documentElement,dark=root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;root.dataset.theme=dark?'light':'dark';};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)allIcons.forEach(icon=>icon.reset({instant:true}));});
+window.addEventListener('pagehide',()=>allIcons.forEach(icon=>icon.destroy()));
+</script></body></html>
