@@ -8,7 +8,7 @@ unchanged; this file adds 14 subjects.
 | --- | --- | --- | --- | --- |
 | lookup | Page and attached magnifying lens | idle | tap, found, empty, fail | searching |
 | lexicon | Word card sliding into a book | empty, saved | tap, save, reopen, fail | saving |
-| daylight | Sun revolving on its axis into a crescent | idle, selected, night, nightSelected | tap, peek, select, selectNight, toNight, toDay | — |
+| daylight | Sun turning in planar perspective into a crescent | idle, selected, night, nightSelected | tap, peek, select, selectNight, toNight, toDay | — |
 | cards | A staggered word-card deck | idle, selected | tap, peek, select, remember, revisit | preparing |
 | book | Closed cover unfolding around its spine | idle (closed), open, selected (open) | tap, peek, select, close, turn | — |
 | recall | Folded answer card | idle, revealed | tap, reveal, close, next, retry | — |
@@ -42,9 +42,10 @@ the same selection change, and the button owns focus and `aria-current`.
 Daylight follows the effective color scheme: use `night` / `nightSelected` in
 dark appearance and `idle` / `selected` in light appearance. Theme changes call
 `setPose` on the existing instance so a second change reverses the turn while
-it is still moving. The disc revolves around a vertical axis: the near side
-swings out of the icon and the far side recedes, and the crescent replaces the
-sun only at the edge. Rays leave with that turn; stars arrive on the moon.
+it is still moving. The disc turns on a vertical axis in planar perspective:
+it foreshortens toward the axis, the near side keeps its drawn size, and only
+the far side shortens. The crescent replaces the sun at the edge. Rays leave
+with that turn; stars arrive on the moon.
 The gallery’s appearance control plays `toNight` / `toDay`
 only from an unselected pose, and those actions retarget the phase on the first
 frame. A selected Today icon keeps `selected` or `nightSelected`. Never recreate

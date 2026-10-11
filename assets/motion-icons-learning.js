@@ -92,19 +92,18 @@
   const rayOutline = 'M60 18L60 28M60 92L60 102M18 60L28 60M92 60L102 60M30 30L37 37M83 83L90 90M30 90L37 83M83 37L90 30';
   const starOutline = 'M86 34L86 44M81 39L91 39M92 58L92 64M89 61L95 61';
   const PATH_NUM = /-?\d*\.?\d+(?:e-?\d+)?/g;
-  function turnPath(d, angle, spin, warmth, travel) {
+  function turnPath(d, angle, spin, warmth) {
     const nums = d.match(PATH_NUM);
     if (!nums || nums.length % 2) return d;
     const cosA = Math.cos(angle), sinA = Math.sin(angle);
     const cosS = Math.cos(spin), sinS = Math.sin(spin);
-    const focal = 48;
     const out = [];
     for (let i = 0; i < nums.length; i += 2) {
       const x0 = (+nums[i] - 60) * warmth, y0 = (+nums[i + 1] - 60) * warmth;
       const x = x0 * cosS - y0 * sinS, y = x0 * sinS + y0 * cosS;
-      const z = x * sinA;
-      const persp = Math.min(3.1, focal / Math.max(16, focal - z));
-      out.push((60 + x * cosA * persp + travel).toFixed(2), (60 + y * persp).toFixed(2));
+      // Planar turn: width follows the axis. The near side stays its drawn size.
+      const yScale = 1 - Math.min(0.28, Math.max(0, -x * sinA) / 22 * 0.28);
+      out.push((60 + x * cosA).toFixed(2), (60 + y * yScale).toFixed(2));
     }
     let n = 0;
     return d.replace(PATH_NUM, () => out[n++]);
@@ -118,19 +117,18 @@
       const phase = clamp01(s.phase);
       const moon = phase >= 0.5;
       const angle = (moon ? phase - 1 : phase) * Math.PI;
-      const travel = Math.sin(phase * Math.PI) * 8;
-      const lift = `translate(0 ${s.rise - travel * 0.08})`;
+      const lift = `translate(0 ${s.rise})`;
       const facing = Math.cos(phase * Math.PI);
       const day = clamp01((facing - 0.12) / 0.7);
       const night = clamp01((-facing - 0.12) / 0.7);
       attr(p.sun, 'transform', lift);
-      attr(p.outline, 'd', turnPath(moon ? moonOutline : sunOutline, angle, 0, s.warmth, travel));
+      attr(p.outline, 'd', turnPath(moon ? moonOutline : sunOutline, angle, 0, s.warmth));
       attr(p.rays, 'transform', lift);
       attr(p.rays, 'opacity', day);
-      attr(p.rays, 'd', turnPath(rayOutline, Math.min(phase, 0.48) * Math.PI, s.rayAngle * Math.PI / 180, s.warmth, travel));
+      attr(p.rays, 'd', turnPath(rayOutline, Math.min(phase, 0.48) * Math.PI, s.rayAngle * Math.PI / 180, s.warmth));
       attr(p.stars, 'transform', lift);
       attr(p.stars, 'opacity', night);
-      attr(p.stars, 'd', turnPath(starOutline, angle, 0, 0.62 + 0.38 * night, travel));
+      attr(p.stars, 'd', turnPath(starOutline, angle, 0, 0.62 + 0.38 * night));
     },
     actions: {
       tap: {label: '轻触天光', run: c => c.nudge('warmth', .06)},
