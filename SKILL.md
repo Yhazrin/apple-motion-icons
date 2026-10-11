@@ -173,6 +173,30 @@ morphs the two strokes into a check. Native integrations can start from
 [examples/MotionIconView.swift](examples/MotionIconView.swift) and
 `assets/motion-icon-host.html`.
 
+## Catalog collection
+
+Load `assets/motion-icons-catalog.js` after `motion-icons-learning.js`. These 60
+subjects are implemented and registered only with `MotionIcon.define()`:
+
+`wifi`, `bluetooth`, `cloud`, `sync`, `upload`, `battery`, `power`, `search`,
+`link`, `cellular`, `hotspot`, `usb`, `server`, `brightness`, `storage`,
+`check`, `warning`, `error`, `loading`, `hourglass`, `clock`, `folder`, `copy`,
+`bookmark`, `printer`, `archive`, `clipboard`, `filter`, `sort`, `mail`,
+`phone`, `video-call`, `share`, `qr-scan`, `wallet`, `cart`, `calendar`,
+`receipt`, `gift`, `star`, `shield`, `key`, `passcode`, `two-factor`,
+`permission`, `secure-connection`, `camera`, `screen-recording`, `face-id`,
+`fingerprint`, `ai-thinking`, `ai-browsing`, `ai-reading`, `ai-writing`,
+`ai-coding`, `ai-tool-call`, `ai-agent`, `ai-handoff`, `ai-generating`,
+`ai-queue`.
+
+Poses, actions, loops and drives are listed in
+[reference/catalog.md](reference/catalog.md). Keep these boundaries:
+`search` is a magnifying glass, not `lookup` (a page with a lens); `sync` is
+two opposing arrows, not `refresh`; `loading` is a capsule sliding in a track,
+not `refresh`; `check` draws its own stroke and is not `plus` or the engine
+overlay; `star` is not `heart`; `folder` hinges a lid and is not `book`.
+`face-id` and `fingerprint` are drawings, not a biometric result.
+
 ## Workflow for a new icon
 
 1. Write the vocabulary (principle list above, vocabulary.md for ideas). Ask

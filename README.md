@@ -5,8 +5,9 @@ object. A Codex / Cursor skill and a dependency-free browser library.
 
 **[Live gallery →](https://skills.yhazrin.xyz/motion-icons/)** — play every icon action, search by use, change size and appearance. The gallery follows the public `main` branch; published changes are checked about every five minutes.
 
-**27 subjects:** 13 general-purpose icons plus 14 learning, capture and navigation
-icons. Hover, selection, lookup, card insertion, recall, page-turning, writing and
+**87 subjects:** 13 general-purpose icons, 14 learning, capture and navigation
+icons, and 60 catalog icons (system, status, files, communication, security and
+AI). Hover, selection, lookup, card insertion, recall, page-turning, writing and
 scene binding have their own movements. Motion stops when the object is at rest.
 
 ![Workflow examples](examples/workflows-preview.jpg)
@@ -29,6 +30,7 @@ agent to use `$apple-motion-icons` to implement the interaction you need.
 <script src="assets/motion-icons.js"></script>
 <script src="assets/motion-icons-recipes.js"></script>
 <script src="assets/motion-icons-learning.js"></script>
+<script src="assets/motion-icons-catalog.js"></script>
 <div id="word-receipt" aria-hidden="true"></div>
 <script>
   const receipt = MotionIcon.create(document.querySelector('#word-receipt'),
@@ -55,6 +57,7 @@ python3 -m http.server 8080 --bind 127.0.0.1
 - [Native SwiftUI adapter](examples/MotionIconView.swift) — transparent, decorative
   WKWebViews, native focus/accessibility, lifecycle cleanup and event replay.
 - [Learning vocabulary](reference/learning.md) — the 14 added subjects and their verbs.
+- [Catalog vocabulary](reference/catalog.md) — the 60 catalog subjects and their verbs.
 - [Recipe authoring](reference/authoring.md) — extension rules and spring choices.
 
 The runtime retains its 480 Hz spring integration, display-refresh rendering,

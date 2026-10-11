@@ -12,6 +12,9 @@
 | --- | --- | --- |
 | 原弹簧引擎和 13 个基础对象 | assets/motion-icons.js、motion-icons-recipes.js | 保持字节不变 |
 | 学习、复习、采集对象 | assets/motion-icons-learning.js | 新对象写新配方 |
+| 系统、状态、文件、通讯、安全与智能对象 | assets/motion-icons-catalog.js | 在 learning 之后加载；只调用 MotionIcon.define() |
+
+`motion-icons-catalog.js` 已实现 60 个对象。发布时把它加入网站更新器的 FILES 白名单，并让 gallery 的脚本引用检查包含它；只推 GitHub 而不更新白名单，线上画廊会缺这个文件。
 | 展示卡片与操作按钮 | assets/gallery.html | 自动枚举配方；subjects 表填写名称、用途和归属 |
 | 可操作工作流 | examples/workflows.html | 只使用明确标注的本地模拟数据 |
 | 原生桥接 | assets/motion-icon-host.html、examples/MotionIconView.swift | 生命周期和消息接口，不携带业务数据 |

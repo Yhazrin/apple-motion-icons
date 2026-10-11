@@ -36,7 +36,7 @@
     .brand h1{margin:0;font-size:17px;font-weight:640;letter-spacing:-.022em;line-height:1.15}
     .brand p{margin:1px 0 0;color:var(--muted);font-size:12px;letter-spacing:.01em}
     #mark{display:grid;place-items:center;width:28px;height:28px;color:var(--ink)}
-    .segments{display:flex;gap:2px;padding:3px;border-radius:12px;background:var(--chip)}
+    .segments{display:flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:12px;background:var(--chip);max-width:100%}
     .segments button{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:9px;color:var(--muted);font-size:13px;font-weight:560;white-space:nowrap}
     .segments button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:var(--shadow),0 0 0 .5px var(--line)}
     .segments button span{display:grid;place-items:center;width:16px;height:16px}
@@ -148,6 +148,12 @@
       <button type="button" data-filter="navigation" aria-pressed="false"><span data-seg="daylight"></span>导航</button>
       <button type="button" data-filter="actions" aria-pressed="false"><span data-seg="recall"></span>学习</button>
       <button type="button" data-filter="library" aria-pressed="false"><span data-seg="eye"></span>图库</button>
+      <button type="button" data-filter="system" aria-pressed="false"><span data-seg="wifi"></span>联网</button>
+      <button type="button" data-filter="status" aria-pressed="false"><span data-seg="warning"></span>状态</button>
+      <button type="button" data-filter="files" aria-pressed="false"><span data-seg="folder"></span>文件</button>
+      <button type="button" data-filter="commerce" aria-pressed="false"><span data-seg="mail"></span>通讯</button>
+      <button type="button" data-filter="security" aria-pressed="false"><span data-seg="shield"></span>安全</button>
+      <button type="button" data-filter="ai" aria-pressed="false"><span data-seg="ai-agent"></span>智能</button>
     </div>
     <div class="tools">
       <label class="search-field">
@@ -176,6 +182,30 @@
   <section class="section" id="actions-section" data-group="actions">
     <div class="section-head"><h2>学习</h2><span>查词、收录、例句与复习回执</span></div>
     <div class="grid" id="actions-grid"></div>
+  </section>
+  <section class="section" id="system-section" data-group="system">
+    <div class="section-head"><h2>联网</h2><span>无线、同步、电量与设备</span></div>
+    <div class="grid" id="system-grid"></div>
+  </section>
+  <section class="section" id="status-section" data-group="status">
+    <div class="section-head"><h2>状态</h2><span>勾选、警告、加载与时间</span></div>
+    <div class="grid" id="status-grid"></div>
+  </section>
+  <section class="section" id="files-section" data-group="files">
+    <div class="section-head"><h2>文件</h2><span>文件夹、打印、筛选与排序</span></div>
+    <div class="grid" id="files-grid"></div>
+  </section>
+  <section class="section" id="commerce-section" data-group="commerce">
+    <div class="section-head"><h2>通讯</h2><span>邮件、通话、支付与日程</span></div>
+    <div class="grid" id="commerce-grid"></div>
+  </section>
+  <section class="section" id="security-section" data-group="security">
+    <div class="section-head"><h2>安全</h2><span>盾牌、钥匙、权限与录制</span></div>
+    <div class="grid" id="security-grid"></div>
+  </section>
+  <section class="section" id="ai-section" data-group="ai">
+    <div class="section-head"><h2>智能</h2><span>思考、阅读、调用与队列</span></div>
+    <div class="grid" id="ai-grid"></div>
   </section>
   <section class="section" id="library-section" data-group="library">
     <div class="section-head"><h2>图库</h2><span>通用动作与扩展配方</span></div>
@@ -219,6 +249,7 @@
 <script src="motion-icons.js"></script>
 <script src="motion-icons-recipes.js"></script>
 <script src="motion-icons-learning.js"></script>
+<script src="motion-icons-catalog.js"></script>
 <script>
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const framesMode = new URLSearchParams(location.search).has('frames');
@@ -234,7 +265,38 @@
     lock:['锁','上锁 / 解锁','library'],pay:['支付卡','感应 / 翻面 / 拒绝','library'],enter:['进入','敲门 / 进入 / 被拒','library'],
     download:['下载','连续进度 / 完成 / 取消','library'],send:['发送','发送 / 撤回','library'],delete:['删除','打开 / 丢入 / 恢复','library'],
     heart:['喜欢','喜欢 / 取消 / 心跳','library'],menu:['菜单','菜单 / 关闭 / 返回','library'],bell:['通知','响铃 / 已读 / 静音','library'],
-    play:['播放','播放 / 暂停 / 下一首','library'],volume:['音量','发声 / 静音 / 连续音量','library'],eye:['眼睛','眨眼 / 看向 / 显隐','library']
+    play:['播放','播放 / 暂停 / 下一首','library'],volume:['音量','发声 / 静音 / 连续音量','library'],eye:['眼睛','眨眼 / 看向 / 显隐','library'],
+    wifi:['无线网络','信号弧从内向外亮起','system'],bluetooth:['蓝牙','符文分段点亮','system'],
+    cloud:['云','轮廓不动，内部箭头进出','system'],sync:['对向同步','两支箭头相向，冲突时挡住','system'],
+    upload:['上传','箭头从托盘升起','system'],battery:['电池','填充宽度等于电量','system'],
+    power:['电源','弧与杆，点按会压扁','system'],search:['搜索','镜片本身移动并倾斜','system'],
+    link:['链接','两环扣上或弹开','system'],cellular:['蜂窝','信号柱，不是弧线','system'],
+    hotspot:['热点','打开并接入一台设备','system'],usb:['USB','插入、识别、弹出','system'],
+    server:['服务器','在线、忙碌、离线','system'],brightness:['亮度','光线长短，不是扬声器','system'],
+    storage:['存储','填充高度跟随用量','system'],
+    check:['勾选','描边画出并落定','status'],warning:['警告','三角与标记错开','status'],
+    error:['错误','拒绝是回弹','status'],loading:['加载','胶囊在轨道里滑动','status'],
+    hourglass:['沙漏','沙量跟随进度，翻转是旋转','status'],clock:['时钟','时针和分针走动','status'],
+    folder:['文件夹','盖子开合，纸张滑入','files'],copy:['复制','两张纸错开','files'],
+    bookmark:['书签','填充并压扁','files'],printer:['打印机','纸张送出，机身不转','files'],
+    archive:['归档盒','打开、存入、取出','files'],clipboard:['剪贴板','复制、粘贴、清空','files'],
+    filter:['筛选','应用、调节、清除','files'],sort:['排序','线条真正换位','files'],
+    mail:['邮件','收到、打开、寄出、归档','commerce'],phone:['电话','响铃、接听、挂断','commerce'],
+    'video-call':['视频通话','加入、离开、开关镜头','commerce'],share:['分享','打开、分享、复制链接','commerce'],
+    'qr-scan':['扫码','扫描线经过模块','commerce'],wallet:['钱包','合上或打开','commerce'],
+    cart:['购物车','物品落入，轮子滚动','commerce'],calendar:['日历','从装订边翻页','commerce'],
+    receipt:['小票','纸先送出再撕开','commerce'],gift:['礼物','摇动、打开、合上','commerce'],
+    star:['星标','收藏，不同于心形','commerce'],
+    shield:['盾牌','护住、警示、核验','security'],key:['钥匙','插入、转动、打开','security'],
+    passcode:['密码','圆点填满；核对只在播放该动作时发生','security'],'two-factor':['双重验证','请求、核对、过期','security'],
+    permission:['权限','请求、允许、拒绝、收回','security'],'secure-connection':['安全连接','建立、锁上、断开','security'],
+    camera:['相机','快门、对焦、切换','security'],'screen-recording':['屏幕录制','开始、暂停、继续、停止','security'],
+    'face-id':['面容轮廓','四角张开，扫描线走过；不是生物识别结果','security'],fingerprint:['指纹','纹路由内向外亮起；不是生物识别结果','security'],
+    'ai-thinking':['思考','节点连上再松开','ai'],'ai-browsing':['浏览','窗口里的内容移动','ai'],
+    'ai-reading':['阅读','文本逐行扫过','ai'],'ai-writing':['书写','线条长出，光标移动','ai'],
+    'ai-coding':['代码','括号张开，不是书写图标','ai'],'ai-tool-call':['工具调用','请求在两端之间往返','ai'],
+    'ai-agent':['智能体','空闲或持续工作','ai'],'ai-handoff':['交接','标记沿连线走到另一端','ai'],
+    'ai-generating':['生成','碎片拼成一块','ai'],'ai-queue':['队列','卡片排队、进入、离开','ai']
   };
   const controls = [];
   const isDark = () => document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme:dark)').matches;
@@ -259,7 +321,17 @@
     const recipe = MotionIcon.recipes[name];
     if (!recipe) continue;
     const [title,usage,group] = subjects[name] || [name,'扩展配方','library'];
-    const parent = group === 'navigation' ? document.getElementById('navigation-grid') : group === 'actions' ? document.getElementById('actions-grid') : grid;
+    const groupGrids = {
+      navigation: document.getElementById('navigation-grid'),
+      actions: document.getElementById('actions-grid'),
+      system: document.getElementById('system-grid'),
+      status: document.getElementById('status-grid'),
+      files: document.getElementById('files-grid'),
+      commerce: document.getElementById('commerce-grid'),
+      security: document.getElementById('security-grid'),
+      ai: document.getElementById('ai-grid')
+    };
+    const parent = groupGrids[group] || grid;
     const card = el('div', {className: 'card'}, parent);
     card.dataset.subject = name;
     card.dataset.group = group;
@@ -328,6 +400,11 @@
     icon.element.addEventListener('mi:pose', showPose);
     showPose();
     const reset=()=>{taskToken++;hoverRest=null;loops.forEach(b=>b.classList.remove('on'));card.querySelectorAll('input[type=range]').forEach(input=>input.value=input.defaultValue);icon.reset({pose:restPose(name,icon)});};
+    const sampleAction = Object.entries(recipe.actions).find(([action, spec]) => action !== 'tap' && !spec.loop && !spec.drive)?.[0] || 'tap';
+    el('button',{type:'button', className:'text-btn', textContent:'复制调用', onclick: () => {
+      const sample = "const icon = MotionIcon.create(host, '" + name + "', {size: 28});\nicon.play('" + sampleAction + "');";
+      navigator.clipboard?.writeText(sample).catch(() => {});
+    }}, poseLine);
     el('button',{type:'button', className:'text-btn', textContent:'归位',onclick:reset}, poseLine);
     controls.push({card,icon,reset});
   }
