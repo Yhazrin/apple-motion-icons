@@ -15,17 +15,17 @@
       tap: {label: '轻触词页', run: c => c.nudge('lensScale', 0.08)},
       searching: {label: '检索词页', loop: true, run(c) {
         c.claim('lx', 'ly');
-        c.loop(t => { c.s.lx = 4 * Math.sin(t * Math.PI * 2); c.s.ly = -3 * (1 - Math.cos(t * Math.PI * 2)); });
+        c.loop(t => { c.s.lx = 16 * Math.sin(t * Math.PI * 2); c.s.ly = -10 * (1 - Math.cos(t * Math.PI * 2)); });
       }},
       found: {label: '聚焦词义', async run(c) {
-        c.to('lensScale', 0.94, 'snap');
-        await c.wait(90);
-        c.to('lx', 0, 'track'); c.to('ly', -3, 'pop'); c.to('lensScale', 1.12, 'pop');
+        c.to('lensScale', 0.82, 'snap'); c.to('ly', 4, 'snap');
+        await c.wait(80);
+        c.to('lx', 0, 'track'); c.to('ly', -12, 'pop'); c.to('lensScale', 1.38, 'pop');
         await c.wait(260);
       }},
       empty: {label: '继续寻找', async run(c) {
-        c.to('lx', -5, 'gentle'); await c.wait(140);
-        c.to('lx', 5, 'gentle'); await c.wait(200);
+        c.to('lx', -18, 'snap'); c.to('lensScale', 1.08, 'snap'); await c.wait(120);
+        c.to('lx', 18, 'pop'); await c.wait(160);
       }},
       fail: {label: '词页卡住', async run(c) {
         c.error(); c.to('pageTilt', -4, 'snap');
@@ -103,7 +103,8 @@
       const x = x0 * cosS - y0 * sinS, y = x0 * sinS + y0 * cosS;
       // Planar turn: width follows the axis. The near side stays its drawn size.
       const yScale = 1 - Math.min(0.28, Math.max(0, -x * sinA) / 22 * 0.28);
-      out.push((60 + x * cosA).toFixed(2), (60 + y * yScale).toFixed(2));
+      const span = Math.abs(cosA) < .5 ? (cosA < 0 ? -.5 : .5) : cosA;
+      out.push((60 + x * span).toFixed(2), (60 + y * yScale).toFixed(2));
     }
     let n = 0;
     return d.replace(PATH_NUM, () => out[n++]);
@@ -111,7 +112,7 @@
   M.define('daylight', {
     svg: `<g data-part="sun"><path data-part="outline" d="${sunOutline}"/></g><path data-part="rays" d="${rayOutline}"/><path data-part="stars" d="${starOutline}"/>`,
     state: {phase: 0, rise: 0, warmth: 1, rayAngle: 0},
-    poses: {idle: {}, selected: {rayAngle: 12}, night: {phase: 1}, nightSelected: {phase: 1, rayAngle: 12}},
+    poses: {idle: {}, selected: {rayAngle: 36, warmth: 1.14}, night: {phase: 1}, nightSelected: {phase: 1, rayAngle: 36, warmth: 1.14}},
     periodic: {rayAngle: 360},
     render(s, p) {
       const phase = clamp01(s.phase);
@@ -138,13 +139,13 @@
       }},
       select: {label: '迎接白昼', pose: 'selected', async run(c) {
         c.to('phase', 0, 'slow');
-        c.to('rise', 3, 'snap'); await c.wait(95);
-        c.to('rise', -2, 'pop'); await c.wait(240);
+        c.to('rayAngle', -16, 'snap'); c.to('rise', -6, 'snap'); await c.wait(90);
+        c.to('rayAngle', 36, 'pop'); c.to('warmth', 1.14, 'pop'); c.to('rise', 0, 'rebound'); await c.wait(240);
       }},
       selectNight: {label: '迎接夜晚', pose: 'nightSelected', from: 'night', async run(c) {
         c.to('phase', 1, 'slow');
-        c.to('rise', 3, 'snap'); await c.wait(95);
-        c.to('rise', -2, 'pop'); await c.wait(240);
+        c.to('rayAngle', -16, 'snap'); c.to('rise', -6, 'snap'); await c.wait(90);
+        c.to('rayAngle', 36, 'pop'); c.to('warmth', 1.14, 'pop'); c.to('rise', 0, 'rebound'); await c.wait(240);
       }},
       toNight: {label: '太阳变月亮', pose: 'night', from: 'idle', async run(c) {
         c.to('phase', 1, 'slow'); c.to('rise', -3, 'snap');
@@ -162,7 +163,7 @@
   M.define('cards', {
     svg: `<g data-part="back"><rect x="23" y="25" width="63" height="62" rx="11"/></g><g data-part="front"><rect x="30" y="35" width="63" height="62" rx="11"/><path d="M43 54h37M43 67h28M43 80h19"/></g>`,
     state: {frontX: 0, frontY: 0, tilt: 0, backAngle: 0, contact: 1},
-    poses: {idle: {}, selected: {backAngle: -5}},
+    poses: {idle: {}, selected: {frontX: 14, frontY: -8, tilt: -8, backAngle: -18}},
     render(s, p) {
       attr(p.back, 'transform', `rotate(${s.backAngle} 55 90)`);
       attr(p.front, 'transform', `translate(${s.frontX} ${s.frontY}) rotate(${s.tilt} 61 97) ${aroundXY(1 + (1-s.contact)*.4, s.contact, 61, 97)}`);
@@ -174,8 +175,10 @@
         c.to('backAngle', c.goal('backAngle') - 6, 'swing'); await c.wait(200);
       }},
       select: {label: '抽出一张', pose: 'selected', async run(c) {
-        c.to('frontY', 4, 'snap'); await c.wait(100);
-        c.to('frontY', -8, 'pop'); c.to('tilt', -4, 'gentle'); await c.wait(210);
+        c.to('frontY', 6, 'snap'); c.to('frontX', -4, 'snap'); await c.wait(80);
+        c.to('frontY', -16, 'pop'); c.to('frontX', 18, 'pop'); c.to('tilt', -12, 'pop');
+        c.to('backAngle', -18, 'gentle'); await c.wait(160);
+        c.to('frontY', -8, 'settle'); c.to('frontX', 14, 'settle'); c.to('tilt', -8, 'settle'); await c.wait(160);
       }},
       remember: {label: '词卡归位', async run(c) {
         c.to('frontY', -5, 'snap'); await c.wait(95);
@@ -195,7 +198,7 @@
   const openCover = 'M60 34C72 26 88 26 98 29Q102 30 102 34L102 86Q102 90 98 89C84 87 73 89 60 96L60 34Z';
   M.define('book', {
     svg: `<g data-part="body"><path data-part="left"/><path data-part="cover" d="${closedCover}"/><path data-part="spine"/><path data-part="mark" d="M69 29v22l-5-4-5 4V29"/><g data-part="lines"><path d="M72 44c7-2 13-2 20-1M72 57c7-2 13-2 20-1M72 70c7-2 13-2 20-1M28 44c8-1 14 0 21 2M28 57c8-1 14 0 21 2M28 70c8-1 14 0 21 2"/></g><g data-part="leaf"><path data-part="turning"/></g></g>`,
-    state: {opening: 0, bodyAngle: 0, leafWidth: 1, leafOpacity: 0},
+    state: {opening: 0, bodyAngle: 0, leafWidth: 1, leafOpacity: 0, leaf: 0},
     poses: {idle: {}, open: {opening: 1}, selected: {opening: 1}},
     render(s, p) {
       const opening = clamp01(s.opening), hinge = 38 + 22 * opening;
@@ -210,9 +213,12 @@
       attr(p.spine, 'opacity', clamp01(1-opening*2));
       attr(p.mark, 'opacity', clamp01(1-opening*2.5));
       attr(p.lines, 'opacity', clamp01((opening-.35)/.65));
-      attr(p.turning, 'd', cover);
-      attr(p.leaf, 'transform', aroundXY(s.leafWidth, 1, hinge, 60));
-      attr(p.leaf, 'opacity', clamp01(s.leafOpacity)*opening);
+      const sweep = clamp01(s.leaf);
+      const pageRight = 96 - sweep * 54, pageLeft = pageRight - 34;
+      const bow = Math.sin(sweep * Math.PI) * 10, mid = (pageLeft + pageRight) / 2;
+      attr(p.turning, 'd', `M${pageLeft.toFixed(1)} 38C${mid.toFixed(1)} ${(30 - bow).toFixed(1)} ${pageRight.toFixed(1)} 34 ${pageRight.toFixed(1)} 44L${pageRight.toFixed(1)} 82C${pageRight.toFixed(1)} ${(94 + bow).toFixed(1)} ${mid.toFixed(1)} 92 ${pageLeft.toFixed(1)} 88Z`);
+      attr(p.leaf, 'transform', '');
+      attr(p.leaf, 'opacity', clamp01(s.leafOpacity) * opening);
     },
     actions: {
       tap: {label: '轻触词本', run: c => c.nudge('bodyAngle', -3)},
@@ -232,9 +238,10 @@
         c.to('bodyAngle', 0, 'pop'); await c.wait(260);
       }},
       turn: {label: '翻过一页', pose: 'open', from: 'open', async run(c) {
-        c.to('leafOpacity', 1, 'fade'); c.to('leafWidth', 1.04, 'snap'); await c.wait(100);
-        c.to('leafWidth', -.90, 'gentle'); await c.wait(260);
-        await c.to('leafOpacity', 0, 'fade'); c.set({leafWidth: 1});
+        c.to('leafOpacity', 1, 'fade'); c.to('leaf', .12, 'snap'); await c.wait(70);
+        c.to('leaf', 1, 'gentle'); await c.wait(260);
+        c.to('leafOpacity', 0, 'fade'); await c.wait(120);
+        c.set({leaf: 0});
       }}
     }
   });
@@ -260,11 +267,11 @@
         c.to('opening', 0, 'gentle'); await c.wait(240);
       }},
       next: {label: '记住 · 过一词', pose: 'idle', from: 'revealed', async run(c) {
-        c.to('cardX', -3, 'snap'); await c.wait(90);
-        c.to('cardX', 12, 'gentle'); c.to('cardY', -4, 'gentle');
-        await c.to('opacity', 0, 'fade');
-        c.set({cardX:-10, cardY:0, opening:0});
-        c.to('opacity', 1, 'fade'); c.to('cardX', 0, 'pop'); await c.wait(210);
+        c.to('cardX', -6, 'snap'); await c.wait(60);
+        c.to('cardX', 48, 'snap'); c.to('cardY', -6, 'gentle');
+        c.to('opacity', 0, 'fade'); await c.wait(130);
+        c.set({cardX: -36, cardY: 0, opening: 0, opacity: 0});
+        c.to('opacity', 1, 'fade'); c.to('cardX', 0, 'pop'); await c.wait(180);
       }},
       retry: {label: '留待重温', pose: 'idle', from: 'revealed', async run(c) {
         c.to('cardY', -4, 'gentle'); c.to('tilt', -6, 'gentle'); await c.wait(180);
@@ -303,17 +310,23 @@
   const PLUS_V = 'M60 30L60 90';
   const CHECK_LONG = 'M56 76L88 44';
   const CHECK_SHORT = 'M40 60L56 76';
+  const MID_H = 'M46 72L86 52';
+  const MID_V = 'M50 50L56 78';
+  function foldPath(from, mid, to, t) {
+    const u = Math.max(0, Math.min(1, t));
+    return u < .5 ? lerpPath(from, mid, u * 2) : lerpPath(mid, to, (u - .5) * 2);
+  }
   async function magnetic(c, k) {
-    c.to('vy', 1 - .16 * k, 'snap');
-    c.to('hx', 1 + .08 * k, 'snap');
-    await c.wait(80);
-    c.to('vy', 1 + .1 * k, 'pop');
-    await c.wait(30);
-    c.to('hx', 1 - .045 * k, 'pop');
+    c.to('vy', 1 - .48 * k, 'snap');
+    c.to('hx', 1 + .42 * k, 'snap');
     await c.wait(90);
+    c.to('vy', 1 + .32 * k, 'pop');
+    await c.wait(40);
+    c.to('hx', 1 - .18 * k, 'pop');
+    await c.wait(100);
     c.to('vy', 1, 'settle');
     c.to('hx', 1, 'settle');
-    await c.wait(160);
+    await c.wait(180);
   }
 
   M.define('plus', {
@@ -323,8 +336,8 @@
     periodic: {turn: 360},
     render(s, p) {
       const t = Math.max(-.12, Math.min(1.12, s.bend));
-      p.h.setAttribute('d', lerpPath(PLUS_H, CHECK_LONG, t));
-      p.v.setAttribute('d', lerpPath(PLUS_V, CHECK_SHORT, t));
+      p.h.setAttribute('d', foldPath(PLUS_H, MID_H, CHECK_LONG, t));
+      p.v.setAttribute('d', foldPath(PLUS_V, MID_V, CHECK_SHORT, t));
       const turn = `rotate(${s.turn} 60 60)`;
       attr(p.h, 'transform', `${turn} ${aroundXY(s.hx, 1, 60, 60)}`);
       attr(p.v, 'transform', `${turn} ${aroundXY(1, s.vy, 60, 60)}`);
@@ -338,9 +351,9 @@
         await c.wait(320);
       }},
       reject: {label: '没加上', async run(c) {
-        c.to('vy', .76, 'impact'); c.to('hx', 1.05, 'snap'); await c.wait(70);
-        c.to('vy', 1.06, 'rebound'); await c.wait(30);
-        c.to('hx', .97, 'pop'); await c.wait(80);
+        c.to('vy', .5, 'impact'); c.to('hx', 1.28, 'snap'); await c.wait(80);
+        c.to('vy', 1.18, 'rebound'); await c.wait(40);
+        c.to('hx', .86, 'pop'); await c.wait(80);
         c.to('vy', 1, 'settle'); c.to('hx', 1, 'settle'); await c.wait(150);
       }},
       reset: {label: '回到加号', pose: 'idle', from: 'confirmed', async run(c) {
@@ -463,10 +476,10 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
         c.to('whisk', 1.12, 'pop'); await c.wait(120);
       }},
       peek: {label: '看过来', async run(c) {
-        c.to('gazeX', 4, 'snap'); c.to('earL', c.goal('earL') + 10, 'snap');
-        c.to('tail', c.goal('tail') - 10, 'gentle'); await c.wait(90);
-        shut(c, .1); await c.wait(60);
-        open(c); c.to('gazeX', 2, 'pop'); await c.wait(140);
+        c.to('gazeX', 8, 'snap'); c.to('earL', c.goal('earL') + 16, 'snap');
+        c.to('tilt', -6, 'snap'); c.to('tail', c.goal('tail') - 24, 'snap'); await c.wait(90);
+        shut(c, .1); await c.wait(70);
+        open(c); c.to('gazeX', 3, 'pop'); await c.wait(140);
       }},
       select: {label: '醒过来', pose: 'selected', from: 'idle', async run(c) {
         c.to('bodyY', 3, 'snap'); c.to('squash', .93, 'snap'); shut(c);
@@ -485,8 +498,11 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
         c.to('talk', 0, 'gentle'); await c.wait(120);
       }},
       blink: {label: '眨眼', async run(c) {
-        shut(c); await c.wait(75);
-        open(c); await c.wait(100);
+        c.to('bodyY', c.goal('bodyY') + 4, 'snap');
+        c.to('earL', c.goal('earL') - 12, 'snap'); c.to('earR', c.goal('earR') - 12, 'snap');
+        shut(c); await c.wait(160);
+        open(c); c.to('bodyY', c.goal('bodyY') - 3, 'pop');
+        c.to('earL', c.goal('earL'), 'pop'); c.to('earR', c.goal('earR'), 'pop'); await c.wait(110);
       }},
       wink: {label: '眨一只眼', async run(c) {
         c.to('blinkR', .06, lidSpring); c.to('tilt', -4, 'snap'); c.to('grin', .5, 'pop');
@@ -494,15 +510,15 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
         c.to('blinkR', 1, 'pop'); await c.wait(120);
       }},
       happy: {label: '开心 ^_^', async run(c) {
-        c.to('squash', .86, 'snap'); c.to('bodyY', c.goal('bodyY') + 3, 'snap');
-        c.to('joy', 1, {stiffness: 700, damping: 40}); c.to('soft', 1, 'pop'); await c.wait(70);
-        c.to('bodyY', c.goal('bodyY') - 8, 'pop'); c.to('squash', 1.08, 'pop');
-        c.to('blush', 1, 'fade'); c.to('earL', 14, 'pop'); c.to('earR', 14, 'pop'); c.to('whisk', 1.22, 'pop');
-        c.to('tail', 16, 'snap'); await c.wait(90);
-        c.to('bodyY', c.goal('bodyY') + 2, 'impact'); c.to('squash', .9, 'impact'); c.to('tail', -14, 'snap'); await c.wait(80);
-        c.to('bodyY', c.goal('bodyY') - 5, 'pop'); c.to('squash', 1.04, 'pop'); c.to('tail', 10, 'pop'); await c.wait(90);
-        c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'settle'); c.to('tail', c.goal('tail'), 'gentle');
-        await c.wait(280);
+        c.to('squash', .78, 'snap'); c.to('bodyY', c.goal('bodyY') + 6, 'snap');
+        c.to('joy', 1, {stiffness: 700, damping: 40}); c.to('soft', 1, 'pop'); await c.wait(80);
+        c.to('squash', .98, 'pop'); c.to('bodyY', c.goal('bodyY') - 14, 'pop');
+        c.to('blush', 1, 'fade'); c.to('earL', 18, 'pop'); c.to('earR', 18, 'pop'); c.to('whisk', 1.28, 'pop');
+        c.to('tail', 28, 'snap'); await c.wait(100);
+        c.to('squash', .7, 'impact'); c.to('bodyY', c.goal('bodyY') + 4, 'impact'); c.to('tail', -26, 'snap'); await c.wait(90);
+        c.to('squash', 1.08, 'pop'); c.to('bodyY', c.goal('bodyY') - 6, 'rebound'); c.to('tail', 12, 'pop'); await c.wait(80);
+        c.to('bodyY', c.goal('bodyY'), 'settle'); c.to('squash', 1, 'settle'); c.to('tail', c.goal('tail'), 'gentle');
+        await c.wait(240);
       }},
       squeeze: {label: '>_<', async run(c) {
         c.to('cross', 1, 'snap'); c.to('squash', .82, 'impact'); c.to('bodyY', c.goal('bodyY') + 3, 'impact');
@@ -565,13 +581,17 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
         await c.wait(180);
       }},
       wag: {label: '摇尾巴', async run(c) {
-        for (const angle of [14, -12, 10, -6]) { c.to('tail', c.goal('tail') + angle, 'snap'); await c.wait(90); }
+        const flick = {stiffness: 1100, damping: 34};
+        for (const angle of [34, -30, 22]) {
+          c.to('tail', angle, flick);
+          c.to('tilt', angle * -.2, 'pop');
+          await c.wait(150);
+        }
       }},
       ears: {label: '动耳朵', async run(c) {
-        c.to('earR', c.goal('earR') + 14, 'snap'); await c.wait(50);
-        c.to('earL', c.goal('earL') + 8, 'snap'); await c.wait(60);
-        c.to('earR', c.goal('earR') - 5, 'pop'); await c.wait(50);
-        c.to('earL', c.goal('earL') - 3, 'pop'); await c.wait(120);
+        c.to('earR', c.goal('earR') + 24, 'snap'); c.to('earL', c.goal('earL') - 8, 'snap'); await c.wait(70);
+        c.to('earL', c.goal('earL') + 22, 'snap'); c.to('earR', c.goal('earR') - 6, 'pop'); await c.wait(70);
+        c.to('earR', c.goal('earR') + 10, 'pop'); c.to('earL', c.goal('earL') + 6, 'pop'); await c.wait(120);
       }},
       talking: {label: '说话', loop: true, run(c) {
         c.claim('talk', 'blinkL', 'blinkR', 'bodyY');
@@ -610,23 +630,33 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
   });
 
   M.define('settings', {
-    svg: `<rect x="22" y="22" width="76" height="76" rx="16"/><path d="M34 35h14M72 35h14"/><g data-part="dial"><circle cx="60" cy="66" r="20"/><path d="M60 51v9"/><circle cx="60" cy="66" r="4"/></g>`,
-    state: {angle: 0, dialScale: 1},
-    poses: {idle: {}, selected: {angle: 18}},
+    svg: `<rect x="22" y="22" width="76" height="76" rx="16"/><path d="M34 36h52"/><g data-part="thumb"><circle cx="40" cy="36" r="7"/></g><g data-part="dial"><circle cx="60" cy="72" r="18"/><path d="M60 56v16"/><circle cx="60" cy="72" r="3.5"/></g>`,
+    state: {angle: 0, dialScale: 1, thumb: 0, press: 1},
+    poses: {idle: {}, selected: {angle: 52, thumb: 1}},
     periodic: {angle: 360},
-    render(s, p) { attr(p.dial, 'transform', `rotate(${s.angle} 60 66) ${around(s.dialScale, 60, 66)}`); },
+    render(s, p) {
+      attr(p.dial, 'transform', `rotate(${s.angle} 60 72) ${around(s.dialScale, 60, 72)}`);
+      const x = 40 + s.thumb * 40;
+      attr(p.thumb, 'transform', aroundXY(Math.max(.72, 1.4 - s.press * .4), s.press, x, 36));
+    },
     actions: {
-      tap: {label: '轻触旋钮', run: c => c.nudge('dialScale', -.06)},
+      tap: {label: '轻触旋钮', async run(c) {
+        c.to('press', .68, 'snap'); c.to('thumb', .12, 'snap'); await c.wait(80);
+        c.to('press', 1, 'pop'); c.to('dialScale', 1.1, 'pop'); c.to('thumb', c.goal('thumb'), 'rebound'); await c.wait(110);
+      }},
       peek: {label: '旋钮预览', async run(c) {
-        c.to('angle', c.goal('angle') + 15, 'gentle'); await c.wait(220);
+        c.to('thumb', c.goal('thumb') + .42, 'snap'); c.to('angle', c.goal('angle') + 24, 'snap'); await c.wait(200);
       }},
       select: {label: '调到设置', pose: 'selected', async run(c) {
-        c.to('angle', 13, 'snap'); await c.wait(95);
-        c.to('angle', 18, 'pop'); await c.wait(200);
+        c.to('thumb', -.08, 'snap'); c.to('angle', -14, 'snap'); c.to('press', .8, 'snap'); await c.wait(80);
+        c.to('thumb', 1.06, 'pop'); c.to('angle', 52, 'pop'); c.to('press', 1, 'pop'); c.to('dialScale', 1.08, 'pop');
+        await c.wait(180);
+        c.to('thumb', 1, 'settle'); await c.wait(120);
       }},
       turn: {label: '转过一格', async run(c) {
-        c.to('angle', c.goal('angle') - 5, 'snap'); await c.wait(100);
-        c.to('angle', c.goal('angle') + 45, 'slow'); await c.wait(280);
+        c.to('angle', c.goal('angle') - 16, 'snap'); c.to('thumb', 0, 'snap'); await c.wait(70);
+        c.to('angle', c.goal('angle') + 78, 'gentle'); c.to('thumb', 1, 'gentle'); await c.wait(220);
+        c.to('angle', c.goal('angle'), 'settle'); c.to('thumb', c.goal('thumb'), 'settle'); await c.wait(160);
       }}
     }
   });
@@ -634,16 +664,26 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
   M.define('sentence', {
     svg: `<rect x="25" y="21" width="70" height="78" rx="10"/><path data-part="lineA" d="M37 41h45"/><path data-part="lineB" d="M37 56h45"/><path data-part="lineC" d="M37 71h32"/><g data-part="pen"><path d="m70 80 15-15 6 6-15 15-9 3Z"/><path d="m81 69 6 6"/></g>`,
     state: {inkA: 1, inkB: 1, inkC: 1, penX: 0, penY: 0, penOpacity: 0},
-    poses: {idle: {}, selected: {inkC: .84}},
+    poses: {idle: {}, selected: {inkC: .32, penOpacity: 1, penX: -12, penY: -10}},
     render(s, p) {
       dash(p.lineA, 45, s.inkA); dash(p.lineB, 45, s.inkB); dash(p.lineC, 32, s.inkC);
       attr(p.pen, 'transform', `translate(${s.penX} ${s.penY})`);
       attr(p.pen, 'opacity', clamp01(s.penOpacity));
     },
     actions: {
-      tap: {label: '轻触句页', run: c => c.nudge('inkC', -.12)},
-      peek: {label: '展开句子', run: c => c.nudge('inkC', -.2)},
-      select: {label: '阅读句子', pose: 'selected', run: c => c.nudge('inkB', -.15)},
+      tap: {label: '轻触句页', async run(c) {
+        c.to('penOpacity', 1, 'fade'); c.to('penX', -6, 'snap'); c.to('penY', -22, 'snap'); await c.wait(70);
+        c.to('penY', -6, 'impact'); c.to('inkC', .35, 'snap'); await c.wait(90);
+        c.to('penY', -14, 'rebound'); await c.wait(110);
+      }},
+      peek: {label: '展开句子', async run(c) {
+        c.to('penOpacity', 1, 'fade'); c.to('penX', -22, 'snap'); c.to('penY', -36, 'snap'); await c.wait(80);
+        c.to('inkB', .4, 'draw'); c.to('penX', -8, 'gentle'); await c.wait(180);
+      }},
+      select: {label: '阅读句子', pose: 'selected', async run(c) {
+        c.to('penOpacity', 1, 'fade'); c.to('penY', -24, 'snap'); c.to('penX', 4, 'snap'); await c.wait(70);
+        c.to('penY', -10, 'impact'); c.to('penX', -12, 'pop'); c.to('inkC', .32, 'draw'); await c.wait(200);
+      }},
       writing: {label: '写下例句', loop: true, run(c) {
         c.claim('penX', 'penY'); c.to('penOpacity', 1, 'fade');
         c.loop(t => { c.s.penX = -3 + 5*Math.sin(t*Math.PI*2); c.s.penY = -2 * M.util.wave(t, 1); });
@@ -666,7 +706,7 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
   M.define('memory', {
     svg: `<defs><clipPath id="mi-memory-window"><rect x="29" y="34" width="62" height="48" rx="3"/></clipPath></defs><g data-part="frame"><rect x="21" y="25" width="78" height="68" rx="10"/><g clip-path="url(#mi-memory-window)"><g data-part="landscape"><circle cx="65" cy="43" r="7"/><path d="m28 82 20-24 17 17 13-13 14 20"/></g></g><path data-part="tag" d="M78 25v25l7-5 7 5V25"/></g>`,
     state: {frameAngle: 0, landX: 0, tagHeight: .66},
-    poses: {idle: {}, selected: {tagHeight: 1}},
+    poses: {idle: {}, selected: {tagHeight: 1.7, landX: -12, frameAngle: -6}},
     render(s, p) {
       attr(p.frame, 'transform', `rotate(${s.frameAngle} 60 93)`);
       attr(p.landscape, 'transform', `translate(${s.landX} 0)`);
@@ -678,11 +718,12 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
         c.to('landX', 3, 'gentle'); c.to('frameAngle', -3, 'gentle'); await c.wait(230);
       }},
       select: {label: '记下情景', pose: 'selected', async run(c) {
-        c.to('tagHeight', .84, 'snap'); await c.wait(100);
-        c.to('tagHeight', 1, 'pop'); await c.wait(220);
+        c.to('tagHeight', .45, 'snap'); c.to('landX', 6, 'snap'); await c.wait(70);
+        c.to('tagHeight', 1.85, 'pop'); c.to('landX', -14, 'pop'); c.to('frameAngle', -7, 'pop'); await c.wait(180);
+        c.to('tagHeight', 1.7, 'settle'); c.to('landX', -12, 'settle'); c.to('frameAngle', -6, 'settle'); await c.wait(140);
       }},
       imagining: {label: '构思情景', loop: true, run(c) {
-        c.claim('landX'); c.loop(t => { c.s.landX = 3 * Math.sin(t*Math.PI*2*.9); });
+        c.claim('landX'); c.loop(t => { c.s.landX = 14 * Math.sin(t * Math.PI * 2 * .9); });
       }},
       bind: {label: '情景入册', pose: 'selected', async run(c) {
         c.to('frameAngle', 4, 'snap'); await c.wait(100);
@@ -714,22 +755,36 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
   });
 
   M.define('voice', {
-    svg: `<g data-part="capsule"><rect x="43" y="22" width="34" height="48" rx="17"/><path d="M51 34h18M51 45h18"/></g><path d="M32 54v6a28 28 0 0 0 56 0v-6M60 88v12M45 100h30"/><path data-part="wave" d="M96 38a34 34 0 0 1 0 37"/>`,
+    svg: `<g data-part="capsule"><rect x="43" y="22" width="34" height="48" rx="17"/><path d="M51 34h18M51 45h18"/></g><path d="M32 54v6a28 28 0 0 0 56 0v-6M60 88v12M45 100h30"/><path data-part="wave" d="M90 42C102 50 102 70 90 78"/><path data-part="wave2" d="M98 34C114 46 114 74 98 86"/><path data-part="wave3" d="M106 28C120 44 120 78 106 94"/>`,
     state: {capsuleY: 0, waveAlpha: 0},
-    poses: {idle: {}, selected: {waveAlpha: .75}},
+    poses: {idle: {}, selected: {waveAlpha: 1, capsuleY: -3}},
     render(s, p) {
+      const level = clamp01(s.waveAlpha);
       attr(p.capsule, 'transform', `translate(0 ${s.capsuleY})`);
-      attr(p.wave, 'opacity', clamp01(s.waveAlpha));
+      attr(p.wave, 'opacity', clamp01(level * 2.4));
+      attr(p.wave2, 'opacity', clamp01((level - .28) * 2.4));
+      attr(p.wave3, 'opacity', clamp01((level - .58) * 2.4));
     },
     actions: {
-      tap: {label: '轻触话筒', run: c => c.nudge('capsuleY', -3)},
-      peek: {label: '轻声回应', async run(c) { c.to('waveAlpha', 1, 'fade'); await c.wait(220); }},
+      tap: {label: '轻触话筒', async run(c) {
+        c.to('capsuleY', 5, 'snap'); await c.wait(70);
+        c.to('capsuleY', c.goal('capsuleY') - 6, 'pop'); c.to('waveAlpha', Math.min(1, c.goal('waveAlpha') + .45), 'fade');
+        await c.wait(120);
+      }},
+      peek: {label: '轻声回应', async run(c) {
+        c.to('waveAlpha', 1, 'fade'); c.to('capsuleY', c.goal('capsuleY') - 4, 'snap'); await c.wait(220);
+      }},
       select: {label: '开始表达', pose: 'selected', async run(c) {
-        c.to('capsuleY', 4, 'snap'); await c.wait(100);
-        c.to('capsuleY', -3, 'pop'); c.to('waveAlpha', .75, 'fade'); await c.wait(220);
+        c.to('capsuleY', 6, 'snap'); c.to('waveAlpha', 0, 'fade'); await c.wait(80);
+        c.to('capsuleY', -3, 'pop'); c.to('waveAlpha', 1, 'fade'); await c.wait(220);
       }},
       speaking: {label: '正在表达', loop: true, run(c) {
-        c.claim('waveAlpha'); c.loop(t => { c.s.waveAlpha = .25 + .75*M.util.wave(t, 1.3); });
+        c.claim('waveAlpha', 'capsuleY');
+        c.loop(t => {
+          const w = M.util.wave(t, 1.3);
+          c.s.waveAlpha = .2 + .8 * w;
+          c.s.capsuleY = c.goal('capsuleY') - 4 * w;
+        });
       }},
       level: {label: '音量驱动', initial: 0, drive(c, value) { c.to('waveAlpha', value, 'track'); }}
     }

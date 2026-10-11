@@ -15,11 +15,11 @@ unchanged; this file adds 14 subjects.
 | milestone | A finished word booklet and attached seal | idle, complete | tap, complete, restart | — |
 | plus | Two elastic strokes that stay a plus until a real success | idle, confirmed, closed | tap, add, confirm, reject, reset, toClose | — |
 | conversation | The cat assistant, traced from its reference drawing | idle, selected | tap, peek, select, reply, blink, wink, happy, squeeze, surprised, curious, shy, blank, sad, wiggle, pounce, wag, ears | talking, thinking, dozing; task mapping |
-| settings | Engraved mechanical dial | idle, selected | tap, peek, select, turn | — |
+| settings | Dial plus a thumb that travels its track | idle, selected | tap, peek, select, turn | — |
 | sentence | Writing on a lined page | idle, selected | tap, peek, select, reveal, fail | writing; task mapping |
 | memory | Landscape inside a bookmarked frame | idle, selected | tap, peek, select, bind, fail | imagining; task mapping |
 | pencil | A nib touching down over notes | idle, selected | tap, peek, select, write | — |
-| voice | Microphone with a sound arc | idle, selected | tap, peek, select | speaking, level drive |
+| voice | Microphone with three sound arcs | idle, selected | tap, peek, select | speaking, level drive |
 
 ## Navigation
 
@@ -44,7 +44,8 @@ dark appearance and `idle` / `selected` in light appearance. Theme changes call
 `setPose` on the existing instance so a second change reverses the turn while
 it is still moving. The disc turns on a vertical axis in planar perspective:
 it foreshortens toward the axis, the near side keeps its drawn size, and only
-the far side shortens. The crescent replaces the sun at the edge. Rays leave
+the far side shortens. At the edge the disc keeps about half its width,
+so the turn stays a shape instead of collapsing into a hairline. The crescent replaces the sun at the edge. Rays leave
 with that turn; stars arrive on the moon.
 The gallery’s appearance control plays `toNight` / `toDay`
 only from an unselected pose, and those actions retarget the phase on the first
@@ -55,15 +56,18 @@ Book rests closed until hover, keyboard focus or selection opens it. `peek`,
 `select` and `close` move the cover on the first frame; the tilt is only
 follow-through, so leaving and re-entering reverses the hinge instead of
 finishing the previous anticipation. Pointer leave restores the navigation pose;
-selected books remain open. `turn` keeps the page attached to its spine.
+selected books remain open. `turn` sweeps a separate page from the right leaf to
+the left. The page keeps its width the whole way, then fades once it has landed.
 
-`plus` is two independent strokes. `tap` is the core press, snap and settle, about
-300 ms, and it does not change pose. `add` is the same mechanism with a slightly
-larger travel. The glyph stays a plus through both. `confirm` is the only morph
-into a check and rests at `confirmed`. `reject` keeps the plus and rebounds off a
-stop. `reset` returns from the check. `toClose` turns the plus 45° into a close
-mark and rests at `closed`. A navigation Add control plays `tap` on hover and
-`add` on activation, and keeps `idle`; a successful save is what plays `confirm`.
+`plus` is two independent strokes. `tap` presses the vertical stroke to about half
+its height and stretches the horizontal stroke, then snaps past rest and settles.
+It does not change pose. `add` uses the same mechanism with a larger travel. The
+glyph stays a plus through both. `confirm` folds the two strokes through a
+kneeling midpoint into a check and rests at `confirmed`. `reject` keeps the plus
+and rebounds off a stop. `reset` returns from the check. `toClose` turns the plus
+45° into a close mark and rests at `closed`. A navigation Add control plays `tap`
+on hover and `add` on activation, and keeps `idle`; a successful save is what
+plays `confirm`.
 
 `conversation` is the cat assistant. Its outline is traced from the reference
 drawing in source pixels: a flat base, a loaf-shaped crown, open triangular ears,
@@ -76,8 +80,10 @@ swaps the dots for ^ ^ (`^_^`), `cross` for inward chevrons (`>_<`), `cry` for
 T marks with a short tear (`T_T`), and `flat` for level lines (`-_-`). Bigger
 dots with an open mouth read as `O_O`. The mouth mixes smile, open, grin, frown
 and ω. `blush` fades in the cheeks. The body crouches, leaps and lands in
-`pounce`, and sways through `wiggle` and `squeeze`. Ears, gaze and tail move on
-the first frame of `peek` and `select`.
+`pounce`, and sways through `wiggle` and `squeeze`. `happy` crouches, leaves the
+ground, and lands in a flatter pose. `wag` swings the tail far enough to rock the
+body, and `blink` holds the eyes shut while the ears drop. Ears, gaze and tail
+move on the first frame of `peek` and `select`.
 `talking`, `thinking` and `dozing` claim only the keys they drive, so `stop`
 settles them back. The task mapping is busy → `thinking`, success → `happy`,
 fail → `sad`. Inner ears and cheeks use `--mi-cat-ear` (default `#f65a7d`);
