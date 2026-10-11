@@ -79,7 +79,7 @@
 
 (function (M) {
   'use strict';
-  const {around, aroundXY, clamp01} = M.util;
+  const {around, aroundXY, clamp01, lerpPath} = M.util;
   const attr = (part, name, value) => part.setAttribute(name, value);
   const dash = (part, length, progress) => {
     const value = Math.max(0, Math.min(1, progress));
@@ -299,80 +299,150 @@
     }
   });
 
-  M.define('capture', {
-    svg: `<g data-part="mark"><path data-part="east" d="M60 60H90"/><path data-part="west" d="M60 60H30"/><path data-part="north" d="M60 60V30"/><path data-part="south" d="M60 60V90"/></g><g data-part="incoming"><path d="M52 16h16M60 8v16"/></g>`,
-    state: {plusScale: .72, plusY: 0, arm: .55, contact: 1, inY: 0, inOpacity: 0},
-    poses: {idle: {}, selected: {plusScale: 1, arm: 1}},
+  const PLUS_H = 'M30 60L90 60';
+  const PLUS_V = 'M60 30L60 90';
+  const CHECK_LONG = 'M56 76L88 44';
+  const CHECK_SHORT = 'M40 60L56 76';
+  async function magnetic(c, k) {
+    c.to('vy', 1 - .16 * k, 'snap');
+    c.to('hx', 1 + .08 * k, 'snap');
+    await c.wait(80);
+    c.to('vy', 1 + .1 * k, 'pop');
+    await c.wait(30);
+    c.to('hx', 1 - .045 * k, 'pop');
+    await c.wait(90);
+    c.to('vy', 1, 'settle');
+    c.to('hx', 1, 'settle');
+    await c.wait(160);
+  }
+
+  M.define('plus', {
+    svg: `<g data-part="mark"><path data-part="h" d="${PLUS_H}"/><path data-part="v" d="${PLUS_V}"/></g>`,
+    state: {hx: 1, vy: 1, morph: 0, spin: 0},
+    poses: {idle: {}, confirmed: {morph: 1}, closed: {spin: 45}},
+    periodic: {spin: 360},
     render(s, p) {
-      attr(p.mark, 'transform', `translate(0 ${s.plusY}) ${aroundXY(s.plusScale, s.plusScale * s.contact, 60, 60)}`);
-      for (const name of ['east', 'west', 'north', 'south']) dash(p[name], 30, s.arm);
-      attr(p.incoming, 'transform', `translate(0 ${s.inY})`);
-      attr(p.incoming, 'opacity', clamp01(s.inOpacity));
+      const t = Math.max(-.12, Math.min(1.12, s.morph));
+      p.h.setAttribute('d', lerpPath(PLUS_H, CHECK_LONG, t));
+      p.v.setAttribute('d', lerpPath(PLUS_V, CHECK_SHORT, t));
+      const spin = `rotate(${s.spin} 60 60)`;
+      attr(p.h, 'transform', `${spin} ${aroundXY(s.hx, 1, 60, 60)}`);
+      attr(p.v, 'transform', `${spin} ${aroundXY(1, s.vy, 60, 60)}`);
     },
     actions: {
-      tap: {label: '轻触加号', run: c => c.nudge('plusScale', .06)},
-      peek: {label: '加上去', async run(c) {
-        c.to('inOpacity', .9, 'fade'); c.to('inY', 8, 'gentle');
-        c.to('arm', Math.min(1, c.goal('arm') + .1), 'gentle'); await c.wait(200);
+      tap: {label: '磁吸', async run(c) { await magnetic(c, 1); }},
+      add: {label: '添加', async run(c) { await magnetic(c, 1.2); }},
+      confirm: {label: '添加成功', pose: 'confirmed', from: 'idle', async run(c) {
+        c.to('vy', .86, 'snap'); c.to('hx', 1.06, 'snap'); await c.wait(70);
+        c.to('morph', 1, 'gentle'); c.to('vy', 1, 'settle'); c.to('hx', 1, 'settle');
+        await c.wait(320);
       }},
-      select: {label: '落在加号', pose: 'selected', from: 'idle', async run(c) {
-        c.to('inOpacity', 1, 'fade'); c.to('inY', -8, 'snap'); await c.wait(90);
-        c.to('inY', 42, {stiffness: 700, damping: 34}); await c.wait(110);
-        c.to('inOpacity', 0, 'fade');
-        c.to('plusScale', 1, 'pop'); c.to('arm', 1, 'draw'); c.to('plusY', 2, 'impact');
-        await c.wait(70); c.squash('contact', .86); c.to('plusY', 0, 'rebound'); await c.wait(200);
+      reject: {label: '没加上', async run(c) {
+        c.to('vy', .76, 'impact'); c.to('hx', 1.05, 'snap'); await c.wait(70);
+        c.to('vy', 1.06, 'rebound'); await c.wait(30);
+        c.to('hx', .97, 'pop'); await c.wait(80);
+        c.to('vy', 1, 'settle'); c.to('hx', 1, 'settle'); await c.wait(150);
       }},
-      insert: {label: '再落一次', pose: 'selected', from: 'idle', async run(c) {
-        c.to('inOpacity', 1, 'fade'); c.to('inY', -6, 'snap'); await c.wait(80);
-        c.to('inY', 42, {stiffness: 700, damping: 34}); await c.wait(100);
-        c.to('inOpacity', 0, 'fade'); c.to('arm', 1, 'draw'); c.to('plusScale', 1, 'pop');
-        c.squash('contact', .88); await c.wait(180);
+      reset: {label: '回到加号', pose: 'idle', from: 'confirmed', async run(c) {
+        c.to('morph', 0, 'gentle'); c.to('spin', 0, 'gentle'); await c.wait(150);
+        c.to('vy', 1.08, 'pop'); await c.wait(30);
+        c.to('hx', .97, 'pop'); await c.wait(80);
+        c.to('vy', 1, 'settle'); c.to('hx', 1, 'settle'); await c.wait(140);
+      }},
+      toClose: {label: '变成关闭', pose: 'closed', from: 'idle', async run(c) {
+        c.to('spin', -8, 'snap'); c.to('morph', 0, 'gentle'); await c.wait(70);
+        c.to('spin', 45, 'pop'); await c.wait(220);
       }}
     }
   });
 
+  const lidSpring = {stiffness: 1400, damping: 50};
   M.define('conversation', {
-    svg: `<g data-part="body"><circle cx="60" cy="64" r="26"/><path data-part="eyeL" d="M49 60v10"/><path data-part="eyeR" d="M71 60v10"/></g><circle data-part="mote" data-fill cx="0" cy="0" r="3.5"/>`,
-    state: {bodyY: 0, tilt: 0, gazeX: 0, gazeY: 0, blink: 1, moteAngle: -40, moteScale: .72},
-    poses: {idle: {}, selected: {bodyY: -2, gazeY: -1, moteAngle: -90, moteScale: 1}},
-    periodic: {moteAngle: 360},
+    svg: `<g data-part="cat">
+<g data-part="earL"><path d="M28 52 44 14 58 50Z"/><path data-part="innerL" d="M36 46 44 24 52 46Z"/></g>
+<g data-part="earR"><path d="M62 50 76 14 92 52Z"/><path data-part="innerR" d="M68 46 76 24 84 46Z"/></g>
+<path d="M40 48h40q16 0 16 16v20q0 18-18 18H42q-18 0-18-18V64q0-16 16-16Z"/>
+<g data-part="whiskL"><path d="M6 66h16"/><path d="M4 76h18"/></g>
+<g data-part="whiskR"><path d="M98 70h16"/><path d="M98 80h18"/></g>
+<path data-part="paw" d="M92 58c14-8 18 8 8 18"/>
+<circle data-part="eyeL" data-fill cx="48" cy="70" r="4.2"/>
+<circle data-part="eyeR" data-fill cx="74" cy="70" r="4.2"/>
+<path data-part="smile" d="M52 84q8 8 16 0"/>
+</g>`,
+    css: '.mi--conversation svg [data-part="innerL"],.mi--conversation svg [data-part="innerR"]{fill:#ff7d9a;stroke:none}',
+    state: {bodyY: 0, squash: 1, tilt: 0, gazeX: 0, gazeY: 0, blink: 1, earL: 0, earR: 0, paw: 0, whisk: 1},
+    poses: {idle: {}, selected: {bodyY: -2, earL: -4, earR: 6, paw: -10}},
     render(s, p) {
-      attr(p.body, 'transform', `translate(0 ${s.bodyY}) rotate(${s.tilt} 60 64)`);
+      attr(p.cat, 'transform', `translate(0 ${s.bodyY}) rotate(${s.tilt} 60 80) ${aroundXY(1, s.squash, 60, 102)}`);
+      attr(p.earL, 'transform', `rotate(${s.earL} 46 50)`);
+      attr(p.earR, 'transform', `rotate(${s.earR} 74 50)`);
       const lid = Math.max(.08, s.blink);
-      attr(p.eyeL, 'transform', `translate(${s.gazeX} ${s.gazeY}) ${aroundXY(1, lid, 49, 65)}`);
-      attr(p.eyeR, 'transform', `translate(${s.gazeX} ${s.gazeY}) ${aroundXY(1, lid, 71, 65)}`);
-      const ang = s.moteAngle * Math.PI / 180;
-      attr(p.mote, 'transform', `translate(${60 + Math.cos(ang) * 22} ${40 + Math.sin(ang) * 12}) scale(${Math.max(.2, s.moteScale)})`);
+      attr(p.eyeL, 'transform', `translate(${s.gazeX} ${s.gazeY}) ${aroundXY(1, lid, 48, 70)}`);
+      attr(p.eyeR, 'transform', `translate(${s.gazeX} ${s.gazeY}) ${aroundXY(1, lid, 74, 70)}`);
+      attr(p.whiskL, 'transform', aroundXY(s.whisk, 1, 22, 72));
+      attr(p.whiskR, 'transform', aroundXY(s.whisk, 1, 98, 76));
+      attr(p.paw, 'transform', `rotate(${s.paw} 92 64)`);
     },
     actions: {
-      tap: {label: '轻触助手', run: c => c.nudge('bodyY', -3)},
+      tap: {label: '轻触', async run(c) {
+        c.to('squash', .9, 'snap'); c.to('bodyY', c.goal('bodyY') + 3, 'snap');
+        c.to('blink', .08, lidSpring); await c.wait(70);
+        c.to('blink', 1, 'pop'); c.to('squash', 1.05, 'pop');
+        c.to('bodyY', c.goal('bodyY') - 3, 'pop');
+        c.to('earL', c.goal('earL') - 8, 'pop'); c.to('earR', c.goal('earR') + 8, 'pop');
+        await c.wait(110);
+        c.to('squash', 1, 'settle'); c.to('bodyY', c.goal('bodyY'), 'settle');
+        c.to('earL', c.goal('earL'), 'settle'); c.to('earR', c.goal('earR'), 'settle');
+        await c.wait(140);
+      }},
       peek: {label: '看过来', async run(c) {
-        c.to('gazeX', 5, 'snap'); c.to('tilt', -5, 'gentle');
-        c.to('moteAngle', c.goal('moteAngle') + 18, 'gentle'); await c.wait(140);
-        c.to('gazeX', -1, 'pop'); await c.wait(120);
+        c.to('gazeX', 5, 'snap'); c.to('earL', c.goal('earL') - 10, 'snap');
+        c.to('paw', c.goal('paw') - 12, 'gentle'); await c.wait(90);
+        c.to('blink', .1, lidSpring); await c.wait(60);
+        c.to('blink', 1, 'pop'); c.to('gazeX', -2, 'pop'); await c.wait(120);
       }},
       select: {label: '醒过来', pose: 'selected', from: 'idle', async run(c) {
-        c.to('bodyY', 3, 'snap'); c.to('tilt', -6, 'snap');
-        c.to('blink', .12, {stiffness: 1400, damping: 50}); await c.wait(80);
-        c.to('blink', 1, 'pop'); c.to('bodyY', -4, 'pop'); c.to('tilt', 4, 'pop');
-        c.to('gazeY', -2, 'gentle'); c.to('moteAngle', -8, 'gentle'); c.to('moteScale', 1.15, 'pop');
-        await c.wait(150);
-        c.to('moteAngle', -90, 'slow'); c.to('tilt', 0, 'gentle'); c.to('bodyY', -2, 'gentle');
-        await c.wait(220);
+        c.to('bodyY', 4, 'snap'); c.to('earL', 6, 'snap'); c.to('blink', .08, lidSpring); await c.wait(75);
+        c.to('blink', 1, 'pop'); c.to('bodyY', -6, 'pop');
+        c.to('earL', -8, 'pop'); c.to('earR', 10, 'pop');
+        c.to('paw', -22, 'pop'); c.to('whisk', 1.18, 'pop'); await c.wait(150);
+        c.to('bodyY', -2, 'gentle'); c.to('earL', -4, 'gentle'); c.to('earR', 6, 'gentle');
+        c.to('paw', -10, 'rebound'); c.to('whisk', 1, 'settle'); await c.wait(180);
       }},
-      reply: {label: '点一下头', async run(c) {
-        c.to('blink', .14, {stiffness: 1400, damping: 50});
-        c.to('bodyY', c.goal('bodyY') + 5, 'impact'); await c.wait(90);
-        c.to('blink', 1, 'pop'); c.to('bodyY', c.goal('bodyY') - 3, 'rebound');
-        c.to('moteScale', c.goal('moteScale') + .16, 'pop'); await c.wait(180);
+      reply: {label: '点头', async run(c) {
+        c.to('tilt', 7, 'snap'); c.to('blink', .1, lidSpring);
+        c.to('bodyY', c.goal('bodyY') + 4, 'impact'); await c.wait(80);
+        c.to('blink', 1, 'pop'); c.to('tilt', -4, 'pop');
+        c.to('bodyY', c.goal('bodyY') - 2, 'rebound');
+        c.to('paw', c.goal('paw') - 8, 'pop'); await c.wait(150);
+      }},
+      blink: {label: '眨眼', async run(c) {
+        c.to('blink', .08, lidSpring); await c.wait(70);
+        c.to('blink', 1, 'pop'); await c.wait(90);
+      }},
+      wave: {label: '招手', async run(c) {
+        c.to('paw', -26, 'snap'); c.to('earR', c.goal('earR') + 6, 'gentle'); await c.wait(90);
+        c.to('paw', 8, 'pop'); await c.wait(100);
+        c.to('paw', -16, 'pop'); await c.wait(90);
+        c.to('paw', c.goal('paw'), 'settle'); c.to('earR', c.goal('earR'), 'settle'); await c.wait(140);
+      }},
+      happy: {label: '开心', async run(c) {
+        c.to('bodyY', c.goal('bodyY') + 3, 'snap'); c.to('squash', .92, 'snap'); await c.wait(70);
+        c.to('bodyY', c.goal('bodyY') - 6, 'pop'); c.to('squash', 1.04, 'pop');
+        c.to('earL', -12, 'pop'); c.to('earR', 12, 'pop');
+        c.to('whisk', 1.28, 'pop'); c.to('paw', -18, 'pop'); await c.wait(150);
+        c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'settle');
+        c.to('whisk', 1, 'gentle'); c.to('paw', c.goal('paw'), 'gentle');
+        c.to('earL', c.goal('earL'), 'gentle'); c.to('earR', c.goal('earR'), 'gentle');
+        await c.wait(160);
       }},
       thinking: {label: '想一想', loop: true, run(c) {
-        c.claim('gazeX', 'moteAngle', 'blink');
-        c.loop((t, dt) => {
-          c.s.gazeX = 4 * Math.sin(t * 2.2);
-          c.s.moteAngle += 160 * dt;
-          c.setVelocity('moteAngle', 160);
-          c.s.blink = (t % 2.6) < .1 ? .14 : 1;
+        c.claim('gazeX', 'earL', 'paw', 'blink');
+        c.loop(t => {
+          c.s.gazeX = 5 * Math.sin(t * 1.6);
+          c.s.earL = c.goal('earL') - 7 * Math.sin(t * 2.3);
+          c.s.paw = c.goal('paw') - 6 + 7 * Math.sin(t * 1.4);
+          c.s.blink = (t % 3.1) < .08 ? .12 : 1;
         });
       }}
     }

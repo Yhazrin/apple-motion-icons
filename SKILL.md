@@ -161,13 +161,15 @@ Every icon also has the generic `press`, `pulse`, `progress`, `confirm` and
 ## Learning, capture and navigation collection
 
 Load `assets/motion-icons-learning.js` after the engine and built-ins for 14
-additional subjects: `lookup`, `lexicon`, `daylight`, `cards`, `book`, `capture`,
+additional subjects: `lookup`, `lexicon`, `daylight`, `cards`, `book`, `plus`,
 `conversation`, `settings`, `sentence`, `memory`, `pencil`, `voice`, `recall` and `milestone`.
 Use [reference/learning.md](reference/learning.md) to choose verbs and integration
 patterns; [examples/workflows.html](examples/workflows.html) demonstrates real
 controls with local simulated async operations. Do not put a loading loop on a
 navigation icon: play `peek` on hover, `select` on activation, and keep its
-`idle` or `selected` pose while resting. Native integrations can start from
+`idle` or `selected` pose while resting. `plus` is the exception: hover plays
+`tap`, activation plays `add`, and the resting pose stays `idle`. Only `confirm`
+morphs the two strokes into a check. Native integrations can start from
 [examples/MotionIconView.swift](examples/MotionIconView.swift) and
 `assets/motion-icon-host.html`.
 

@@ -18,7 +18,7 @@
 <button data-subject="daylight" aria-current="page"><span class="nav-icon"></span>Today</button>
 <button data-subject="cards"><span class="nav-icon"></span>Study</button>
 <button data-subject="book"><span class="nav-icon"></span>Library</button>
-<button data-subject="capture"><span class="nav-icon"></span>Add</button>
+<button data-subject="plus"><span class="nav-icon"></span>Add</button>
 <button data-subject="conversation"><span class="nav-icon"></span>Companion</button>
 <button data-subject="settings"><span class="nav-icon"></span>Settings</button>
 </nav><p id="selection" aria-live="polite">Today · selected pose, no background loop</p>
@@ -56,16 +56,16 @@ const allIcons=[];
 function make(id,name,size=30,pose='idle'){const icon=MotionIcon.create($(id),name,{size,pose});allIcons.push(icon);return icon;}
 function playVisible(icon,action,pose){if(document.hidden){icon.reset({instant:true,pose:pose||icon.pose});}else{icon.play(action);}}
 const isDark=()=>document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
-function navPose(button){const selected=button.hasAttribute('aria-current');return button.dataset.subject==='daylight'&&isDark()?(selected?'nightSelected':'night'):(selected?'selected':'idle');}
+function navPose(button){const selected=button.hasAttribute('aria-current');const subject=button.dataset.subject;if(subject==='daylight'&&isDark())return selected?'nightSelected':'night';if(subject==='plus')return 'idle';return selected?'selected':'idle';}
 const navigation=[...document.querySelectorAll('nav button')].map(button=>{
  const icon=MotionIcon.create(button.querySelector('span'),button.dataset.subject,{size:26,pose:navPose(button)});allIcons.push(icon);
- const peek=()=>icon.play(button.dataset.subject==='book'&&button.hasAttribute('aria-current')?'tap':'peek');
+ const peek=()=>icon.play(button.dataset.subject==='plus'?'tap':button.dataset.subject==='book'&&button.hasAttribute('aria-current')?'tap':'peek');
  const rest=()=>icon.setPose(navPose(button));
  button.addEventListener('pointerenter',peek);button.addEventListener('pointerleave',rest);
  button.addEventListener('focus',peek);button.addEventListener('blur',rest);
  button.addEventListener('click',()=>{
   navigation.forEach(item=>{if(item.button!==button){item.button.removeAttribute('aria-current');item.icon.setPose(navPose(item.button));}});
-  button.setAttribute('aria-current','page');icon.play(button.dataset.subject==='daylight'&&isDark()?'selectNight':'select');
+  button.setAttribute('aria-current','page');const subject=button.dataset.subject;icon.play(subject==='daylight'&&isDark()?'selectNight':subject==='plus'?'add':'select');
   $('selection').textContent=button.textContent.trim()+' · selected pose, no background loop';
  });return {button,icon};
 });

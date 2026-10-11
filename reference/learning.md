@@ -13,8 +13,8 @@ unchanged; this file adds 14 subjects.
 | book | Closed cover unfolding around its spine | idle (closed), open, selected (open) | tap, peek, select, close, turn | — |
 | recall | Folded answer card | idle, revealed | tap, reveal, close, next, retry | — |
 | milestone | A finished word booklet and attached seal | idle, complete | tap, complete, restart | — |
-| capture | A plus that grows when another plus lands on it | idle, selected | tap, peek, select, insert | — |
-| conversation | A face with a gaze and an orbiting mote | idle, selected | tap, peek, select, reply | thinking |
+| plus | Two elastic strokes that stay a plus until a real success | idle, confirmed, closed | tap, add, confirm, reject, reset, toClose | — |
+| conversation | A simplified cat: ears, pink inner ears, a raised paw | idle, selected | tap, peek, select, reply, blink, wave, happy | thinking |
 | settings | Engraved mechanical dial | idle, selected | tap, peek, select, turn | — |
 | sentence | Writing on a lined page | idle, selected | tap, peek, select, reveal, fail | writing; task mapping |
 | memory | Landscape inside a bookmarked frame | idle, selected | tap, peek, select, bind, fail | imagining; task mapping |
@@ -56,6 +56,19 @@ Book rests closed until hover, keyboard focus or selection opens it. `peek`,
 follow-through, so leaving and re-entering reverses the hinge instead of
 finishing the previous anticipation. Pointer leave restores the navigation pose;
 selected books remain open. `turn` keeps the page attached to its spine.
+
+`plus` is two independent strokes. `tap` is the core press, snap and settle, about
+300 ms, and it does not change pose. `add` is the same mechanism with a slightly
+larger travel. The glyph stays a plus through both. `confirm` is the only morph
+into a check and rests at `confirmed`. `reject` keeps the plus and rebounds off a
+stop. `reset` returns from the check. `toClose` turns the plus 45° into a close
+mark and rests at `closed`. A navigation Add control plays `tap` on hover and
+`add` on activation, and keeps `idle`; a successful save is what plays `confirm`.
+
+`conversation` is the cat assistant. Ears, gaze and the raised paw move on the
+first frame of `peek` and `select`. `thinking` claims gaze, one ear, the paw and
+the blink so it can be stopped cleanly. The inner ears use a fixed pink fill;
+every other stroke follows `currentColor`.
 
 ## Async actions
 
