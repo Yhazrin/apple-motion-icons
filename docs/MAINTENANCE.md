@@ -14,6 +14,7 @@
 | 学习、复习、采集对象 | assets/motion-icons-learning.js | 新对象写新配方 |
 | 系统、状态、文件、通讯、安全与智能对象 | assets/motion-icons-catalog.js | 在 learning 之后加载；只调用 MotionIcon.define() |
 | 展示卡片与操作按钮 | assets/gallery.html | 自动枚举配方；subjects 表填写名称、用途和归属 |
+| 动作序列帧板 | review/index.html 与 review/board-*.html | 由 scripts/export-frame-board.mjs 按当前配方铺出；发布白名单包含 review 下的 html / json |
 | 可操作工作流 | examples/workflows.html | 只使用明确标注的本地模拟数据 |
 | 原生桥接 | assets/motion-icon-host.html、examples/MotionIconView.swift | 生命周期和消息接口，不携带业务数据 |
 | 技能操作方法 | SKILL.md、reference/*.md | 行为变了就同时更新 |
