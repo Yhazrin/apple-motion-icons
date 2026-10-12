@@ -33,31 +33,65 @@
     a{color:var(--muted);text-decoration:none}
     a:hover{color:var(--ink)}
     button:focus-visible,.stage:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
-    .mast{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;padding:12px 22px;background:var(--material);backdrop-filter:saturate(1.5) blur(22px);box-shadow:inset 0 -.5px 0 var(--line)}
-    .brand{display:flex;align-items:center;gap:10px;min-width:180px;margin-right:auto}
-    .brand h1{margin:0;font-size:17px;font-weight:640;letter-spacing:-.022em;line-height:1.15}
-    .brand p{margin:1px 0 0;color:var(--muted);font-size:12px;letter-spacing:.01em}
-    #mark{display:grid;place-items:center;width:28px;height:28px;color:var(--ink)}
-    .segments{display:flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:12px;background:var(--chip);max-width:100%}
-    .segments button{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:9px;color:var(--muted);font-size:13px;font-weight:560;white-space:nowrap}
-    .segments button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:var(--shadow),0 0 0 .5px var(--line)}
+    :root{--spring:linear(0, .084 5%, .263 10%, .46 15%, .637 20%, .778 25%, .879 30%, .947 35%, .987 40%, 1.009 45%, 1.018 50%, 1.02 55%, 1.014 65%, 1.007 75%, 1.002 85%, 1);--ease-out:cubic-bezier(.22,.9,.3,1)}
+    .mast{position:sticky;top:0;z-index:3;padding:10px 20px;background:var(--material);backdrop-filter:saturate(1.6) blur(24px);-webkit-backdrop-filter:saturate(1.6) blur(24px);box-shadow:inset 0 -.5px 0 var(--line);transition:box-shadow .3s ease,background-color .3s ease}
+    .mast.is-scrolled{box-shadow:inset 0 -.5px 0 var(--line),0 10px 28px -20px rgb(0 0 0 / .45)}
+    .bar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:16px;max-width:1440px;margin:0 auto}
+    .brand{display:flex;align-items:center;gap:10px;min-width:0}
+    .brand>div{min-width:0;transition:transform .42s var(--spring)}
+    .brand h1{margin:0;font-size:17px;font-weight:640;letter-spacing:-.022em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .brand p{margin:1px 0 0;color:var(--muted);font-size:12px;letter-spacing:.01em;white-space:nowrap;transition:opacity .22s ease}
+    .mast.is-scrolled .brand>div{transform:translateY(8px)}
+    .mast.is-scrolled .brand p{opacity:0}
+    #mark{display:grid;place-items:center;width:28px;height:28px;flex:none;color:var(--ink)}
+    .seg-scroll{--fl:0px;--fr:0px;justify-self:center;min-width:0;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;border-radius:12px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 var(--fl),#000 calc(100% - var(--fr)),transparent);mask-image:linear-gradient(90deg,transparent,#000 var(--fl),#000 calc(100% - var(--fr)),transparent)}
+    .seg-scroll::-webkit-scrollbar{display:none}
+    .seg-scroll.fade-l{--fl:28px}
+    .seg-scroll.fade-r{--fr:28px}
+    .segments{position:relative;display:flex;gap:2px;width:max-content;padding:3px;border-radius:12px;background:var(--chip)}
+    .segments .thumb{position:absolute;top:3px;left:0;width:var(--w,0);height:30px;border-radius:9px;background:var(--card);box-shadow:var(--shadow),0 0 0 .5px var(--line);transform:translateX(var(--x,0));transition:transform .48s var(--spring),width .48s var(--spring)}
+    .segments button{position:relative;z-index:1;display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:9px;color:var(--muted);font-size:13px;font-weight:560;white-space:nowrap;transition:color .2s ease,transform .2s var(--ease-out)}
+    .segments button:hover,.segments button[aria-pressed=true]{color:var(--ink)}
     .segments button span{display:grid;place-items:center;width:16px;height:16px}
-    .tools{display:flex;align-items:center;gap:8px;flex:1 1 420px;justify-content:flex-end}
-    .search-field,.size-field{display:flex;align-items:center;gap:8px;height:36px;padding:0 10px;border-radius:11px;background:var(--chip)}
-    .search-field{flex:1 1 180px;min-width:160px;max-width:280px}
-    .search-field input{width:100%;border:0;background:transparent;outline:none;font-size:13px}
+    .tools{display:flex;align-items:center;gap:6px;justify-self:end}
+    .search-field,.size-field{display:flex;align-items:center;gap:8px;height:36px;padding:0 9px;border-radius:11px;background:var(--chip)}
+    .search-field{width:220px;overflow:hidden;cursor:text;transition:width .46s var(--spring),box-shadow .2s ease}
+    .search-field:focus-within{box-shadow:0 0 0 1.5px color-mix(in srgb,var(--ink) 28%,transparent)}
+    .search-field input{width:100%;min-width:0;border:0;background:transparent;outline:none;font-size:13px;transition:opacity .2s ease}
     .search-field input::placeholder{color:var(--muted)}
-    #search-glyph,#size-glyph,#appearance-glyph{display:grid;place-items:center}
-    #search-glyph,#size-glyph{width:18px;height:18px}
-    .size-field{gap:8px;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+    .search-field kbd{flex:none;min-width:18px;height:18px;padding:0 5px;border-radius:5px;background:var(--card);color:var(--muted);font:11px/18px ui-monospace,Menlo,monospace;text-align:center;box-shadow:0 0 0 .5px var(--line);transition:opacity .2s ease}
+    .search-field:focus-within kbd,.search-field.has-value kbd{opacity:0}
+    #search-glyph,#size-glyph,#appearance-glyph,#more-glyph{display:grid;place-items:center}
+    #search-glyph,#size-glyph{width:18px;height:18px;flex:none}
+    .size-field{gap:10px;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
     input[type=range]{-webkit-appearance:none;appearance:none;width:92px;height:4px;border-radius:999px;background:color-mix(in srgb,var(--ink) 18%,transparent);outline:none}
     input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--ink);border:2px solid var(--card);box-shadow:0 0 0 .5px var(--line)}
     input[type=range]::-moz-range-thumb{width:16px;height:16px;border:2px solid var(--card);border-radius:50%;background:var(--ink)}
-    #appearance{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:var(--chip)}
-    #appearance:active,.segments button:active,.text-btn:active,.actions button:active,.pose-buttons button:active,.task button:active{transform:scale(.97)}
-    .links{display:flex;gap:14px;font-size:13px}
+    .icon-btn{display:grid;place-items:center;width:36px;height:36px;flex:none;border-radius:11px;background:var(--chip);color:var(--ink);transition:background-color .2s ease,color .2s ease,transform .2s var(--ease-out)}
+    .icon-btn:hover{background:color-mix(in srgb,var(--chip),var(--ink) 8%)}
+    #more[aria-expanded=true]{background:var(--ink);color:var(--on)}
+    .icon-btn:active,.segments button:active,.text-btn:active,.actions button:active,.pose-buttons button:active,.task button:active{transform:scale(.97)}
+    #more-panel{position:fixed;inset:auto;top:calc(var(--mast-h,58px) + 6px);right:max(14px,calc((100vw - 1440px) / 2 + 14px));margin:0;width:min(300px,calc(100vw - 28px));padding:8px;border:0;border-radius:18px;background:color-mix(in srgb,var(--card) 90%,transparent);backdrop-filter:saturate(1.6) blur(24px);-webkit-backdrop-filter:saturate(1.6) blur(24px);color:var(--ink);box-shadow:0 0 0 .5px var(--line),0 22px 50px -16px rgb(0 0 0 / .32);opacity:0;transform:translateY(-8px) scale(.97);transform-origin:top right;transition:opacity .2s ease,transform .42s var(--spring),display .42s allow-discrete,overlay .42s allow-discrete}
+    #more-panel:popover-open{opacity:1;transform:none}
+    @starting-style{#more-panel:popover-open{opacity:0;transform:translateY(-8px) scale(.97)}}
+    #more-panel .size-field{height:44px;padding:0 12px}
+    #more-panel .size-field input{flex:1;width:auto}
+    .field-label{color:var(--ink);font-size:13px;white-space:nowrap}
+    .panel-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+    .panel-actions .text-btn{background:var(--chip);color:var(--ink)}
+    .panel-actions .text-btn:hover{background:color-mix(in srgb,var(--chip),var(--ink) 8%)}
+    #export-status{display:block;padding:0 6px;color:var(--muted);font-size:12px}
+    #export-status:not(:empty){padding:8px 6px 2px}
+    .links{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:6px;padding-top:6px;border-top:.5px solid var(--line);font-size:13px}
+    .links a{padding:8px 10px;border-radius:10px;color:var(--ink);transition:background-color .2s ease}
+    .links a:hover{background:var(--chip)}
+    .links a[href^="http"]::after{content:" ↗";color:var(--muted);font-size:11px}
     .text-btn{height:36px;padding:0 10px;border-radius:11px;color:var(--muted);font-size:13px;white-space:nowrap;flex:none}
     .text-btn:hover{color:var(--ink);background:var(--chip)}
+    @media (max-width:1180px){
+      .search-field:not(:focus-within):not(.has-value){width:36px}
+      .search-field:not(:focus-within):not(.has-value) input,.search-field:not(:focus-within):not(.has-value) kbd{opacity:0}
+    }
     main{max-width:1180px;margin:0 auto;padding:22px 22px 72px}
     .section-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:26px 2px 12px}
     .section-head h2{margin:0;font-size:13px;font-weight:620;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
@@ -119,16 +153,19 @@
       html.is-open .card{animation:none;opacity:1}
       #veil{transition:none}
       button:active{transform:none}
+      .segments .thumb,.search-field,.brand>div,#more-panel{transition:none}
     }
     @media (prefers-reduced-transparency:reduce){
-      .mast{background:var(--bg);backdrop-filter:none}
+      .mast,#more-panel{background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none}
     }
     @media (max-width:720px){
-      .mast,.main{padding-left:16px;padding-right:16px}
-      .tools{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-start}
-      .search-field{flex:1 1 100%;max-width:none}
+      .mast,main{padding-left:14px;padding-right:14px}
+      .bar{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand tools" "segs segs";gap:8px 10px}
+      .brand{grid-area:brand}
+      .tools{grid-area:tools}
+      .seg-scroll{grid-area:segs;justify-self:stretch}
+      .search-field:focus-within,.search-field.has-value{width:min(220px,calc(100vw - 150px))}
       .grid{grid-template-columns:1fr}
-      .links{width:100%}
     }
   </style>
 </head>
@@ -138,6 +175,7 @@
     <p>正在铺开图库</p>
   </div>
   <header class="mast">
+   <div class="bar">
     <div class="brand">
       <span id="mark"></span>
       <div>
@@ -145,7 +183,9 @@
         <p id="collection-count">图标与动作</p>
       </div>
     </div>
+    <div class="seg-scroll" id="seg-scroll">
     <div class="segments" role="tablist" aria-label="分组">
+      <span class="thumb" aria-hidden="true"></span>
       <button type="button" data-filter="all" aria-pressed="true"><span data-seg="menu"></span>全部</button>
       <button type="button" data-filter="navigation" aria-pressed="false"><span data-seg="daylight"></span>导航</button>
       <button type="button" data-filter="actions" aria-pressed="false"><span data-seg="recall"></span>学习</button>
@@ -157,27 +197,37 @@
       <button type="button" data-filter="security" aria-pressed="false"><span data-seg="shield"></span>安全</button>
       <button type="button" data-filter="ai" aria-pressed="false"><span data-seg="ai-agent"></span>智能</button>
     </div>
+    </div>
     <div class="tools">
-      <label class="search-field">
+      <label class="search-field" title="搜索（按 / 键）">
         <span id="search-glyph"></span>
         <input type="search" id="search" aria-label="搜索图标" placeholder="搜索名称、用途或动作">
+        <kbd aria-hidden="true">/</kbd>
       </label>
+      <button type="button" id="appearance" class="icon-btn" aria-label="切换日夜"><span id="appearance-glyph"></span></button>
+      <button type="button" id="more" class="icon-btn" popovertarget="more-panel" aria-label="尺寸、导出与链接" aria-expanded="false"><span id="more-glyph"></span></button>
+    </div>
+   </div>
+    <div id="more-panel" popover>
       <label class="size-field">
         <span id="size-glyph"></span>
-        <input type="range" id="size" min="16" max="96" step="1" value="60" aria-label="尺寸">
+        <span class="field-label">预览尺寸</span>
+        <input type="range" id="size" min="16" max="96" step="1" value="60" aria-label="预览尺寸">
         <output id="size-value">60px</output>
       </label>
-      <button type="button" id="export-review" class="text-btn">导出审阅 ZIP</button>
-      <button type="button" id="stop-all" class="text-btn">全部归位</button>
-      <button type="button" id="appearance" aria-label="切换日夜"><span id="appearance-glyph"></span></button>
+      <div class="panel-actions">
+        <button type="button" id="stop-all" class="text-btn">全部归位</button>
+        <button type="button" id="export-review" class="text-btn">导出审阅 ZIP</button>
+      </div>
+      <span id="export-status" role="status" aria-live="polite"></span>
+      <nav class="links" aria-label="资源">
+        <a href="https://github.com/Yhazrin/apple-motion-icons">GitHub</a>
+        <a href="../examples/workflows.html">交互示例</a>
+        <a href="gallery.html?frames">新版动作帧</a>
+        <a href="../review/improvement-plan.html">基线方案</a>
+        <a href="https://github.com/Yhazrin/apple-motion-icons/blob/main/docs/MAINTENANCE.md">维护</a>
+      </nav>
     </div>
-    <span id="export-status" role="status" aria-live="polite" style="font-size:12px;color:var(--muted)"></span>
-    <nav class="links">
-      <a href="https://github.com/Yhazrin/apple-motion-icons">GitHub</a>
-      <a href="../examples/workflows.html">交互示例</a>
-      <a href="gallery.html?frames">新版动作帧</a><a href="../review/improvement-plan.html">基线方案</a>
-      <a href="https://github.com/Yhazrin/apple-motion-icons/blob/main/docs/MAINTENANCE.md">维护</a>
-    </nav>
   </header>
 <main>
   <section class="section" id="navigation-section" data-group="navigation">
@@ -315,10 +365,57 @@
   const searchIcon = glyph(document.getElementById('search-glyph'), 'lookup', 18);
   const emptyIcon = glyph(document.getElementById('empty-glyph'), 'lookup', 26);
   const sizeIcon = glyph(document.getElementById('size-glyph'), 'refresh', 18);
+  const moreIcon = glyph(document.getElementById('more-glyph'), 'menu', 18);
   const segIcons = {};
   document.querySelectorAll('[data-seg]').forEach(host => {
     const name = host.dataset.seg;
     segIcons[name] = glyph(host, name, 15, name === 'daylight' && isDark() ? 'night' : null);
+  });
+
+  const mast = document.querySelector('.mast');
+  const segScroll = document.getElementById('seg-scroll');
+  const segThumb = segScroll.querySelector('.thumb');
+  const searchInput = document.getElementById('search');
+  const morePanel = document.getElementById('more-panel');
+  function placeThumb(instant) {
+    const on = segScroll.querySelector('button[aria-pressed=true]');
+    if (!on) return;
+    if (instant) segThumb.style.transition = 'none';
+    segThumb.style.setProperty('--x', on.offsetLeft + 'px');
+    segThumb.style.setProperty('--w', on.offsetWidth + 'px');
+    if (instant) { segThumb.getBoundingClientRect(); segThumb.style.transition = ''; }
+  }
+  function revealSegment(button) {
+    const pad = 28, left = button.offsetLeft - pad;
+    const right = button.offsetLeft + button.offsetWidth + pad - segScroll.clientWidth;
+    if (segScroll.scrollLeft > left) segScroll.scrollTo({left, behavior: 'smooth'});
+    else if (segScroll.scrollLeft < right) segScroll.scrollTo({left: right, behavior: 'smooth'});
+  }
+  function fadeSegmentEdges() {
+    const max = segScroll.scrollWidth - segScroll.clientWidth;
+    segScroll.classList.toggle('fade-l', segScroll.scrollLeft > 2);
+    segScroll.classList.toggle('fade-r', segScroll.scrollLeft < max - 2);
+  }
+  segScroll.addEventListener('scroll', fadeSegmentEdges, {passive: true});
+  new ResizeObserver(() => { placeThumb(true); fadeSegmentEdges(); }).observe(segScroll);
+  document.fonts?.ready.then(() => placeThumb(true));
+  new ResizeObserver(() => document.documentElement.style.setProperty('--mast-h', mast.offsetHeight + 'px')).observe(mast);
+  let scrolled = null;
+  const markScrolled = () => {
+    const next = scrollY > 6;
+    if (next !== scrolled) { scrolled = next; mast.classList.toggle('is-scrolled', next); }
+  };
+  addEventListener('scroll', markScrolled, {passive: true});
+  markScrolled();
+  morePanel.addEventListener('toggle', e => {
+    const open = e.newState === 'open';
+    document.getElementById('more').setAttribute('aria-expanded', String(open));
+    moreIcon.play(open ? 'toClose' : 'toMenu');
+  });
+  addEventListener('keydown', e => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+    if (e.key === '/' && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); searchInput.focus(); }
+    else if (e.key === 'Escape' && document.activeElement === searchInput && !searchInput.value) searchInput.blur();
   });
   let filter = 'all';
   let searching = false;
@@ -443,6 +540,7 @@
   document.getElementById('size').onchange=()=>sizeIcon.play('finish');
   document.getElementById('search').oninput=()=>{
     const query=document.getElementById('search').value.trim();
+    searchInput.parentElement.classList.toggle('has-value', !!searchInput.value);
     setSearching(!!query);
     applyView();
   };
@@ -451,6 +549,8 @@
   document.querySelectorAll('.segments button').forEach(button => button.onclick = () => {
     filter = button.dataset.filter;
     document.querySelectorAll('.segments button').forEach(item => item.setAttribute('aria-pressed', item === button ? 'true' : 'false'));
+    placeThumb();
+    revealSegment(button);
     segIcons[button.querySelector('[data-seg]').dataset.seg].tap();
     applyView();
   });
