@@ -45,7 +45,7 @@ git push origin main
 
 ## 自动发布实际做了什么
 
-服务器运行 `yhazrin-motion-icons.timer` / `.service`。更新器下载公开仓库指定 commit 的静态白名单，包括 gallery、五个图标脚本、原生宿主、工作流示例及帧检查器；不执行仓库程序，不需要 GitHub token。
+服务器运行 `yhazrin-motion-icons.timer` / `.service`。更新器下载公开仓库指定 commit 的静态白名单，包括 gallery、图标脚本（加入 signature / element 前需先更新白名单，见文末）、原生宿主、工作流示例及帧检查器；不执行仓库程序，不需要 GitHub token。
 
 站点首页是 gallery 的同版本内容，部署时加入 `./assets/` 基址。服务器保存 `releases/<commit>`，`current` 指向已发布版本；version.json 记录 commit、发布时间与各静态文件摘要。网络失败保留现版，不生成半成品。
 
@@ -116,3 +116,26 @@ asset owns subject recognition, causal movement and final result poses. The publ
 verbs remain callable; internal feedback is omitted from primary review exports
 unless `?feedback=1` is specified. Frame isolation uses fresh icon instances, and
 CSS colour transitions are disabled under the virtual capture clock.
+
+## Apple contract layer, element and single-file build
+
+`assets/motion-icons-signature.js` is the seventh runtime layer and loads after
+semantics. It retunes springs to Apple damping, raises inline springs below
+ζ 0.7, adds the shared bounce / wiggle / breathe effects and redraws 16
+subjects (see `reference/apple-motion.md`). `assets/motion-icon-element.js`
+registers `<motion-icon>` and is optional for the gallery.
+
+Before pushing a gallery that references these files, add both to the server
+updater's FILES whitelist in the website management project (ops/motion-icons)
+and redeploy the updater. Without it the live gallery gets a 404 for the
+signature layer and silently falls back to the six-layer motion. The whitelist
+is not mirrored on this machine; check it where the updater is maintained.
+
+The Vord host (`assets/motion-icon-host.html`) still loads six layers. Adding
+the seventh there changes the feel of every Vord icon (verb and pose names stay
+the same), so do it together with a Vord sync and signed build, not silently.
+
+`node scripts/build.mjs` writes `dist/motion-icons.js`, `dist/motion-icons.mjs`
+and `dist/manifest.json` (SHA-256 per layer). `dist/` is git-ignored; `npm pack`
+builds it through `prepack`. Do not commit it. When a runtime layer is added,
+append it to `LAYERS` in the build script as well as to gallery and FILES.

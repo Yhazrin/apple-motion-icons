@@ -116,6 +116,11 @@
     button.loop.on{background:var(--ink);color:var(--on)}
     button.loop.on::before{background:currentColor}
     .task{border-top:.5px solid var(--line);margin-top:2px;padding-top:8px}
+    .effects{display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:0 4px}
+    .effects span{padding:0 4px 0 8px;color:var(--muted);font-size:11px}
+    .effects button{border-radius:8px;padding:5px 7px;color:var(--muted);font-size:11px;font-weight:520}
+    .effects button:hover{background:var(--chip);color:var(--ink)}
+    .effects button.loop.on{background:var(--ink);color:var(--on)}
     label.drive{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px;padding:2px 10px 4px;color:var(--muted);font-size:12px}
     label.drive input{width:100%}
     .pose-line{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:0 4px 4px}
@@ -307,6 +312,7 @@
 <script src="motion-icons-catalog.js"></script>
 <script src="motion-icons-refinements.js"></script>
 <script src="motion-icons-semantics.js"></script>
+<script src="motion-icons-signature.js"></script>
 <script>
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const framesMode = new URLSearchParams(location.search).has('frames');
@@ -328,32 +334,32 @@
     upload:['上传','箭头从托盘升起','system'],battery:['电池','填充宽度等于电量','system'],
     power:['电源','竖杆压入圆弧','system'],search:['搜索','镜片本身移动并倾斜','system'],
     link:['链接','两环扣上或弹开','system'],cellular:['蜂窝','信号柱，不是弧线','system'],
-    hotspot:['热点','打开并接入一台设备','system'],usb:['USB','插入、识别、弹出','system'],
+    hotspot:['热点','打开并接入一台设备','system'],usb:['USB','插头落进接口，识别后亮起','system'],
     server:['服务器','在线、忙碌、离线','system'],brightness:['亮度','光线长短，不是扬声器','system'],
     storage:['存储','填充高度跟随用量','system'],
     check:['勾选','描边画出并落定','status'],warning:['警告','三角与标记错开','status'],
     error:['错误','拒绝与重试变形','status'],loading:['加载','胶囊在轨道里滑动','status'],
-    hourglass:['沙漏','沙量跟随进度，翻转是旋转','status'],clock:['时钟','时针和分针走动','status'],
+    hourglass:['沙漏','沙流下落，流尽后倒转','status'],clock:['时钟','表针扫动、冻结与回拨，外圈是计时进度','status'],
     folder:['文件夹','前片展开，文件收入或取出','files'],copy:['复制','两张纸错开','files'],
     bookmark:['书签','书签缺口加深并收录','files'],printer:['打印机','纸张送出，机身不转','files'],
     archive:['归档盒','打开、存入、取出','files'],clipboard:['剪贴板','复制、粘贴、清空','files'],
-    filter:['筛选','应用、调节、清除','files'],sort:['排序','线条真正换位','files'],
+    filter:['筛选','条目落进漏斗，只放过匹配的一项','files'],sort:['排序','箭头翻转，长短条逐条重排','files'],
     mail:['邮件','收到、打开、寄出、归档','commerce'],phone:['电话','响铃、接听、挂断','commerce'],
     'video-call':['视频通话','加入、离开、开关镜头','commerce'],share:['分享','打开、分享、复制链接','commerce'],
     'qr-scan':['扫码','扫描线经过模块','commerce'],wallet:['钱包','合上或打开','commerce'],
     cart:['购物车','物品落入，轮子滚动','commerce'],calendar:['日历','页面滑动，装订边保持稳定','commerce'],
-    receipt:['小票','纸先送出再撕开','commerce'],gift:['礼物','摇动、打开、合上','commerce'],
+    receipt:['小票','沿锯齿撕下，下半截落走','commerce'],gift:['礼物','摇动、打开、合上','commerce'],
     star:['星标','收藏，不同于心形','commerce'],
-    shield:['盾牌','护住、警示、核验','security'],key:['钥匙','插入、转动、打开','security'],
-    passcode:['密码','圆点填满；核对只在播放该动作时发生','security'],'two-factor':['双重验证','请求、核对、过期','security'],
-    permission:['权限','请求、允许、拒绝、收回','security'],'secure-connection':['安全连接','建立、锁上、断开','security'],
-    camera:['相机','快门、对焦、切换','security'],'screen-recording':['屏幕录制','开始、暂停、继续、停止','security'],
+    shield:['盾牌','护住、警示、核验','security'],key:['钥匙','插进锁孔，绕轴转开','security'],
+    passcode:['密码','圆点填满；核对只在播放该动作时发生','security'],'two-factor':['双重验证','验证码到达手机，收拢成对勾或被划掉','security'],
+    permission:['权限','请求、允许、拒绝、收回','security'],'secure-connection':['安全连接','地球转动，锁徽章扣上或断开','security'],
+    camera:['相机','快门、对焦、切换','security'],'screen-recording':['屏幕录制','录制点分裂成暂停条，停止时变方块','security'],
     'face-id':['面容轮廓','四角张开，扫描线走过；不是生物识别结果','security'],fingerprint:['指纹','扫描真实纹线；不是生物识别接口','security'],
     'ai-thinking':['思考','信号传播、暂停与结论','ai'],'ai-browsing':['浏览','窗口里的内容移动','ai'],
-    'ai-reading':['阅读','文本逐行扫过','ai'],'ai-writing':['书写','线条长出，光标移动','ai'],
-    'ai-coding':['代码','输入、执行输出、定位与修复','ai'],'ai-tool-call':['工具调用','请求在两端之间往返','ai'],
-    'ai-agent':['智能体','空闲或持续工作','ai'],'ai-handoff':['交接','标记沿连线走到另一端','ai'],
-    'ai-generating':['生成','碎片拼成一块','ai'],'ai-queue':['队列','卡片排队、进入、离开','ai']
+    'ai-reading':['阅读','文本逐行扫过','ai'],'ai-writing':['书写','光标领着文字逐行写出','ai'],
+    'ai-coding':['代码','输入、执行输出、定位与修复','ai'],'ai-tool-call':['工具调用','扳手卡住螺母拧动，结果回到角标','ai'],
+    'ai-agent':['智能体','人物旁的星芒被唤醒并持续闪烁','ai'],'ai-handoff':['交接','令牌从一位抛给下一位并被确认','ai'],
+    'ai-generating':['生成','星芒长出、填满与细化','ai'],'ai-queue':['队列','卡片落进队列，被取走处理','ai']
   };
   const controls = [];
   const isDark = () => document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme:dark)').matches;
@@ -460,9 +466,24 @@
     stage.onkeydown = e => {if(e.key==='Enter'||e.key===' '){e.preventDefault();stage.click();}};
 
     const row = el('div', {className: 'actions'}, card);
+    let effectRow = null;
     const loops = [];
     for (const [action, a] of Object.entries(recipe.actions)) {
       if (a.internal || action === 'tap' || action === 'press') continue;
+      if (a.effect) {
+        if (!effectRow) { effectRow = el('div', {className: 'effects'}, card); el('span', {textContent: '符号效果'}, effectRow); }
+        const b = el('button', {type: 'button', textContent: a.label || action, className: a.loop ? 'loop' : ''}, effectRow);
+        if (a.loop) loops.push(b);
+        b.onclick = () => {
+          taskToken++; hoverRest = null;
+          const wasOn = b.classList.contains('on');
+          loops.forEach(l => l.classList.remove('on'));
+          if (a.loop && wasOn) { icon.stop(); return; }
+          if (a.loop) b.classList.add('on');
+          icon.play(action);
+        };
+        continue;
+      }
       if (a.drive) {
         const lab = el('label', {className: 'drive'}, card);
         el('span', {textContent: a.label || action}, lab);
@@ -504,7 +525,7 @@
     icon.element.addEventListener('mi:pose', showPose);
     showPose();
     const reset=()=>{taskToken++;hoverRest=null;loops.forEach(b=>b.classList.remove('on'));card.querySelectorAll('input[type=range]').forEach(input=>input.value=input.defaultValue);icon.reset({pose:restPose(name,icon)});};
-    const sampleAction = Object.entries(recipe.actions).find(([action, spec]) => action !== 'tap' && !spec.loop && !spec.drive)?.[0] || 'tap';
+    const sampleAction = Object.entries(recipe.actions).find(([action, spec]) => action !== 'tap' && !spec.loop && !spec.drive && !spec.effect && !spec.internal)?.[0] || 'bounce';
     el('button',{type:'button', className:'text-btn', textContent:'复制调用', onclick: () => {
       const sample = "const icon = MotionIcon.create(host, '" + name + "', {size: 28});\nicon.play('" + sampleAction + "');";
       navigator.clipboard?.writeText(sample).catch(() => {});

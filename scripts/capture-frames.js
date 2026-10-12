@@ -149,10 +149,13 @@
       const icon=MotionIcon.create(host,name,{size:60,frame:framed});
       try{await job(icon);}finally{icon.destroy();}
     }
+    // Shared symbol effects are the same code on every subject; check them on a few.
+    const EFFECT_SAMPLES = new Set(['heart', 'bell', 'star', 'ai-generating']);
     for (const name of Object.keys(window.galleryIcons)) {
       const recipe = MotionIcon.recipes[name];
       for (const [action, a] of Object.entries(recipe.actions)) {
         if(exporting && a.internal && !params.has('feedback'))continue;
+        if(a.effect && !EFFECT_SAMPLES.has(name) && !params.has('effects'))continue;
         await isolated(name, async icon=>{
           if (a.drive) await drive(name, icon, action, a);
           else if (a.loop) await loop(name, icon, action, a);
@@ -167,6 +170,8 @@
     const bad = report.filter(r => !r.ok);
     const head = document.createElement('h3');
     head.textContent = bad.length ? `ERROR ${bad.length} 项未通过` : `全部 ${report.length} 项通过`;
+    const contract = MotionIcon.apple?.audit;
+    if (contract) head.textContent += ` · 弹性约束 ζ≥${contract.floor}：收敛 ${contract.clamped} 次低阻尼请求`;
     head.className = bad.length ? 'err' : '';
     sheet.prepend(head);
     sheet.style.zoom = String(Math.min(1, innerWidth / 980));   // one screenshot per screen of rows

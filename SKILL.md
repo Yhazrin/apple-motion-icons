@@ -44,11 +44,14 @@ Explore the [live icon gallery](https://skills.yhazrin.xyz/motion-icons/) for vi
 
 ## Quick start
 
-1. For the complete current library, copy the six runtime files in order:
+1. For the complete current library, use the single-file build
+   (`node scripts/build.mjs` → `dist/motion-icons.js` / `.mjs`, which also
+   registers `<motion-icon>`), or copy the seven runtime files in order:
    `motion-icons.js`, `motion-icons-recipes.js`, `motion-icons-learning.js`,
    `motion-icons-catalog.js`, `motion-icons-refinements.js`,
-   `motion-icons-semantics.js`. The last two files include
-   the current colour, planar-motion and occlusion rules. Put project recipes after it.
+   `motion-icons-semantics.js`, `motion-icons-signature.js`. The last three
+   carry the colour, occlusion and Apple spring rules. Put project recipes after
+   them; `MotionIcon.define` still routes them through the contract.
 2. Use it:
 
 ```js
@@ -82,11 +85,14 @@ the recipe has to follow the rest.
    cannot say it in three words, the action is not designed yet.
 2. **Anticipation for big moves.** 4–6 units (or 4–6°) the other way for
    90–110 ms before launches, drops and spins. Skip it for small taps.
-3. **Overshoot and follow-through.** Things arrive with a little extra
-   (`pop`, `rebound`) and settle; free parts (clapper, tag, wave) keep moving
-   after the main body stops.
+3. **Apple damping, not decoration.** Arrivals are critically damped
+   (`smooth`) or nearly so (`snappy`). One action may carry *one* emphasis with
+   `bouncy` (ζ .72, ≈ 4 % overshoot). Only free parts (clapper, tag) swing; only
+   errors shake. Opacity, colour, strokes and pose changes never overshoot. The
+   contract layer raises any inline spring below ζ 0.7; do not fight it.
 4. **Squash on contact, about the contact point.** `aroundXY(1 + (1-k)*.4, k,
-   cx, contactY)`, k ≈ .86–.92, then `rebound`. Attached parts move with it.
+   cx, contactY)`, k ≈ .86–.92 with `quick`, then back with `bouncy`. Attached
+   parts move with it. This is the SF bounce; the shared `bounce` effect does it.
 5. **Secondary motion lags.** A dependent part starts 30–60 ms later or with
    opposite velocity (bell clapper, trailing waves, second menu line).
 6. **Never break velocity.** A new target on a moving value inherits its speed.
@@ -115,18 +121,27 @@ the recipe has to follow the rest.
 
 ### Springs (only springs; no CSS transitions or fixed easing for motion)
 
+Values after `motion-icons-signature.js` (the engine file keeps its original
+numbers; the contract retunes them at load). SwiftUI equivalents in brackets.
+
 | preset | ζ | use |
 |---|---|---|
-| `snap` | .60 | mechanical contact, fast moves with a small rebound |
-| `pop` | .39 | emphasis, deliberate overshoot |
-| `impact` → `rebound` | .58 → .34 | squash on contact, then spring back |
-| `gentle` | .86 | morphs, scale changes |
-| `slow` | .85 | large rotations |
-| `settle` | .75 | return to the pose (engine) |
-| `swing` | .19 | free pendulums: bells, tags, hanging things |
+| `smooth` | 1.0 | state changes, morphs, colour, strokes [`.smooth`, response .42 s] |
+| `snappy` | .86 | direct response: taps, slides, hands that jump [`.snappy`, .3 s] |
+| `bouncy` | .72 | the single emphasis of an action [`.bouncy`, .4 s] |
+| `quick` → `bouncy` | 1.0 → .72 | compress-in, then release (SF bounce) |
+| `glide` | 1.0 | long travel, large rotations, returning to the nearest equivalent angle |
+| `snap` | .82 | mechanical contact |
+| `pop` | .72 | legacy emphasis (now the same overshoot as `bouncy`) |
+| `impact` → `rebound` | .86 → .72 | legacy squash pair |
+| `gentle` / `slow` | .86 / .85 | morphs, rotations |
+| `settle` | .88 | return to the pose (engine) |
+| `swing` | .30 | free pendulums only: bell clapper, hanging tag |
 | `track` | 1.0 | following a finger, slider or progress value |
 | `draw` / `fade` / `exit` | .85 / .87 / 1.0 | strokes, opacity, leaving |
-| `shake` | .25 | errors only |
+| `shake` | .38 | errors only |
+
+Custom springs: `MotionIcon.apple.spring(response, dampingFraction)`.
 
 Timing: taps ≤ 250 ms, most actions 250–600 ms of visible motion, a
 confirmation holds 900 ms (700 ms for errors). Task busy states show for at
@@ -239,7 +254,8 @@ amplitudes within the principles, a recipe's own spring choices, size, weight,
 colours via CSS variables (`--mi-error`, `--mi-heart`, `--mi-badge`,
 `--mi-hud-*`), labels, `timing`.
 
-Keep unless the user agrees otherwise: the `SPRINGS` presets, 480 Hz
+Keep unless the user agrees otherwise: the `SPRINGS` presets and the ζ 0.7
+floor of the Apple contract, 480 Hz
 sub-stepping and dt clamp, the run-token cancellation (`alive()`), the settle
 back to the pose, optical stroke weight, reduced-motion handling. These make
 every icon feel like the same family.
@@ -271,7 +287,7 @@ Copy runtime assets into the application bundle, with project-specific recipes i
 Load `assets/motion-icons-refinements.js` after engine, built-ins,
 learning and catalog. It registers updated product recipes under the same 87
 names; it is not an engine fork. The upstream engine and built-in source stay
-byte-identical. Standalone integrations must copy this fifth runtime asset too, then load `motion-icons-semantics.js` last.
+byte-identical. Standalone integrations must copy this fifth runtime asset too, then `motion-icons-semantics.js` and `motion-icons-signature.js`.
 The Vord host and gallery load it automatically.
 
 Updated authoring rules take precedence over the older overshoot examples above:
@@ -388,3 +404,28 @@ separation, continuity and final-state correctness (1–5 each). A suggested
 review threshold is 21/25 and no dimension below 3; never auto-award these scores
 from motion distance, rest checks or a screenshot export. Blind interpretation
 and 16/24 px readability are design evidence, not numerical spring tests.
+
+## Apple motion contract and signature layer
+
+Load `assets/motion-icons-signature.js` **seventh**, after semantics (the
+single-file build already does). It is the final authority on motion feel:
+
+- Retunes the named presets to Apple damping and adds `smooth`, `snappy`,
+  `bouncy`, `quick` and `glide` (table above). Every action's `c.to` passes
+  through a governor: an inline spring below ζ 0.7 is raised to 0.7 and counted
+  in `MotionIcon.apple.audit` (`clamped`, per-subject `subjects`). The frame
+  checker header prints the count; treat a rising count as a review prompt.
+- Wraps every glyph in a `data-part="mi-fx"` group and adds SF Symbols-style
+  effects to subjects that lack a verb of the same name: `bounce` (squash at the
+  baseline, release with `bouncy`), `wiggle` (8°, −6°, 3°, then rest) and
+  `breathe` (loop, ±5 % at 0.5 Hz). The effect state keys `fxX, fxY, fxRot,
+  fxScale, fxSquash` are reserved. Catalog subjects use `bounce` as their tap.
+- Redraws 16 subjects that did not read at rest (see README). Their verb and pose
+  names are kept; new loops are `ai-generating.generating` and `ai-writing.typing`.
+
+When authoring under the contract: decide the one moment that deserves
+emphasis, use `bouncy` there and `smooth`/`snappy` everywhere else. Express
+"liveliness" with causality (a hand that coasts to a stop, sand that keeps
+flowing, a token that travels to its receiver), not with extra oscillation.
+[reference/apple-motion.md](reference/apple-motion.md) lists the vocabulary of
+each redrawn subject and the SwiftUI mapping.

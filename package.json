@@ -1,0 +1,42 @@
+{
+  "name": "apple-motion-icons",
+  "version": "1.1.0",
+  "description": "Apple-inspired animated SVG icons: spring physics at the display refresh rate, SF Symbols-style effects, a <motion-icon> element and SwiftUI hosting.",
+  "license": "MIT",
+  "author": "Yhazrin",
+  "repository": {"type": "git", "url": "git+https://github.com/Yhazrin/apple-motion-icons.git"},
+  "homepage": "https://skills.yhazrin.xyz/motion-icons/",
+  "keywords": ["icons", "svg", "animation", "spring", "sf-symbols", "apple", "micro-interaction", "web-components"],
+  "type": "commonjs",
+  "main": "dist/motion-icons.js",
+  "module": "dist/motion-icons.mjs",
+  "browser": "dist/motion-icons.js",
+  "types": "types/motion-icons.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/motion-icons.d.ts",
+      "import": "./dist/motion-icons.mjs",
+      "require": "./dist/motion-icons.js",
+      "default": "./dist/motion-icons.js"
+    },
+    "./assets/*": "./assets/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/motion-icons.js",
+    "dist/motion-icons.mjs",
+    "dist/manifest.json",
+    "types/motion-icons.d.ts",
+    "assets/motion-icons*.js",
+    "assets/motion-icon-element.js",
+    "assets/motion-icon-host.html",
+    "examples/MotionIconView.swift",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": true,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "prepack": "node scripts/build.mjs"
+  }
+}
