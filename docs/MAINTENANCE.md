@@ -13,13 +13,13 @@
 | 原弹簧引擎和 13 个基础对象 | assets/motion-icons.js、motion-icons-recipes.js | 保持字节不变 |
 | 学习、复习、采集对象 | assets/motion-icons-learning.js | 新对象写新配方 |
 | 系统、状态、文件、通讯、安全与智能对象 | assets/motion-icons-catalog.js | 在 learning 之后加载；只调用 MotionIcon.define() |
-
-`motion-icons-catalog.js` 已实现 60 个对象。发布时把它加入网站更新器的 FILES 白名单，并让 gallery 的脚本引用检查包含它；只推 GitHub 而不更新白名单，线上画廊会缺这个文件。
 | 展示卡片与操作按钮 | assets/gallery.html | 自动枚举配方；subjects 表填写名称、用途和归属 |
 | 可操作工作流 | examples/workflows.html | 只使用明确标注的本地模拟数据 |
 | 原生桥接 | assets/motion-icon-host.html、examples/MotionIconView.swift | 生命周期和消息接口，不携带业务数据 |
 | 技能操作方法 | SKILL.md、reference/*.md | 行为变了就同时更新 |
 | 网站发布、监控、回滚 | 网站管理项目的 ops/motion-icons、deploy | 与图标代码分离，不公开凭据 |
+
+`motion-icons-catalog.js` 的 60 个对象已在现有发布白名单和页面加载序列中。新增配方文件仍需同时更新白名单与脚本引用。
 
 ## 每次修改怎样上线
 
@@ -44,7 +44,7 @@ git push origin main
 
 ## 自动发布实际做了什么
 
-服务器运行 `yhazrin-motion-icons.timer` / `.service`。更新器下载公开仓库指定 commit 的静态白名单，包括 gallery、三个脚本、原生宿主、工作流示例及帧检查器；不执行仓库程序，不需要 GitHub token。
+服务器运行 `yhazrin-motion-icons.timer` / `.service`。更新器下载公开仓库指定 commit 的静态白名单，包括 gallery、四个图标脚本、原生宿主、工作流示例及帧检查器；不执行仓库程序，不需要 GitHub token。
 
 站点首页是 gallery 的同版本内容，部署时加入 `./assets/` 基址。服务器保存 `releases/<commit>`，`current` 指向已发布版本；version.json 记录 commit、发布时间与各静态文件摘要。网络失败保留现版，不生成半成品。
 

@@ -9,10 +9,10 @@
   };
   const op = (part, value) => part.setAttribute('opacity', clamp01(value));
   const tapSq = (label = '点按') => ({label, async run(c) {
-    c.to('sq', 0.74, 'impact');
-    await c.wait(120);
+    c.to('sq', 0.94, 'impact');
+    await c.wait(90);
     c.to('sq', c.goal('sq'), 'rebound');
-    await c.wait(150);
+    await c.wait(100);
   }});
   function add(name, svg, state, poses, render, actions, extra) {
     M.define(name, Object.assign({
@@ -1323,37 +1323,38 @@
     });
 
   add('usb',
-    `<g data-part="plug"><circle cx="60" cy="36" r="8"/><path d="M60 44V72"/><path d="M60 52H42M60 64H78"/></g>
-<path data-part="port" d="M34 96H86"/>
-<circle data-part="dot" data-fill cx="86" cy="36" r="4"/>`,
+    `<g data-part="plug"><rect x="44" y="28" width="32" height="34" rx="6"/><path d="M53 28V20H67V28M53 42H67M60 62V72"/></g>
+<g data-part="port"><path d="M38 100V86A6 6 0 0 1 44 80H76A6 6 0 0 1 82 86V100"/><path d="M44 88H76"/>
+<circle data-part="dot" data-fill cx="88" cy="94" r="3.5"/></g>`,
     {y: 0, dot: 0},
     {idle: {}, in: {y: 16}, ready: {y: 16, dot: 1}},
     (s, p) => {
+      p.body.setAttribute('transform', '');
       p.plug.setAttribute('transform', `translate(0 ${s.y})`);
+      p.port.setAttribute('transform', aroundXY(1 + (1 - s.sq) * 0.2, s.sq, 60, 100));
       op(p.dot, s.dot);
-      p.dot.setAttribute('transform', around(0.4 + 0.6 * clamp01(s.dot), 86, 36));
+      p.dot.setAttribute('transform', around(0.6 + 0.4 * clamp01(s.dot), 88, 94));
     },
     {
       tap: tapSq('点按'),
       plug: {label: '插入', pose: 'in', from: 'idle', async run(c) {
-        c.to('y', -8, 'snap');
+        c.to('y', -4, 'snap');
         await c.wait(80);
         c.to('y', 18, 'impact');
-        c.to('sq', 0.84, 'impact');
+        await c.wait(100);
+        c.to('sq', 0.94, 'impact');
+        c.to('y', 16, 'rebound');
         await c.wait(150);
       }},
       recognise: {label: '认出', pose: 'ready', from: 'in', async run(c) {
         c.to('dot', 1, 'pop');
-        c.to('y', 12, 'snap');
-        await c.wait(90);
-        c.to('y', 16, 'rebound');
-        await c.wait(140);
+        await c.wait(180);
       }},
       eject: {label: '弹出', pose: 'idle', from: 'ready', async run(c) {
-        c.to('y', 22, 'snap');
         c.to('dot', 0, 'fade');
-        await c.wait(80);
-        c.to('y', -6, 'pop');
+        c.to('y', 18, 'snap');
+        await c.wait(70);
+        c.to('y', -4, 'pop');
         await c.wait(150);
       }}
     });
@@ -1498,42 +1499,63 @@
     });
 
   add('printer',
-    `<defs><clipPath id="mi-catalog-printer"><rect x="36" y="8" width="48" height="48"/></clipPath></defs>
-<g clip-path="url(#mi-catalog-printer)"><g data-part="paper"><rect x="42" y="30" width="36" height="34" rx="3"/><path d="M50 42H74M50 50H68"/></g></g>
-<g data-part="machine"><path d="M22 54H98V90A8 8 0 0 1 90 98H30A8 8 0 0 1 22 90Z"/><path d="M32 54V46H88V54"/></g>`,
-    {py: 0, tilt: 0},
-    {idle: {}, done: {py: -24}},
+    `<defs><clipPath id="mi-catalog-printer-in"><rect x="36" y="16" width="48" height="30"/></clipPath><clipPath id="mi-catalog-printer-out"><rect x="36" y="76" width="48" height="28"/></clipPath></defs>
+<g clip-path="url(#mi-catalog-printer-in)"><g data-part="input"><rect x="42" y="20" width="36" height="34" rx="3"/><path d="M50 30H70M50 38H66"/></g></g>
+<g data-part="machine"><path d="M30 46H90Q96 46 96 52V70Q96 76 90 76H30Q24 76 24 70V52Q24 46 30 46Z"/><path d="M32 46V40H88V46M36 70H84"/><circle data-fill cx="84" cy="56" r="3"/></g>
+<g clip-path="url(#mi-catalog-printer-out)"><g data-part="output"><path data-part="paper" d="M42 50H78V82H42Z"/><path d="M50 60H70M50 68H66"/><path data-part="fold" d="M72 82V76H78"/></g></g>`,
+    {feed: 0, inOn: 1, out: 0, outOn: 0, corner: 0},
+    {idle: {}, done: {feed: 24, inOn: 0, out: 18, outOn: 1}, jammed: {feed: 10, out: 8, outOn: 1, corner: 7}},
     (s, p) => {
       p.body.setAttribute('transform', '');
-      p.paper.setAttribute('transform', `translate(0 ${s.py}) rotate(${s.tilt} 60 46)`);
-      p.machine.setAttribute('transform', aroundXY(1 + (1 - s.sq) * 0.45, s.sq, 60, 98));
+      p.input.setAttribute('transform', `translate(0 ${s.feed})`);
+      op(p.input, s.inOn);
+      p.output.setAttribute('transform', `translate(0 ${s.out})`);
+      op(p.output, s.outOn);
+      p.machine.setAttribute('transform', aroundXY(1 + (1 - s.sq) * 0.2, s.sq, 60, 76));
+      const corner = Math.max(0, Math.min(8, s.corner));
+      p.paper.setAttribute('d', `M42 50H78V${82 - corner}L${78 - corner} 82H42Z`);
+      p.fold.setAttribute('d', `M${78 - corner} 82V${82 - corner}H78`);
+      op(p.fold, corner / 7);
     },
     {
       tap: tapSq('点按'),
-      print: {label: '打印', async run(c) {
-        c.to('py', 8, 'snap');
-        await c.wait(70);
-        c.to('py', -28, 'pop');
-        await c.wait(160);
+      print: {label: '打印', pose: 'done', from: 'idle', async run(c) {
+        c.to('feed', 24, 'gentle');
+        await c.wait(100);
+        c.to('inOn', 0, 'fade');
+        c.to('outOn', 1, 'fade');
+        c.to('out', 18, 'gentle');
+        await c.wait(190);
+        c.to('sq', 0.95, 'impact');
+        await c.wait(100);
       }},
       printing: {label: '出纸', loop: true, run(c) {
-        c.claim('py');
-        c.loop(t => { c.s.py = -28 * wave(t, 0.75); });
+        c.claim('feed', 'inOn', 'out', 'outOn');
+        c.loop(t => {
+          const phase = (t * 0.55) % 1;
+          c.s.feed = 24 * clamp01(phase / 0.48);
+          c.s.inOn = clamp01(phase / 0.08) * (1 - clamp01((phase - 0.24) / 0.27));
+          c.s.out = 18 * clamp01((phase - 0.35) / 0.45);
+          c.s.outOn = clamp01((phase - 0.34) / 0.1) * (1 - clamp01((phase - 0.88) / 0.12));
+        });
       }},
       complete: {label: '完成', pose: 'done', from: 'idle', async run(c) {
-        c.to('py', -28, 'snap');
-        await c.wait(120);
-        c.to('sq', 0.82, 'impact');
-        c.to('py', -24, 'rebound');
-        await c.wait(150);
-      }},
-      jam: {label: '卡纸', async run(c) {
-        c.to('py', -16, 'impact');
-        c.to('tilt', 14, 'snap');
-        c.error();
+        c.to('feed', 24, 'gentle');
+        c.to('inOn', 0, 'fade');
+        c.to('outOn', 1, 'fade');
+        c.to('out', 18, 'gentle');
+        c.to('corner', 0, 'gentle');
+        await c.wait(190);
+        c.to('sq', 0.95, 'impact');
         await c.wait(110);
-        c.to('sq', 0.8, 'impact');
-        c.to('py', -6, 'rebound');
+      }},
+      jam: {label: '卡纸', pose: 'jammed', from: 'idle', async run(c) {
+        c.to('feed', 10, 'snap');
+        c.to('outOn', 1, 'fade');
+        c.to('out', 8, 'snap');
+        await c.wait(120);
+        c.to('corner', 7, 'impact');
+        c.error();
         await c.wait(160);
       }}
     },
@@ -1629,44 +1651,55 @@
     });
 
   add('filter',
-    `<path data-part="funnel" d="M26 30H94L68 58V88H52V58Z"/>
-<circle data-part="knob" cx="84" cy="44" r="5"/>
-<g data-part="bits"><path d="M34 18H50M56 18H74M40 18H46"/></g>`,
-    {by: 0, bOn: 1, kx: 0},
-    {idle: {}, applied: {bOn: 0, by: 28}},
+    `<path data-part="funnel" d="M30 34H90L66 60V80H54V60Z"/>
+<circle data-part="b0" data-fill cx="40" cy="22" r="3.5"/>
+<circle data-part="b1" data-fill cx="60" cy="22" r="3.5"/>
+<circle data-part="b2" data-fill cx="80" cy="22" r="3.5"/>
+<path d="M38 98H82"/><circle data-part="knob" data-fill cx="60" cy="98" r="4"/>`,
+    {y0: 0, y1: 0, y2: 0, o0: 1, o1: 1, o2: 1, kx: 0},
+    {idle: {}, applied: {y0: 28, y1: 66, y2: 28, o0: 0.22, o2: 0.22}},
     (s, p) => {
-      p.funnel.setAttribute('transform', aroundXY(1 + (1 - s.sq) * 0.3, s.sq, 60, 88));
       p.body.setAttribute('transform', '');
-      p.bits.setAttribute('transform', `translate(0 ${s.by})`);
-      op(p.bits, s.bOn);
+      p.funnel.setAttribute('transform', aroundXY(1 + (1 - s.sq) * 0.15, s.sq, 60, 80));
+      const half = 6 + Math.max(-12, Math.min(12, s.kx)) * 0.18;
+      p.funnel.setAttribute('d', `M30 34H90L${60 + half} 60V80H${60 - half}V60Z`);
+      [0, 1, 2].forEach(i => {
+        p['b' + i].setAttribute('transform', `translate(0 ${s['y' + i]})`);
+        op(p['b' + i], s['o' + i]);
+      });
       p.knob.setAttribute('transform', `translate(${s.kx} 0)`);
     },
     {
       tap: tapSq('点按'),
       apply: {label: '筛选', pose: 'applied', from: 'idle', async run(c) {
-        c.to('by', -6, 'snap');
-        await c.wait(60);
-        c.to('by', 36, 'snap');
-        c.to('sq', 0.84, 'impact');
-        await c.wait(140);
-        c.to('bOn', 0, 'fade');
+        c.to('y0', 28, 'gentle');
+        await c.wait(65);
+        c.to('y1', 66, 'gentle');
+        c.to('o0', 0.22, 'fade');
+        await c.wait(65);
+        c.to('y2', 28, 'gentle');
+        c.to('o2', 0.22, 'fade');
+        await c.wait(150);
+        c.to('sq', 0.95, 'impact');
         await c.wait(100);
       }},
       adjust: {label: '调节', async run(c) {
-        c.to('kx', -16, 'snap');
+        c.to('kx', -10, 'snap');
+        await c.wait(110);
+        c.to('kx', 10, 'gentle');
+        await c.wait(130);
+        c.to('kx', c.goal('kx'), 'gentle');
         await c.wait(100);
-        c.to('kx', 14, 'pop');
-        await c.wait(120);
-        c.to('kx', 0, 'rebound');
-        await c.wait(120);
       }},
       clear: {label: '清除', pose: 'idle', from: 'applied', async run(c) {
-        c.set({by: 30, bOn: 0});
-        c.to('bOn', 1, 'fade');
-        c.to('by', 24, 'snap');
-        await c.wait(70);
-        c.to('by', -4, 'pop');
-        c.to('kx', 0, 'snap');
+        c.to('y1', 0, 'gentle');
+        await c.wait(60);
+        c.to('y0', 0, 'gentle');
+        c.to('o0', 1, 'fade');
+        await c.wait(60);
+        c.to('y2', 0, 'gentle');
+        c.to('o2', 1, 'fade');
+        c.to('kx', 0, 'gentle');
         await c.wait(150);
       }}
     });
@@ -2228,12 +2261,12 @@
     });
 
   add('shield',
-    `<path data-part="plate" d="M60 18L96 34V58C96 82 78 100 60 106C42 100 24 82 24 58V34Z"/>
-<path data-part="mark" d="M44 60L56 72L78 48"/>`,
+    `<g data-part="plate"><path d="M60 20L94 35V58C94 81 77 98 60 103C43 98 26 81 26 58V35Z"/>
+<path data-part="mark" d="M44 60L56 72L78 48"/></g>`,
     {draw: 0, tilt: 0},
     {idle: {}, verified: {draw: 1}, alerted: {tilt: -8}},
     (s, p) => {
-      p.plate.setAttribute('transform', `rotate(${s.tilt} 60 106) ${around(s.sq)}`);
+      p.plate.setAttribute('transform', `rotate(${s.tilt} 60 103) ${aroundXY(1 + (1 - s.sq) * 0.2, s.sq, 60, 103)}`);
       p.body.setAttribute('transform', '');
       dash(p.mark, 52, s.draw);
     },
@@ -2270,7 +2303,8 @@
     {x: 0, turn: 0, gap: 0},
     {idle: {}, in: {x: 14}, open: {x: 14, turn: -42, gap: 1}},
     (s, p) => {
-      p.key.setAttribute('transform', `translate(${s.x} 0) rotate(${s.turn} 30 60)`);
+      const depth = Math.max(0.32, Math.cos(s.turn * Math.PI / 180));
+      p.key.setAttribute('transform', `translate(${s.x} 0) ${aroundXY(1, depth, 82, 60)}`);
       p.hole.setAttribute('transform', aroundXY(1, 1 + s.gap * 0.35, 96, 60));
     },
     {
@@ -2577,26 +2611,33 @@
 <path data-part="e1" d="M60 36L86 76"/>
 <path data-part="e2" d="M36 84H84"/>`,
     {e0: 1, e1: 1, e2: 1, n0: 0, n1: 0, n2: 0},
-    {idle: {}, paused: {e0: 0.25, e1: 0.25, e2: 0.25, n0: 10, n1: -12, n2: 12}},
+    {idle: {}, paused: {e0: 0.25, e1: 0.25, e2: 0.25, n0: 6, n1: -5, n2: 5}},
     (s, p) => {
       p.n0.setAttribute('transform', `translate(0 ${s.n0})`);
       p.n1.setAttribute('transform', `translate(${s.n1} 0)`);
       p.n2.setAttribute('transform', `translate(${s.n2} 0)`);
-      dash(p.e0, 52, s.e0);
-      dash(p.e1, 52, s.e1);
-      dash(p.e2, 48, s.e2);
+      const nodes = [[60, 28 + s.n0], [28 + s.n1, 84], [92 + s.n2, 84]];
+      [[0, 1], [0, 2], [1, 2]].forEach(([a, b], i) => {
+        const dx = nodes[b][0] - nodes[a][0], dy = nodes[b][1] - nodes[a][1];
+        const length = Math.max(0.01, Math.hypot(dx, dy));
+        const ux = dx / length, uy = dy / length;
+        const x0 = nodes[a][0] + ux * 8, y0 = nodes[a][1] + uy * 8;
+        const x1 = nodes[b][0] - ux * 8, y1 = nodes[b][1] - uy * 8;
+        p['e' + i].setAttribute('d', `M${x0.toFixed(2)} ${y0.toFixed(2)}L${x1.toFixed(2)} ${y1.toFixed(2)}`);
+        dash(p['e' + i], Math.max(0.01, length - 16), s['e' + i]);
+      });
     },
     {
       tap: tapSq('点按'),
       think: {label: '思考', async run(c) {
         c.set({e0: 0, e1: 0, e2: 0});
-        c.to('n0', 16, 'snap');
+        c.to('n0', 9, 'snap');
         await c.wait(70);
         c.to('e0', 1, 'draw');
-        c.to('n1', 14, 'snap');
+        c.to('n1', 7, 'snap');
         await c.wait(80);
         c.to('e1', 1, 'draw');
-        c.to('n2', -14, 'snap');
+        c.to('n2', -7, 'snap');
         await c.wait(80);
         c.to('e2', 1, 'draw');
         c.to('n0', 0, 'pop');
@@ -2605,9 +2646,9 @@
         await c.wait(160);
       }},
       pause: {label: '暂停', pose: 'paused', from: 'idle', async run(c) {
-        c.to('n0', 12, 'snap');
-        c.to('n1', -14, 'snap');
-        c.to('n2', 14, 'snap');
+        c.to('n0', 6, 'snap');
+        c.to('n1', -5, 'snap');
+        c.to('n2', 5, 'snap');
         c.to('e0', 0.25, 'fade');
         c.to('e1', 0.25, 'fade');
         c.to('e2', 0.25, 'fade');
@@ -2626,8 +2667,9 @@
     });
 
   add('ai-browsing',
-    `<g data-part="window"><rect x="18" y="24" width="84" height="72" rx="10"/><path d="M18 42H102"/><circle data-fill cx="30" cy="33" r="3"/></g>
-<g data-part="content"><path d="M30 56H90"/><path d="M30 70H78"/><path d="M30 84H86"/></g>`,
+    `<defs><clipPath id="mi-catalog-browser"><rect x="24" y="46" width="72" height="44" rx="3"/></clipPath></defs>
+<g data-part="window"><rect x="18" y="24" width="84" height="72" rx="10"/><path d="M18 42H102"/><circle data-fill cx="30" cy="33" r="3"/>
+<g clip-path="url(#mi-catalog-browser)"><g data-part="content"><path d="M30 56H90"/><path d="M30 70H78"/><path d="M30 84H86"/></g></g></g>`,
     {x: 0, cOn: 1, z: 1},
     {idle: {}},
     (s, p) => {
@@ -2649,7 +2691,7 @@
         await c.wait(150);
       }},
       inspect: {label: '查看', async run(c) {
-        c.to('z', 1.12, 'pop');
+        c.to('z', 1.045, 'pop');
         c.to('x', -12, 'gentle');
         await c.wait(160);
         c.to('x', 0, 'rebound');
@@ -2665,47 +2707,57 @@
     });
 
   add('ai-reading',
-    `<path data-part="l0" d="M26 40H94"/>
-<path data-part="l1" d="M26 60H86"/>
-<path data-part="l2" d="M26 80H90"/>
-<path data-part="bar" d="M22 40H98"/>`,
-    {bar: 0, barOn: 0, read: 1},
-    {idle: {}, done: {read: 1, barOn: 0}},
+    `<rect x="22" y="22" width="76" height="76" rx="8"/>
+<g opacity="0.28"><path d="M40 40H86M40 60H80M40 80H84"/></g>
+<path data-part="l0" d="M40 40H86"/><path data-part="l1" d="M40 60H80"/><path data-part="l2" d="M40 80H84"/>
+<path data-part="head" d="M28 36L32 40L28 44"/>
+<path data-part="footer" d="M44 91H76"/>`,
+    {headY: 0, headOn: 0, r0: 0, r1: 0, r2: 0, footer: 0},
+    {idle: {}, done: {r0: 1, r1: 1, r2: 1, footer: 1}},
     (s, p) => {
-      p.bar.setAttribute('transform', `translate(0 ${s.bar})`);
-      op(p.bar, s.barOn);
-      op(p.l0, s.read);
-      op(p.l1, s.read);
-      op(p.l2, s.read);
+      p.head.setAttribute('transform', `translate(0 ${s.headY})`);
+      op(p.head, s.headOn);
+      [46, 40, 44].forEach((length, i) => dash(p['l' + i], length, s['r' + i]));
+      dash(p.footer, 32, s.footer);
     },
     {
       tap: tapSq('点按'),
-      read: {label: '阅读', async run(c) {
-        c.to('barOn', 1, 'fade');
-        c.to('bar', 0, 'snap');
+      read: {label: '阅读', pose: 'done', from: 'idle', async run(c) {
+        c.to('headOn', 1, 'fade');
+        c.to('r0', 1, 'draw');
+        await c.wait(130);
+        c.to('headY', 20, 'snap');
+        c.to('r1', 1, 'draw');
+        await c.wait(130);
+        c.to('headY', 40, 'snap');
+        c.to('r2', 1, 'draw');
+        await c.wait(130);
+        c.to('headOn', 0, 'fade');
+        c.to('footer', 1, 'draw');
         await c.wait(100);
-        c.to('bar', 20, 'snap');
-        await c.wait(110);
-        c.to('bar', 40, 'snap');
-        await c.wait(140);
-        c.to('barOn', 0, 'fade');
-        await c.wait(80);
       }},
-      scan: {label: '扫读', async run(c) {
-        c.to('barOn', 1, 'fade');
-        c.to('bar', 0, 'snap');
-        await c.wait(40);
-        c.to('bar', 42, 'snap');
-        await c.wait(160);
-        c.to('barOn', 0, 'fade');
-        await c.wait(80);
-      }},
-      complete: {label: '读完', pose: 'done', async run(c) {
-        c.to('bar', 40, 'snap');
-        c.to('barOn', 1, 'fade');
+      scan: {label: '扫读', pose: 'done', from: 'idle', async run(c) {
+        c.to('headOn', 1, 'fade');
+        c.to('r0', 1, 'snap');
+        await c.wait(60);
+        c.to('headY', 20, 'snap');
+        c.to('r1', 1, 'snap');
+        await c.wait(60);
+        c.to('headY', 40, 'snap');
+        c.to('r2', 1, 'snap');
         await c.wait(100);
-        c.to('sq', 0.9, 'impact');
-        c.to('barOn', 0, 'fade');
+        c.to('headOn', 0, 'fade');
+        c.to('footer', 1, 'draw');
+        await c.wait(100);
+      }},
+      complete: {label: '读完', pose: 'done', from: 'idle', async run(c) {
+        c.to('r0', 1, 'draw');
+        await c.wait(60);
+        c.to('r1', 1, 'draw');
+        await c.wait(60);
+        c.to('r2', 1, 'draw');
+        c.to('headOn', 0, 'fade');
+        c.to('footer', 1, 'draw');
         await c.wait(140);
       }}
     });
@@ -2759,49 +2811,54 @@
       }}
     });
 
+  const repairCode = async c => {
+    c.to('gap', 6, 'snap');
+    c.to('caret', 0, 'fade');
+    await c.wait(100);
+    c.to('fracture', 0, 'draw');
+    c.to('gap', 0, 'gentle');
+    await c.wait(150);
+    c.to('caret', 1, 'fade');
+    await c.wait(100);
+  };
   add('ai-coding',
-    `<path data-part="l" d="M48 28L26 60L48 92"/>
-<path data-part="r" d="M72 28L94 60L72 92"/>
-<path data-part="caret" d="M56 42V78"/>
-<circle data-part="bug" data-fill cx="60" cy="60" r="4"/>`,
-    {gap: 0, caret: 1, bug: 0},
-    {idle: {}, failed: {bug: 1, gap: 8}},
+    `<path data-part="l" d="M46 30L26 60L46 90"/>
+<path data-part="upper" d="M74 30L90 54"/><path data-part="joint" d="M90 54L94 60L90 66"/><path data-part="lower" d="M90 66L74 90"/>
+<path data-part="caret" d="M60 48V72"/>`,
+    {gap: 0, caret: 1, fracture: 0},
+    {idle: {}, failed: {fracture: 1, gap: 4, caret: 0}},
     (s, p) => {
       p.l.setAttribute('transform', `translate(${-s.gap} 0)`);
-      p.r.setAttribute('transform', `translate(${s.gap} 0)`);
+      p.upper.setAttribute('transform', `translate(${s.gap} ${-s.fracture * 5})`);
+      p.lower.setAttribute('transform', `translate(${s.gap} ${s.fracture * 5})`);
+      p.joint.setAttribute('transform', `translate(${s.gap} 0)`);
+      dash(p.joint, 14.5, 1 - clamp01(s.fracture));
       op(p.caret, s.caret);
-      op(p.bug, s.bug);
-      p.bug.setAttribute('transform', around(0.4 + 0.8 * clamp01(s.bug), 60, 60));
     },
     {
       tap: tapSq('点按'),
       type: {label: '输入', async run(c) {
-        c.to('caret', 0.15, 'snap');
-        await c.wait(70);
-        c.to('caret', 1, 'pop');
-        c.to('gap', 6, 'snap');
+        c.to('caret', 0.15, 'fade');
         await c.wait(80);
-        c.to('caret', 0.2, 'snap');
-        await c.wait(60);
-        c.to('caret', 1, 'pop');
-        c.to('gap', 0, 'rebound');
-        await c.wait(120);
+        c.to('caret', c.goal('caret'), 'fade');
+        c.to('gap', c.goal('gap') + 3, 'snap');
+        await c.wait(100);
+        c.to('gap', c.goal('gap'), 'gentle');
+        await c.wait(100);
       }},
       execute: {label: '运行', async run(c) {
-        c.to('gap', 14, 'snap');
+        c.to('gap', c.goal('gap') + 5, 'snap');
         await c.wait(80);
-        c.to('gap', -4, 'impact');
-        c.to('sq', 0.86, 'impact');
-        await c.wait(140);
+        if (c.pose === 'failed') {
+          c.error();
+          c.to('fracture', 1.12, 'impact');
+        } else {
+          c.to('gap', -2, 'impact');
+        }
+        await c.wait(160);
       }},
-      debug: {label: '排错', pose: 'failed', async run(c) {
-        c.to('gap', 16, 'impact');
-        c.to('bug', 1, 'pop');
-        c.error();
-        await c.wait(110);
-        c.to('gap', 6, 'rebound');
-        await c.wait(150);
-      }}
+      debug: {label: '排错', pose: 'idle', from: 'failed', run: repairCode},
+      repair: {label: '修复', pose: 'idle', from: 'failed', run: repairCode}
     });
 
   add('ai-tool-call',
@@ -2893,135 +2950,151 @@
     });
 
   add('ai-handoff',
-    `<circle data-part="a" cx="26" cy="60" r="12"/>
-<circle data-part="b" cx="94" cy="60" r="12"/>
-<path data-part="link" d="M38 60H82"/>
-<circle data-part="token" data-fill cx="26" cy="60" r="5"/>`,
-    {tx: 0, ty: 0, wire: 1, ack: 1},
+    `<g data-part="a"><circle cx="26" cy="44" r="8"/><path d="M14 80V74C14 60 38 60 38 74V80"/></g>
+<g data-part="b"><circle cx="94" cy="44" r="8"/><path d="M82 80V74C82 60 106 60 106 74V80"/></g>
+<path data-part="link" d="M40 72H80"/>
+<g data-part="token"><rect x="19" y="65" width="14" height="18" rx="3"/><path d="M23 71H29M23 76H27"/></g>`,
+    {tx: 0, ty: 0, wire: 0.35, ack: 1, tilt: 0},
     {idle: {}, sent: {tx: 68}},
     (s, p) => {
-      dash(p.link, 44, s.wire);
-      p.token.setAttribute('transform', `translate(${s.tx} ${s.ty})`);
-      p.b.setAttribute('transform', around(s.ack, 94, 60));
+      dash(p.link, 40, s.wire);
+      p.token.setAttribute('transform', `translate(${s.tx} ${s.ty}) rotate(${s.tilt} 26 74)`);
+      p.b.setAttribute('transform', aroundXY(1 + (1 - s.ack) * 0.2, s.ack, 94, 80));
     },
     {
       tap: tapSq('点按'),
       prepare: {label: '准备', async run(c) {
-        c.to('wire', 0, 'snap');
-        c.to('tx', -4, 'snap');
+        c.to('tx', -3, 'snap');
+        c.to('tilt', -7, 'snap');
         await c.wait(70);
+        c.to('ty', -4, 'gentle');
         c.to('wire', 1, 'draw');
-        c.to('tx', 0, 'pop');
         await c.wait(150);
       }},
       transfer: {label: '移交', pose: 'sent', from: 'idle', async run(c) {
+        c.to('tx', -3, 'snap');
+        c.to('tilt', -7, 'snap');
+        await c.wait(70);
+        c.to('tx', 34, 'gentle');
+        c.to('ty', -18, 'snap');
+        c.to('tilt', 7, 'gentle');
         c.to('wire', 1, 'draw');
-        c.to('tx', 10, 'snap');
-        c.to('ty', -14, 'snap');
-        await c.wait(80);
-        c.to('tx', 68, 'pop');
-        await c.wait(120);
-        c.to('ty', 0, 'rebound');
+        await c.wait(150);
+        c.to('tx', 68, 'snap');
+        c.to('ty', 0, 'impact');
+        c.to('tilt', 0, 'gentle');
+        await c.wait(110);
+        c.to('ack', 0.94, 'impact');
         await c.wait(140);
       }},
       acknowledge: {label: '确认', pose: 'sent', from: 'sent', async run(c) {
-        c.to('ack', 0.72, 'impact');
-        c.to('ty', 6, 'snap');
-        await c.wait(110);
+        c.to('ack', 0.93, 'impact');
+        c.to('ty', 2, 'snap');
+        await c.wait(90);
         c.to('ack', 1, 'rebound');
-        c.to('ty', 0, 'pop');
+        c.to('ty', 0, 'rebound');
         await c.wait(140);
       }}
     });
 
   add('ai-generating',
-    `<rect data-part="p0" x="38" y="38" width="20" height="20" rx="5"/>
+    `<path opacity="0.25" d="M32 48V32H48M72 32H88V48M88 72V88H72M48 88H32V72"/>
+<rect data-part="p0" x="38" y="38" width="20" height="20" rx="5"/>
 <rect data-part="p1" x="62" y="38" width="20" height="20" rx="5"/>
 <rect data-part="p2" x="38" y="62" width="20" height="20" rx="5"/>
 <rect data-part="p3" x="62" y="62" width="20" height="20" rx="5"/>`,
-    {spread: 0},
-    {idle: {}},
+    {d0: 1, d1: 1, d2: 1, d3: 1, k0: 1, k1: 1, k2: 1, k3: 1},
+    {idle: {}, draft: {d0: 0.35, d1: 0, d2: 0, d3: 0}, generated: {}},
     (s, p) => {
-      const d = s.spread * 22;
-      p.p0.setAttribute('transform', `translate(${-d} ${-d})`);
-      p.p1.setAttribute('transform', `translate(${d} ${-d})`);
-      p.p2.setAttribute('transform', `translate(${-d} ${d})`);
-      p.p3.setAttribute('transform', `translate(${d} ${d})`);
+      [[48, 48], [72, 48], [48, 72], [72, 72]].forEach(([x, y], i) => {
+        p['p' + i].setAttribute('transform', around(s['k' + i], x, y));
+        dash(p['p' + i], 72, s['d' + i]);
+      });
     },
     {
       tap: tapSq('点按'),
-      generate: {label: '生成', async run(c) {
-        c.set({spread: 1});
-        c.to('spread', 1.05, 'snap');
-        await c.wait(70);
-        c.to('spread', 0, 'pop');
-        await c.wait(170);
+      generate: {label: '生成', pose: 'generated', from: 'draft', async run(c) {
+        if (c.pose !== 'draft') {
+          [0, 1, 2, 3].forEach(i => {
+            c.to('d' + i, 0, 'fade');
+            c.to('k' + i, 0.88, 'gentle');
+          });
+          await c.wait(130);
+        }
+        for (let i = 0; i < 4; i++) {
+          c.to('d' + i, 1, 'draw');
+          c.to('k' + i, 1, 'gentle');
+          await c.wait(75);
+        }
+        await c.wait(100);
       }},
-      refine: {label: '打磨', async run(c) {
-        c.to('spread', 0.45, 'snap');
-        await c.wait(110);
-        c.to('spread', 0, 'pop');
-        c.to('sq', 0.9, 'impact');
-        await c.wait(150);
+      refine: {label: '打磨', pose: 'generated', from: 'generated', async run(c) {
+        c.to('d1', 0.3, 'draw');
+        c.to('k1', 0.88, 'gentle');
+        await c.wait(130);
+        c.to('d1', 1, 'draw');
+        c.to('k1', 1, 'gentle');
+        await c.wait(160);
       }},
-      finish: {label: '完成', async run(c) {
-        c.to('spread', 0.2, 'snap');
-        await c.wait(60);
-        c.to('spread', 0, 'impact');
-        c.to('sq', 0.8, 'impact');
-        await c.wait(150);
+      finish: {label: '完成', pose: 'generated', from: 'draft', async run(c) {
+        for (let i = 0; i < 4; i++) {
+          c.to('d' + i, 1, 'draw');
+          c.to('k' + i, 1, 'gentle');
+          await c.wait(60);
+        }
+        await c.wait(100);
       }}
     });
 
   add('ai-queue',
-    `<rect data-part="slot" x="30" y="74" width="60" height="26" rx="6"/>
-<g data-part="c0"><rect x="34" y="22" width="52" height="18" rx="4"/></g>
-<g data-part="c1"><rect x="34" y="42" width="52" height="18" rx="4"/></g>
-<g data-part="c2"><rect x="34" y="22" width="52" height="18" rx="4"/></g>`,
-    {x0: 0, y0: 0, o0: 1, x1: 0, y1: 0, o1: 1, x2: 24, y2: 0, o2: 0},
-    {idle: {}},
+    `<path data-part="slot" d="M30 88H90V100H30Z"/>
+<g data-part="c0"><rect x="34" y="62" width="52" height="16" rx="4"/><path d="M44 70H67"/></g>
+<g data-part="c1"><rect x="34" y="42" width="52" height="16" rx="4"/><path d="M44 50H67"/></g>
+<g data-part="c2"><rect x="34" y="22" width="52" height="16" rx="4"/><path d="M44 30H67"/></g>`,
+    {x0: 0, y0: 0, o0: 1, x1: 0, y1: 0, o1: 1, x2: 0, y2: 0, o2: 0},
+    {idle: {}, queued: {o2: 1}, claimed: {o2: 1, y0: 22, o0: 0.45}, processed: {o0: 0, y1: 20, y2: 20, o2: 1}, empty: {o0: 0, o1: 0, o2: 0}},
     (s, p) => {
-      p.c0.setAttribute('transform', `translate(${s.x0} ${s.y0})`);
-      op(p.c0, s.o0);
-      p.c1.setAttribute('transform', `translate(${s.x1} ${s.y1})`);
-      op(p.c1, s.o1);
-      p.c2.setAttribute('transform', `translate(${s.x2} ${s.y2})`);
-      op(p.c2, s.o2);
+      p.body.setAttribute('transform', '');
+      p.slot.setAttribute('transform', aroundXY(1 + (1 - s.sq) * 0.2, s.sq, 60, 100));
+      [0, 1, 2].forEach(i => {
+        p['c' + i].setAttribute('transform', `translate(${s['x' + i]} ${s['y' + i]})`);
+        op(p['c' + i], s['o' + i]);
+      });
     },
     {
       tap: tapSq('点按'),
-      enqueue: {label: '入队', async run(c) {
-        c.set({x2: 20, y2: -8, o2: 0});
+      enqueue: {label: '入队', pose: 'queued', from: 'idle', async run(c) {
+        c.set({x2: 8, y2: -5, o2: 0});
         c.to('o2', 1, 'fade');
-        c.to('x2', 18, 'snap');
-        await c.wait(60);
-        c.to('x2', 0, 'pop');
-        c.to('y2', 0, 'pop');
-        c.to('sq', 0.92, 'impact');
-        await c.wait(160);
+        c.to('x2', 0, 'snap');
+        c.to('y2', 0, 'gentle');
+        await c.wait(220);
       }},
-      claim: {label: '取走', async run(c) {
-        c.to('y0', 8, 'snap');
-        await c.wait(60);
-        c.to('y0', 52, 'impact');
-        c.to('sq', 0.86, 'impact');
-        await c.wait(150);
-      }},
-      process: {label: '处理', async run(c) {
-        c.set({y0: 52});
-        c.to('o0', 0, 'fade');
-        c.to('x0', 20, 'snap');
+      claim: {label: '取走', pose: 'claimed', from: 'queued', async run(c) {
+        c.to('y0', -3, 'snap');
+        await c.wait(70);
+        c.to('y0', 22, 'snap');
         await c.wait(120);
-        c.to('y1', 20, 'gentle');
+        c.to('o0', 0.45, 'fade');
+        c.to('sq', 0.94, 'impact');
         await c.wait(140);
       }},
-      drain: {label: '排空', async run(c) {
-        c.to('x0', -22, 'snap');
+      process: {label: '处理', pose: 'processed', from: 'claimed', async run(c) {
         c.to('o0', 0, 'fade');
-        await c.wait(70);
-        c.to('x1', -22, 'snap');
+        await c.wait(80);
+        c.to('y1', 20, 'gentle');
+        await c.wait(60);
+        c.to('y2', 20, 'gentle');
+        await c.wait(150);
+      }},
+      drain: {label: '排空', pose: 'empty', from: 'queued', async run(c) {
+        c.to('y0', 22, 'snap');
+        c.to('o0', 0, 'fade');
+        await c.wait(90);
+        c.to('y1', 42, 'snap');
         c.to('o1', 0, 'fade');
-        c.to('x2', -18, 'snap');
+        await c.wait(90);
+        c.to('y2', 62, 'snap');
         c.to('o2', 0, 'fade');
         await c.wait(150);
       }}

@@ -71,3 +71,15 @@ static deployment, version checks, adding subjects and rollback.
 [Cursor maintenance prompt](docs/CURSOR_PROMPT.md) is ready to paste into an agent.
 Recipe changes become gallery cards automatically; declare a subject’s catalogue
 label and actual product usage before publishing.
+
+## Catalog refinement
+
+The catalog uses quieter press feedback and object-specific travel. Plug/port
+contact, inserted-key rotation, attached shield marks, connected thinking nodes,
+clipped browser content, forward paper feed, filter particles, line-by-line
+reading, bracket repair, task handoff, staggered generation and persistent queue
+states are described in [the catalog vocabulary](reference/catalog.md).
+
+The existing frame checker reports **482 checks passed** for this revision. This
+checks numerical state and rest; visual review remains a separate design judgment.
+The engine and 13 original recipes remain byte-for-byte unchanged.

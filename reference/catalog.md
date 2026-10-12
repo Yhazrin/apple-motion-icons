@@ -32,7 +32,7 @@ Semantic boundaries: `search` is a magnifying glass and is not `lookup` (page pl
 | `server` | online, busy, offline | tap, online, offline, restart | busy | — |
 | `brightness` | bright, dim | tap, brighten, dim | — | level |
 | `storage` | normal, loaded, full, empty | tap, fill, clear, full | — | level |
-| `printer` | idle, done | tap, print, complete, jam | printing | — task printing/complete/jam |
+| `printer` | idle, done, jammed | tap, print, complete, jam | printing | — task printing/complete/jam |
 | `archive` | closed, open | tap, open, archive, restore, close | — | — |
 | `clipboard` | idle, clear | tap, copy, paste, clear | — | — |
 | `filter` | idle, applied | tap, apply, adjust, clear | — | — |
@@ -60,9 +60,47 @@ Semantic boundaries: `search` is a magnifying glass and is not `lookup` (page pl
 | `ai-browsing` | idle | tap, navigate, inspect, return | — | — |
 | `ai-reading` | idle, done | tap, read, scan, complete | — | — |
 | `ai-writing` | idle, writing | tap, write, revise, finish | — | — |
-| `ai-coding` | idle, failed | tap, type, execute, debug | — | — |
+| `ai-coding` | idle, failed | tap, type, execute, debug, repair | — | — |
 | `ai-tool-call` | idle | tap, connect, invoke, return, fail | — | — |
 | `ai-agent` | idle, active | tap, activate, stop | work | — |
 | `ai-handoff` | idle, sent | tap, prepare, transfer, acknowledge | — | — |
-| `ai-generating` | idle | tap, generate, refine, finish | — | — |
-| `ai-queue` | idle | tap, enqueue, claim, process, drain | — | — |
+| `ai-generating` | idle, draft, generated | tap, generate, refine, finish | — | — |
+| `ai-queue` | idle, queued, claimed, processed, empty | tap, enqueue, claim, process, drain | — | — |
+
+## Object attachment and event semantics
+
+The catalog uses restrained press feedback (6% compression), reserving larger travel
+for the object's own action. `usb` is a physical plug moving into its port; its
+status light belongs to the port. `key` turns around its inserted shaft, projected
+in depth, rather than swinging the shaft out of the keyhole. Shield stamps move
+with the shield. Browser content zooms and clips within the window.
+
+`ai-thinking` trims each connection to the current node boundary, including during
+motion; connections never float away from their nodes. `ai-handoff` passes a small
+task document between two people, while `ai-tool-call` moves a packet on a cable.
+`ai-queue` places incoming work in a separate slot, moves the first item into the
+processor, then advances the remaining items; `drain` rests empty instead of
+silently recreating the queue. Use its declared poses to retain real queue state.
+
+## Directional work, formation and repair
+
+- `printer`: paper feeds downward from the input tray, then exits downward from
+  the output slot. The two paper regions have separate clips within the live
+  area. `print` and `complete` retain the `done` sheet; `jam` retains a folded,
+  partly ejected sheet in `jammed`. The waiting loop fades the completed page
+  before a fresh page begins, rather than pulling the same sheet backward.
+- `filter`: three distinct particles enter a funnel; the middle matching
+  particle emerges and rejected particles remain subdued in the funnel.
+  `adjust` moves a knob on a visible rail and changes the funnel aperture.
+- `ai-reading`: a left-margin reading head advances through three rows. Each
+  read row draws independently; `read`, `scan` and `complete` retain `done`,
+  distinguished by a small footer stroke. `scan` has shorter row dwell times.
+- `ai-generating`: a quiet template holds four separately drawn components.
+  `generate` and `finish` form them in order and retain `generated`; `refine`
+  only redraws one component. Calling `generate` on existing content first
+  retracts its strokes smoothly, with no instant spread reset.
+- `ai-coding`: `failed` is a visibly broken right bracket, without a floating
+  dot over the caret. Set this pose when a real operation fails. `debug`
+  repairs that break and now ends in `idle`; the additive `repair` action
+  has the same repair behavior. Existing `type` and `execute` names remain;
+  executing from `failed` refuses without pretending that repair succeeded.
