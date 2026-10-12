@@ -1086,7 +1086,10 @@ ${[14, 26, 38].map((r, i) => `<path data-part="${VW[i]}" d="${arc(58, 60, r, -42
       :root{--mi-connected:#0867d1;--mi-success:#218348;--mi-favourite:#aa6700;--mi-warning:#ab6500;--mi-recording:#d82d3d}
       @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--mi-connected:#62abff;--mi-success:#63d58a;--mi-favourite:#ffd15c;--mi-warning:#ffc35c;--mi-recording:#ff6874}}
       :root[data-theme=dark]{--mi-connected:#62abff;--mi-success:#63d58a;--mi-favourite:#ffd15c;--mi-warning:#ffc35c;--mi-recording:#ff6874}
+      [data-mi-color=mono] .mi,.mi[data-mi-color=mono]{color:inherit!important}
       [data-mi-color=mono] .mi svg [data-part],.mi[data-mi-color=mono] svg [data-part]{color:inherit!important}
+      [data-mi-color=mono] .mi--heart [data-part=fill],.mi--heart[data-mi-color=mono] [data-part=fill]{fill:currentColor!important}
+      .mi.is-error{color:var(--mi-error,#ff3b30)!important}
       .mi.is-error svg [data-part]{color:inherit!important}
       @media(forced-colors:active){.mi svg [data-part]{color:inherit!important}}
     `;document.head.appendChild(style);
