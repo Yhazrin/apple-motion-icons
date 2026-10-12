@@ -93,3 +93,15 @@ upstream recipe hashes. Copy this asset when embedding the full collection.
 See [refinement notes](reference/refinements.md) and the preserved
 [baseline plan](review/improvement-plan.md). Frame checks establish rest and pose
 correctness; they do not replace judging the motion at actual icon sizes.
+
+### Colour and review delivery
+
+Connected Bluetooth/Wi-Fi, charging/low battery and saved favourites now carry
+semantic colour alongside distinct geometry. Most subjects stay planar; inserted
+paper and stacked cards have true transparent occlusion. See the authoring rules
+in [SKILL.md](SKILL.md#semantic-colour-foreground-and-background).
+
+On the [gallery](https://skills.yhazrin.xyz/motion-icons/), click **导出审阅 ZIP**
+to download all action sequences as PNGs, with 10 sequences per overview sheet
+and 10 separate images per folder. The package includes labels, timestamps and
+a manifest. Export is local to the browser and follows the selected theme.

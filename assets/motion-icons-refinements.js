@@ -1066,3 +1066,162 @@ ${[14, 26, 38].map((r, i) => `<path data-part="${VW[i]}" d="${arc(58, 60, r, -42
   const process=q.actions.process.run;
   q.actions.process={...q.actions.process,async run(c){c.to('slotContact',.84,'snap');await process(c);}};
 })(window.MotionIcon);
+
+/* Semantic colour and planar composition. Colour describes a state, never decoration.
+ * Genuine front/back turns remain on pay.flip and book.turn; other subjects stay legible. */
+(function (M) {
+  'use strict';
+  const {clamp01, around, aroundXY} = M.util;
+  const attr = (p,k,v) => p.setAttribute(k,v);
+  function patch(name, changes) {
+    const old=M.recipes[name];
+    const recipe={...old,...changes,state:{...old.state,...changes.state},poses:{...old.poses,...changes.poses},actions:{...old.actions}};
+    for(const [verb,a] of Object.entries(changes.actions||{})) recipe.actions[verb]=typeof a==='function'?{...old.actions[verb],run:a}:{...old.actions[verb],...a};
+    if(changes.afterRender){recipe.render=(s,p,u)=>{old.render(s,p,u);changes.afterRender(s,p,u);};delete recipe.afterRender;}
+    M.define(name,recipe);
+  }
+  if (typeof document !== 'undefined' && !document.querySelector('[data-mi-palette]')) {
+    const style=document.createElement('style');style.dataset.miPalette='';
+    style.textContent=`
+      :root{--mi-connected:#0867d1;--mi-success:#218348;--mi-favourite:#aa6700;--mi-warning:#ab6500;--mi-recording:#d82d3d}
+      @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--mi-connected:#62abff;--mi-success:#63d58a;--mi-favourite:#ffd15c;--mi-warning:#ffc35c;--mi-recording:#ff6874}}
+      :root[data-theme=dark]{--mi-connected:#62abff;--mi-success:#63d58a;--mi-favourite:#ffd15c;--mi-warning:#ffc35c;--mi-recording:#ff6874}
+      [data-mi-color=mono] .mi svg [data-part],.mi[data-mi-color=mono] svg [data-part]{color:inherit!important}
+      .mi.is-error svg [data-part]{color:inherit!important}
+      @media(forced-colors:active){.mi svg [data-part]{color:inherit!important}}
+    `;document.head.appendChild(style);
+  }
+  function ink(part, role, amount=1) {
+    if(!part)return;
+    const t=clamp01(amount);
+    part.style.color=t===0?'inherit':`color-mix(in srgb, currentColor ${100*(1-t)}%, var(--mi-${role}) ${100*t}%)`;
+  }
+  // Stable colour follows the same numeric pose values as geometry; it also works
+  // during scrubbing, interruption and reduced motion. Never set colour once in an action.
+  patch('bluetooth',{afterRender(s,p){ink(p.rune,'connected',s.dot);ink(p.dot,'connected');}});
+  patch('wifi',{afterRender(s,p){ink(p.body,'connected',s.a3*(1-s.slash));}});
+  patch('star',{afterRender(s,p){ink(p.body,'favourite',s.fill);attr(p.body,'transform',`rotate(${s.starTurn} 60 60)`);},actions:{
+    tap:async c=>{c.to('starTurn',8,'gentle');await c.wait(210);},
+    favourite:async c=>{c.to('fill',1,'fade');c.to('starTurn',8,'gentle');await c.wait(260);},
+    unfavourite:async c=>{c.to('fill',0,'fade');c.to('starTurn',-6,'gentle');await c.wait(240);},
+    highlight:async c=>{c.to('fill',1,'fade');await c.wait(280);}
+  }});
+  patch('bookmark',{afterRender(s,p){ink(p.body,'connected',s.fill);}});
+  patch('permission',{afterRender(s,p){ink(p.track,'success',s.x/36);ink(p.knob,'success',s.x/36);}});
+  patch('warning',{afterRender(s,p){ink(p.body,'warning');}});
+  patch('check',{afterRender(s,p){ink(p.tick||p.body,'success',s.tick??1);}});
+  patch('screen-recording',{afterRender(s,p){ink(p.dot,s.bar>.5?'warning':'recording',clamp01((s.dot-.35)/.65));}});
+  patch('cloud',{afterRender(s,p){ink(p.tick,'success',s.mark);}});
+  patch('server',{afterRender(s,p){for(let i=0;i<3;i++)ink(p['l'+i],'success',s['l'+i]);}});
+  patch('shield',{afterRender(s,p){ink(p.tick||p.plate,'success',s.tick??0);}});
+  patch('calendar',{afterRender(s,p){ink(p.dot,'connected',s.dot);}});
+  patch('milestone',{afterRender(s,p){ink(p.seal,'success',s.check);}});
+
+  // Actual occlusion, not paper-coloured paint. A transparent host must remain transparent.
+  // Each instance gets independent defs. Masks are outside moving parts, in their parent's coordinates.
+  let serial=0;
+  const layers=new WeakMap();
+  function mask(part, key, cut) {
+    let map=layers.get(part.ownerSVGElement);
+    if(!map){map={};layers.set(part.ownerSVGElement,map);}
+    if(map[key])return map[key];
+    const doc=part.ownerDocument, ns='http://www.w3.org/2000/svg';
+    const defs=doc.createElementNS(ns,'defs'), m=doc.createElementNS(ns,'mask');
+    const id='mi-layer-'+(++serial);m.id=id;
+    for(const [k,v]of Object.entries({maskUnits:'userSpaceOnUse',maskContentUnits:'userSpaceOnUse',x:-100,y:-100,width:320,height:320}))attr(m,k,v);
+    const white=doc.createElementNS(ns,'rect');
+    for(const [k,v]of Object.entries({x:-100,y:-100,width:320,height:320}))attr(white,k,v);
+    white.style.cssText='fill:white;stroke:none';m.appendChild(white);
+    const black=doc.createElementNS(ns,cut.tag||'rect');
+    for(const [k,v]of Object.entries(cut))if(k!=='tag')attr(black,k,v);
+    black.style.cssText='fill:black;stroke:none';m.appendChild(black);defs.appendChild(m);
+    part.ownerSVGElement.insertBefore(defs,part.ownerSVGElement.firstChild);
+    const wrapper=doc.createElementNS(ns,'g');attr(wrapper,'mask',`url(#${id})`);
+    part.parentNode.insertBefore(wrapper,part);wrapper.appendChild(part);
+    return map[key]=black;
+  }
+  // Back lid → inserted paper → front wall. Paper disappears into the pocket rather than drawing on it.
+  for(const[name,part,front,y]of [['folder','sheet','pocket',52],['archive','file','box',60],['wallet','card','purse',50],['mail','letter','body2',42]]){
+    patch(name,{afterRender(s,p){
+      mask(p[part],name+'-pocket',{x:12,y,width:96,height:120});
+      const frontPart=p[front];if(frontPart!==frontPart.parentNode.lastElementChild)frontPart.parentNode.appendChild(frontPart);
+    }});
+  }
+  for(const[name,rect]of [['cards',{x:30,y:35,width:63,height:62,rx:11}],['copy',{x:26,y:40,width:48,height:58,rx:8}]]){
+    patch(name,{afterRender(s,p){const cut=mask(p.back,name+'-front',rect);attr(cut,'transform',p.front.getAttribute('transform')||'');}});
+  }
+  patch('book',{afterRender(s,p){
+    attr(p.cover,'transform','');attr(p.leaf,'transform','');
+    const cut=mask(p.lines,'turning-page',{tag:'path',d:p.turning.getAttribute('d')});
+    attr(cut,'d',p.turning.getAttribute('d'));attr(cut,'opacity',clamp01(s.leafOpacity)*clamp01(s.opening));
+  }});
+  patch('recall',{afterRender(s,p){
+    // Revealing an answer is a flat slide, not a reverse-facing question mark.
+    const opening=clamp01(s.opening);
+    attr(p.flap,'transform',`translate(0 ${-44*opening})`);attr(p.flap,'opacity',1-opening);
+    const cut=mask(p.answer,'recall-cover',{x:24,y:34,width:72,height:46,rx:8});
+    attr(cut,'transform',p.flap.getAttribute('transform'));attr(cut,'opacity',1-opening);
+  }});
+
+  patch('battery',{afterRender(s,p){
+    ink(p.fill,s.low>.5||s.fill<.2?'recording':s.bolt>.05||s.fill>.97?'success':'connected',s.low>.5||s.fill<.2||s.bolt>.05||s.fill>.97?1:0);
+    ink(p.bolt,'success');
+    // Cut a matching lightning silhouette out of the level, so the two never merge into a blob.
+    const cut=mask(p.fill,'charging-bolt',{tag:'path',d:'M62 48L50 62H60L54 76L72 58H60Z'});
+    attr(cut,'transform',p.bolt.getAttribute('transform'));
+    cut.style.stroke='black';cut.style.strokeWidth='9';cut.style.strokeLinejoin='round';attr(cut,'opacity',clamp01(s.bolt));
+    p.bolt.querySelector('path').style.cssText='fill:currentColor;stroke:none';
+  }});
+
+  // Planar meanings: translation, local path changes, ordinary 2D rotation.
+  patch('copy',{afterRender(s,p){attr(p.front,'transform',`translate(${s.fx} ${s.fy})`);
+    // Update after the final front transform, not the earlier perspective render.
+    attr(mask(p.back,'copy-front',{x:26,y:40,width:48,height:58,rx:8}),'transform',p.front.getAttribute('transform'));}});
+  patch('link',{afterRender(s,p){attr(p.a,'transform',`translate(${-s.gap} 0)`);attr(p.b,'transform',`translate(${s.gap} 0)`);}});
+  patch('key',{afterRender(s,p){attr(p.key,'transform',`translate(${s.x} 0) rotate(${s.turn} 96 60)`);}});
+  patch('two-factor',{afterRender(s,p){attr(p.badge,'transform',`translate(0 ${s.by})`);}});
+  patch('ai-browsing',{afterRender(s,p){attr(p.window,'transform',around(s.z,60,60));}});
+  patch('ai-agent',{afterRender(s,p){attr(p.head,'transform',around(s.head,60,42));}});
+  patch('video-call',{afterRender(s,p){attr(p.cam,'transform',`translate(${s.x} 0)`);}});
+  patch('send',{afterRender(s,p){attr(p.plane,'transform',`translate(${s.px} ${s.py}) rotate(${s.prot} 60 60) ${around(s.pscale)}`);}});
+  patch('lexicon',{afterRender(s,p){attr(p.bookmark,'transform',`translate(0 ${-12*(1-s.mark)})`);}});
+  patch('memory',{afterRender(s,p){attr(p.frame,'transform',`translate(0 ${s.frameY}) rotate(${s.frameAngle} 60 93)`);}});
+  patch('pencil',{afterRender(s,p){attr(p.pen,'transform',`translate(${s.penX} ${s.penY}) rotate(${s.angle} 43 85)`);}});
+  patch('milestone',{afterRender(s,p){attr(p.page,'transform',`translate(0 ${s.pageY}) rotate(${s.pageTurn*.08+s.pageAngle} 36 79)`);}});
+  patch('cards',{afterRender(s,p){attr(p.front,'transform',`translate(${s.frontX} ${s.frontY}) rotate(${s.tilt} 61 97)`);
+    attr(mask(p.back,'cards-front',{x:30,y:35,width:63,height:62,rx:11}),'transform',p.front.getAttribute('transform'));},actions:{
+    remember:async c=>{c.to('frontY',-14,'gentle');c.to('tilt',-8,'gentle');await c.wait(280);}
+  }});
+  for(const[name,part,key]of [['folder','lid','lid'],['archive','lid','lid'],['wallet','flap','flap'],['gift','lid','lid']]){
+    patch(name,{afterRender(s,p){const lift=name==='gift'?s.ly:name==='wallet'?s.fy:0;
+      attr(p[part],'transform',`translate(0 ${s[key]*.45+lift})`);attr(p[part],'opacity',1);}});
+  }
+  patch('mail',{afterRender(s,p){const t=clamp01(1-s.flap);
+    attr(p.flap,'d',`M22 42L60 ${68-48*t}L98 42`);attr(p.flap,'transform','');attr(p.flap,'opacity',1);}});
+  patch('delete',{afterRender(s,p){attr(p.lid,'transform',`translate(0 ${s.lidY}) rotate(${s.lidRot} 60 32)`);}});
+  patch('calendar',{afterRender(s,p){attr(p.page,'transform',`translate(0 ${-44*clamp01(s.leaf)})`);attr(p.page,'opacity',s.pageOn*(1-clamp01(s.leaf)));}});
+  patch('camera',{afterRender(s,p){attr(p.body,'transform','');attr(p.lens,'cx',60);attr(p.blade,'cx',60);
+    attr(p.lens,'transform',around(s.lens,60,68));attr(p.blade,'transform',aroundXY(1,Math.max(.05,s.blade),60,68));},actions:{
+    switchCamera:async c=>{c.to('lens',.55,'gentle');c.to('blade',.2,'gentle');await c.wait(120);c.to('lens',1,'gentle');c.to('blade',1,'gentle');await c.wait(200);}
+  }});
+  patch('ai-generating',{afterRender(s,p){const t=clamp01(s.assemble);
+    for(let i=0;i<4;i++){const x=i%2?72:48,y=i<2?48:72;
+      attr(p['p'+i],'transform',`translate(${(i%2?1:-1)*16*t} ${(i<2?-1:1)*16*t}) rotate(${(i%2?1:-1)*18*t+(i===0?s.refineTurn*.1:0)} ${x} ${y}) ${around(s['k'+i],x,y)}`);}}});
+})(window.MotionIcon);
+
+(function(M){
+  function colour(name, paint){const r=M.recipes[name],old=r.render;M.define(name,{...r,render(s,p,u){old(s,p,u);paint(s,p);}});}
+  const ink=(p,role,t=1)=>{if(p)p.style.color=`color-mix(in srgb, currentColor ${100*(1-Math.max(0,Math.min(1,t)))}%, var(--mi-${role}) ${100*Math.max(0,Math.min(1,t))}%)`;};
+  colour('bluetooth',(s,p)=>ink(p.rune,'connected',s.stem*(1-s.slash)));
+  colour('check',(s,p)=>ink(p.tick||p.body,'success',s.draw));
+  colour('error',(s,p)=>ink(p.body,'recording',1-s.retryMorph));
+  colour('shield',(s,p)=>ink(p.tick||p.plate,'success',s.draw));
+  colour('power',(s,p)=>ink(p.body,'success',-s.stem/12));
+  colour('cellular',(s,p)=>ink(p.body,'connected',s.b3));
+  colour('hotspot',(s,p)=>ink(p.body,'connected',s.r2));
+  colour('usb',(s,p)=>ink(p.dot,'success',s.dot));
+  colour('secure-connection',(s,p)=>ink(p.body,'success',s.lock*s.wire));
+  colour('ai-agent',(s,p)=>ink(p.halo,'connected',s.halo));
+  const lock=M.recipes.lock,render=lock.render;
+  M.define('lock',{...lock,render(s,p,u){render(s,p,u);p.shackle.setAttribute('transform',`translate(0 ${46*(1-s.squash)-s.lift}) rotate(${-s.shackleTurn*.3} 42 53)`);}});
+})(window.MotionIcon);

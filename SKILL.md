@@ -44,8 +44,10 @@ Explore the [live icon gallery](https://skills.yhazrin.xyz/motion-icons/) for vi
 
 ## Quick start
 
-1. Copy `assets/motion-icons.js` and `assets/motion-icons-recipes.js` into the
-   project (keep the load order). Put project recipes in a third file.
+1. For the complete current library, copy the five runtime files in order:
+   `motion-icons.js`, `motion-icons-recipes.js`, `motion-icons-learning.js`,
+   `motion-icons-catalog.js`, `motion-icons-refinements.js`. The last file includes
+   the current colour, planar-motion and occlusion rules. Put project recipes after it.
 2. Use it:
 
 ```js
@@ -95,14 +97,17 @@ the recipe has to follow the rest.
 9. **Pose-aware actions.** The same verb looks different in different poses
    (a locked shackle that is denied stays stuck; an unlocked one bounces back
    up). Read `c.pose` / `c.goal(key)` instead of hard-coding rest values.
-10. **Errors are the subject refusing.** Bounce off the door, get stuck, nose
-    dive, dim the waves — plus the engine's red tint and damped shake. Never
-    draw a cross for an error.
+10. **Errors are the subject refusing.** Show a blocked door, stuck paper or
+    dimmed signal, with semantic error colour. Choose one refusal movement; do
+    not automatically add a second whole-icon shake. A dedicated error subject
+    may use a cross; other subjects keep their own identity.
 11. **Calm loops.** ≤ 1.4 Hz for waiting (bob, breathe, ripple), up to
     ~2.2 Hz only for literal activity (ringing, sound). Small amplitude.
-12. **Stay in the box, quiet colour.** Motion within ~10 units of the live
-    area. One ink (`currentColor`), red only for errors, one accent only for a
-    meaningful pose (liked heart, unread badge). No gradients, glows, shadows.
+12. **Stay readable, use semantic colour.** Neutral ink describes the object;
+    colour describes a meaningful state. Blue for an enabled connection, green
+    for charging/verified/allowed, amber for saved favourites/warnings, red for
+    recording/low battery/errors. Do not withhold colour when it makes the state
+    easier to understand. Keep the rest neutral; no decorative rainbow or glow.
 13. **Exact rest, reduced motion.** After every action the icon springs back to
     exactly its pose values (the engine does this). With
     `prefers-reduced-motion` springs jump and loops do not run.
@@ -275,11 +280,67 @@ Updated authoring rules take precedence over the older overshoot examples above:
 - Do not finish a semantic action with whole-icon compression.
 - A tap previews one subject-specific mechanism. Keep it shorter than a full
   action; do not apply a common shrink to every subject.
-- Squash is area-preserving and anchored at the local contact. Rotation/hinge
-  perspective stays in recipe render functions, using existing spring presets.
+- Squash is area-preserving and anchored at the local contact. Default to flat
+  motion: path changes, translation and ordinary 2D rotation. Use a perspective
+  flip only when seeing a real opposite face matters (pay card or turning book
+  page). Copying, connecting, recording, switching a camera and changing an AI
+  state do not justify turning the subject edge-on.
 - Distinguish visual quality from deterministic rest checks. Passing the frame
   checker does not establish an amplitude floor or a library-wide overshoot rate.
 
 The four local geometry tools and action-by-action changes are documented in
 [reference/refinements.md](reference/refinements.md). The prior audit remains in
 `review/motion-audit.json` as a baseline, not evidence for the new recipes.
+
+## Semantic colour, foreground and background
+
+Choose a colour-bearing part at the vocabulary stage, not after drawing motion.
+Every recipe must answer: what changes colour, what state does it express, and
+what shape/position/label still explains that state without colour?
+
+- An enabled Bluetooth rune is blue; connected also has a dot. An off rune uses
+  a neutral slash. A saved star/bookmark is filled and coloured; unsaved is an outline.
+- Charging is green **with** a lightning bolt; low battery is red **with** a short
+  level. Keep the battery outline neutral. Cut space out of the level behind the
+  bolt instead of merging two same-coloured shapes.
+- Use `--mi-connected`, `--mi-success`, `--mi-favourite`, `--mi-warning`,
+  `--mi-recording`, plus the existing `--mi-error`, `--mi-heart`, `--mi-badge`.
+  The refinement palette adapts to system appearance or `html[data-theme]`.
+  Host themes may override these variables. Use `data-mi-color="mono"` for an
+  explicitly monochrome integration; forced-colours uses inherited system ink.
+- Colour is derived from animated state in `render`, so pose changes, scrubbing,
+  interruptions, direct `setPose` and reduced motion all remain consistent.
+  Do not colour only in an action callback. Error tint takes precedence.
+- Decide back-to-front order before authoring the SVG. An inserted letter/card
+  sits behind the front pocket; the front wall hides the inserted portion. A
+  foreground page hides rear page strokes. Question-cover and answer text must
+  not be simultaneously legible through each other.
+- On transparent hosts, use real masks/clips, never white rectangles pretending
+  to be occlusion. Keep stationary clips outside moving groups. Mask geometry
+  must follow the **final** foreground transform, not an earlier render pass.
+- Mask/clip IDs must be unique per instance and per captured frame. Separate
+  SVG images must never borrow another icon's or another sample's live defs.
+- Inspect one representative crossing/insert and the meaningful coloured poses
+  at the intended size. Rest checks alone cannot establish correct layering.
+
+## One-click review export
+
+Use **导出审阅 ZIP** in the live gallery. It samples all 87 subjects, regardless
+of the current filter/search, using the same virtual 120 Hz clock as the frame
+board. The export keeps the chosen light/dark appearance. Generation runs in an
+isolated hidden frame; it does not mutate the user's visible icon selection.
+
+The ZIP contains:
+- `sheets/`: each PNG combines up to 10 complete action sequences.
+- `sequences/001/`, etc.: a separate PNG per sequence, grouped 10 per directory.
+- `manifest.json`: action names, actual frame times, final rest result, appearance
+  and published release identity when available.
+- `README.txt`: sharing guidance and sampling limits.
+
+These are labelled key-frame images (one-shot samples at 0, 50, 120, 200, 300,
+450, 650 and 900 ms; loops/drives have their own labels). They are not every
+rendered frame or a new overshoot audit. Paint is frozen from computed styles
+at capture time; clips and masks are copied into each independent SVG image.
+The browser rasterises PNGs and writes a standard ZIP locally, with no upload,
+third-party renderer or dependency/CDN. Copy `scripts/export-review.js` together
+with `scripts/capture-frames.js` when distributing the gallery.

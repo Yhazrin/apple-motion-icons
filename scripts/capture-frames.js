@@ -16,6 +16,10 @@
  */
 (function () {
   'use strict';
+  const params = new URLSearchParams(location.search);
+  const exporting = params.has('export');
+  const notify = (type, data) => { if(exporting && parent !== window) parent.postMessage({type,token:params.get('token'),...data},location.origin); };
+  let sequenceCount=0, snapshotCount=0;
   const LIMIT_MS = 4000;
   const STEP = 1000 / 120;
   const channel = new MessageChannel();
@@ -49,6 +53,7 @@
     seq.className = 'seq';
     seq.innerHTML = `<b>${title}</b>`;
     sheet.appendChild(seq);
+    notify('mi:export-progress',{name:title,count:++sequenceCount});
     return seq;
   }
   function note(seq, text, ok, ms) {
@@ -59,7 +64,27 @@
   }
   function shot(seq, icon, caption) {
     const fig = document.createElement('figure');
-    fig.innerHTML = icon.element.outerHTML + `<figcaption>${caption}</figcaption>`;
+    const clone=icon.element.cloneNode(true);
+    // Freeze computed paint while this frame's pose and colour channels are current.
+    // Plain outerHTML loses inherited CSS when a frame becomes a standalone PNG.
+    if(exporting){
+      const original=[icon.element,...icon.element.querySelectorAll('*')];
+      const copied=[clone,...clone.querySelectorAll('*')];
+      const properties=['color','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','stroke-dasharray','stroke-dashoffset','opacity','fill-opacity','stroke-opacity','display','visibility'];
+      original.forEach((node,i)=>{const css=getComputedStyle(node);for(const prop of properties)copied[i].style.setProperty(prop,css.getPropertyValue(prop));});
+    }
+    // Cloned clip/mask IDs must not resolve to another frame's changing geometry.
+    const prefix='mi-shot-'+(++snapshotCount)+'-';
+    const ids=new Map(Array.from(clone.querySelectorAll('[id]'),n=>[n.id,prefix+n.id]));
+    for(const node of clone.querySelectorAll('*')){
+      if(ids.has(node.id))node.id=ids.get(node.id);
+      for(const a of Array.from(node.attributes)){
+        let value=a.value;for(const [id,next]of ids)value=value.replaceAll('url(#'+id+')','url(#'+next+')');
+        if(value!==a.value)node.setAttribute(a.name,value);
+      }
+    }
+    fig.appendChild(clone);
+    const label=document.createElement('figcaption');label.textContent=caption;fig.appendChild(label);
     seq.appendChild(fig);
     if (/NaN|Infinity/.test(icon.element.innerHTML)) note(seq, `NaN @ ${caption}`, false);
   }
@@ -136,8 +161,9 @@
     sheet.prepend(head);
     sheet.style.zoom = String(Math.min(1, innerWidth / 980));   // one screenshot per screen of rows
     document.body.classList.add('frames-ready');
+    notify('mi:export-ready',{icons:Object.keys(window.galleryIcons).length,sequences:sequenceCount});
     return report;
   }
 
-  window.__motionIconFrames = main();
+  window.__motionIconFrames = main().catch(error=>{notify('mi:export-error',{message:error.message});throw error;});
 })();

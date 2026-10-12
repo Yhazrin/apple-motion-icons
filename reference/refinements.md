@@ -48,3 +48,21 @@ is `03a6f9887b73eabfcc86651ad2238ac744f524b7933f82376e20c73985fbc85f`;
 upstream built-in hash is `08da134ab8cb54a2c2d50716196f3ba3c18cf14fd5aeb081bf567da75b4b128c`.
 Native Release bundle compilation succeeded. Vord, Codex skill and Cursor skill
 copies include the same fifth refinement asset. No new test suite was added.
+
+## Current follow-up: semantic colour and flat composition
+
+The earlier perspective expansion above is superseded wherever it obscures
+product meaning. Copy, link, camera, video-call, AI browser/agent/generation,
+pencil, memory and milestone now use planar movement. Folder/archive/wallet/gift
+open with a simple lift; mail uses a triangular path change. Calendar slides its
+page; recall slides and fades its question cover. Cards lift instead of flipping.
+Pay front/back and a genuine book-page turn retain their physical meaning.
+
+The refinement layer also adds adaptive semantic colours and per-instance SVG
+masks: rear cards are hidden behind front cards; inserted paper is hidden behind
+pocket walls; the battery level leaves space for its charging bolt. Screenshot
+snapshots receive independent defs IDs so they cannot borrow a live frame's mask.
+
+The live gallery's review ZIP contains full per-action PNG strips and 10-strip
+overviews. This replaces manual screenshot assembly; baseline audit JSON remains
+the original baseline, not new numerical evidence.

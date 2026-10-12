@@ -7,6 +7,8 @@
   <script>
     if (location.search.includes('frames') || matchMedia('(prefers-reduced-motion: reduce)').matches)
       document.documentElement.classList.add('skip-veil', 'is-open');
+    const captureTheme=new URLSearchParams(location.search).get('theme');
+    if(['light','dark'].includes(captureTheme))document.documentElement.dataset.theme=captureTheme;
   </script>
   <style>
     :root{
@@ -165,9 +167,11 @@
         <input type="range" id="size" min="16" max="96" step="1" value="60" aria-label="尺寸">
         <output id="size-value">60px</output>
       </label>
+      <button type="button" id="export-review" class="text-btn">导出审阅 ZIP</button>
       <button type="button" id="stop-all" class="text-btn">全部归位</button>
       <button type="button" id="appearance" aria-label="切换日夜"><span id="appearance-glyph"></span></button>
     </div>
+    <span id="export-status" role="status" aria-live="polite" style="font-size:12px;color:var(--muted)"></span>
     <nav class="links">
       <a href="https://github.com/Yhazrin/apple-motion-icons">GitHub</a>
       <a href="../examples/workflows.html">交互示例</a>
@@ -258,7 +262,7 @@
   const icons = window.galleryIcons = {};
   const grid = document.getElementById('grid');
   const subjects = {
-    daylight:['今天','Today · 主导航','navigation'],cards:['学习词卡','Review · 词卡浏览与翻面','navigation'],
+    daylight:['今天','Today · 主导航','navigation'],cards:['学习词卡','Review · 词卡错开与抽取','navigation'],
     book:['词库','Library · 主导航','navigation'],plus:['添加','加号轻转预演，成功才变成对勾','navigation'],
     conversation:['助手','小猫助手 · ^_^  >_<  O_O  T_T  扑和扭','navigation'],settings:['设置','Settings · 主导航','navigation'],
     lookup:['查词','添加页与快加浮窗','actions'],lexicon:['词汇收录','保存中与确认入库','actions'],
@@ -268,7 +272,7 @@
     download:['下载','连续进度 / 完成 / 取消','library'],send:['发送','发送 / 撤回','library'],delete:['删除','打开 / 丢入 / 恢复','library'],
     heart:['喜欢','喜欢 / 取消 / 心跳','library'],menu:['菜单','菜单 / 关闭 / 返回','library'],bell:['通知','响铃 / 已读 / 静音','library'],
     play:['播放','播放 / 暂停 / 下一首','library'],volume:['音量','发声 / 静音 / 连续音量','library'],eye:['眼睛','眨眼 / 看向 / 显隐','library'],
-    wifi:['无线网络','信号弧从内向外亮起','system'],bluetooth:['蓝牙','符文分段点亮','system'],
+    wifi:['无线网络','信号弧从内向外亮起','system'],bluetooth:['蓝牙','启用为蓝色，连上后保留状态点','system'],
     cloud:['云','轮廓不动，内部箭头进出','system'],sync:['对向同步','两支箭头相向，冲突时挡住','system'],
     upload:['上传','箭头从托盘升起','system'],battery:['电池','填充宽度等于电量','system'],
     power:['电源','竖杆压入圆弧','system'],search:['搜索','镜片本身移动并倾斜','system'],
@@ -286,7 +290,7 @@
     mail:['邮件','收到、打开、寄出、归档','commerce'],phone:['电话','响铃、接听、挂断','commerce'],
     'video-call':['视频通话','加入、离开、开关镜头','commerce'],share:['分享','打开、分享、复制链接','commerce'],
     'qr-scan':['扫码','扫描线经过模块','commerce'],wallet:['钱包','合上或打开','commerce'],
-    cart:['购物车','物品落入，轮子滚动','commerce'],calendar:['日历','从装订边翻页','commerce'],
+    cart:['购物车','物品落入，轮子滚动','commerce'],calendar:['日历','页面滑动，装订边保持稳定','commerce'],
     receipt:['小票','纸先送出再撕开','commerce'],gift:['礼物','摇动、打开、合上','commerce'],
     star:['星标','收藏，不同于心形','commerce'],
     shield:['盾牌','护住、警示、核验','security'],key:['钥匙','插入、转动、打开','security'],
@@ -530,5 +534,6 @@
     document.body.appendChild(s);
   }
 </script>
+<script src="../scripts/export-review.js"></script>
 </body>
 </html>
