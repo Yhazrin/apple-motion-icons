@@ -1,3 +1,8 @@
+> Current product recipes are superseded by `motion-icons-semantics.js` where
+> indicated in [semantics.md](semantics.md). Existing verb names remain; new
+> result poses retain loaded, approved, matched and generated business outcomes.
+> Internal tap/press is not a primary gallery verb.
+
 # Catalog motion vocabulary
 
 These 60 subjects are implemented. Load `motion-icons.js`, `motion-icons-recipes.js`, `motion-icons-learning.js`, then `assets/motion-icons-catalog.js`. Register only through `MotionIcon.define()`. The engine and the 13 built-in recipes stay unchanged.

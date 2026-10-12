@@ -52,7 +52,7 @@
       const theme=document.documentElement.dataset.theme||
         (matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
       const token=crypto.randomUUID(),url=new URL('gallery.html',document.baseURI);
-      url.search=new URLSearchParams({frames:'1',export:'1',theme,token}).toString();
+      url.search=new URLSearchParams({frames:'1',export:'1',theme,token,...(new URLSearchParams(location.search).has('feedback')?{feedback:'1'}:{})}).toString();
       frame=document.createElement('iframe');frame.setAttribute('aria-hidden','true');frame.tabIndex=-1;
       frame.style.cssText='position:fixed;left:-20000px;top:0;width:1280px;height:800px;border:0;pointer-events:none';
       const ready=new Promise((resolve,reject)=>{
@@ -70,7 +70,7 @@
       const rows=Array.from(frame.contentDocument.querySelectorAll('#frames .seq'));
       const entries=[],manifest={format:1,generatedAt:new Date().toISOString(),theme,icons:capture.icons,
         sampleClockHz:120,frames:'action: 0/50/120/200/300/450/650/900ms; loops/drives use labelled samples',
-        source:location.href,release:null,sequences:[],sheets:[]};
+        source:location.href,release:null,internalFeedbackIncluded:new URLSearchParams(location.search).has('feedback'),sequences:[],sheets:[]};
       try{const response=await fetch(new URL('../version.json',document.baseURI));if(response.ok)manifest.release=await response.json();}catch(_){/* local gallery has no release metadata */}
       for(let start=0;start<rows.length;start+=10){
         const group=String(start/10+1).padStart(3,'0'),batch=rows.slice(start,start+10);
@@ -100,7 +100,7 @@
         await new Promise(r=>requestAnimationFrame(r));
       }
       entries.push({name:'manifest.json',data:utf8(manifest)});
-      entries.push({name:'README.txt',data:utf8(`Apple Motion Icons review export\n${capture.icons} icons · ${rows.length} sequences · ${theme}\n\nStart with sheets/: each PNG combines up to 10 complete action sequences.\nsequences/: a separate full-resolution PNG for every action, grouped 10 per folder.\nmanifest.json: action labels, exact sampling times, checks and release identity.\nThese are labelled key-frame samples, not every display frame or an overshoot audit.\nGenerated locally in your browser. No files were uploaded.\n`)});
+      entries.push({name:'README.txt',data:utf8(`Apple Motion Icons review export\n${capture.icons} icons · ${rows.length} sequences · ${theme}\n\nStart with sheets/: each PNG combines up to 10 complete action sequences.\nsequences/: a separate full-resolution PNG for every action, grouped 10 per folder.\nmanifest.json: action labels, exact sampling times, checks and release identity.\nInternal tap/press feedback is omitted by default; gallery.html?feedback=1 includes it. These are labelled key-frame samples, not every display frame or an overshoot audit.\nGenerated locally in your browser. No files were uploaded.\n`)});
       downloadUrl=URL.createObjectURL(zip(entries));const a=document.createElement('a');
       a.href=downloadUrl;a.download=`motion-icons-review-${theme}-${new Date().toISOString().slice(0,10)}.zip`;
       document.body.appendChild(a);a.click();a.remove();

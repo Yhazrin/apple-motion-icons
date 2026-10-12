@@ -43,6 +43,7 @@
     }
   }
 
+  const captureStyle=document.createElement('style');captureStyle.textContent='.mi{transition:none!important}';document.head.appendChild(captureStyle);
   const sheet = document.createElement('div');
   sheet.id = 'frames';
   document.body.appendChild(sheet);
@@ -143,16 +144,25 @@
 
   async function main() {
     await advance(50);
-    for (const [name, icon] of Object.entries(window.galleryIcons)) {
+    const host=document.createElement('div');host.style.cssText='position:fixed;left:-20000px;top:0;color:var(--ink);--mi-size:60px';document.body.appendChild(host);
+    async function isolated(name,job,framed=false){
+      const icon=MotionIcon.create(host,name,{size:60,frame:framed});
+      try{await job(icon);}finally{icon.destroy();}
+    }
+    for (const name of Object.keys(window.galleryIcons)) {
       const recipe = MotionIcon.recipes[name];
       for (const [action, a] of Object.entries(recipe.actions)) {
-        if (a.drive) await drive(name, icon, action, a);
-        else if (a.loop) await loop(name, icon, action, a);
-        else await oneShot(name, icon, action, a);
+        if(exporting && a.internal && !params.has('feedback'))continue;
+        await isolated(name, async icon=>{
+          if (a.drive) await drive(name, icon, action, a);
+          else if (a.loop) await loop(name, icon, action, a);
+          else await oneShot(name, icon, action, a);
+        });
       }
-      if (recipe.task) { await task(name, icon, 'success'); await task(name, icon, 'fail'); }
+      if (recipe.task) for(const result of ['success','fail']) await isolated(name,icon=>task(name,icon,result));
     }
-    await task('lock (frame)', window.galleryFramed, 'success');
+    await isolated('lock',icon=>task('lock (frame)',icon,'success'),true);
+    host.remove();
 
     const bad = report.filter(r => !r.ok);
     const head = document.createElement('h3');

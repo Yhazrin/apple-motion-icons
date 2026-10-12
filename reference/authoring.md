@@ -65,6 +65,7 @@ walk everything home itself.
 | `loop: true` | keeps running after `run` returns, until `stop()` or another action |
 | `exit` | loop only: action `stop()` plays instead of a plain settle (`spin → finish`) |
 | `drive(c, v)` | continuous input instead of `run`; called on every `drive(name, v)` |
+| `internal: true` | API micro-feedback, hidden from primary gallery controls and default review ZIP |
 | `label`, `initial` | gallery button text; initial slider value for drives |
 
 ## Context `c`
@@ -145,3 +146,20 @@ glyphOpacity, glyphScale, ring, check, morph, spin, breath, leg`.
 | slam / click | — | `{stiffness: 900, damping: 30}` or `snap` |
 | blink | scaleY → .06 in 80 ms | `{stiffness: 1400, damping: 50}`, open with `pop` |
 | stagger | 60–120 ms | `c.wait` |
+
+## Preserve business results
+
+Declare a real destination pose for a completed product operation. `settle` does
+not mean returning to `idle`: it means landing exactly in the destination pose.
+If `add` adds a product, the loaded product stays. If `tear` destroys a receipt,
+the receipt stays torn. Request/working/progress must not inherit approved colour
+until the product confirms that outcome.
+
+`pose` is applied before `run`. Inspect current numeric state, not `c.pose`, to
+find the previous geometry. Continuous pause retains live values with `setGoal`;
+reset must explicitly clear retained goals. Do not use new booleans only in
+action closures: direct pose selection and reduced motion must show the same result.
+
+A semantic verb needs a subject, causality and a result. A tap/press can remain
+internal, with no separate demo. Default review export keeps only semantic verbs;
+`?feedback=1` includes internal feedback for integration review.

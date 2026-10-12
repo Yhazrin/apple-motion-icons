@@ -44,9 +44,10 @@ Explore the [live icon gallery](https://skills.yhazrin.xyz/motion-icons/) for vi
 
 ## Quick start
 
-1. For the complete current library, copy the five runtime files in order:
+1. For the complete current library, copy the six runtime files in order:
    `motion-icons.js`, `motion-icons-recipes.js`, `motion-icons-learning.js`,
-   `motion-icons-catalog.js`, `motion-icons-refinements.js`. The last file includes
+   `motion-icons-catalog.js`, `motion-icons-refinements.js`,
+   `motion-icons-semantics.js`. The last two files include
    the current colour, planar-motion and occlusion rules. Put project recipes after it.
 2. Use it:
 
@@ -267,10 +268,10 @@ Copy runtime assets into the application bundle, with project-specific recipes i
 
 ## Restrained motion refinement layer
 
-Load `assets/motion-icons-refinements.js` **last**, after engine, built-ins,
+Load `assets/motion-icons-refinements.js` after engine, built-ins,
 learning and catalog. It registers updated product recipes under the same 87
 names; it is not an engine fork. The upstream engine and built-in source stay
-byte-identical. Standalone integrations must copy this fifth runtime asset too.
+byte-identical. Standalone integrations must copy this fifth runtime asset too, then load `motion-icons-semantics.js` last.
 The Vord host and gallery load it automatically.
 
 Updated authoring rules take precedence over the older overshoot examples above:
@@ -325,7 +326,7 @@ what shape/position/label still explains that state without colour?
 
 ## One-click review export
 
-Use **导出审阅 ZIP** in the live gallery. It samples all 87 subjects, regardless
+Use **导出审阅 ZIP** in the live gallery. It samples all 87 subjects and their public semantic actions, regardless
 of the current filter/search, using the same virtual 120 Hz clock as the frame
 board. The export keeps the chosen light/dark appearance. Generation runs in an
 isolated hidden frame; it does not mutate the user's visible icon selection.
@@ -344,3 +345,46 @@ at capture time; clips and masks are copied into each independent SVG image.
 The browser rasterises PNGs and writes a standard ZIP locally, with no upload,
 third-party renderer or dependency/CDN. Copy `scripts/export-review.js` together
 with `scripts/capture-frames.js` when distributing the gallery.
+
+## Meaning before motion: current semantic quality pass
+
+Load `assets/motion-icons-semantics.js` **last**. It replaces ambiguous product
+recipes and keeps the same 87 registered subjects, spring engine and existing
+verb names. It adds result poses where the old vocabulary lost a business result.
+See [reference/semantics.md](reference/semantics.md) for the exact changed contracts.
+
+Before tuning a spring, answer these five questions:
+1. Can the subject be identified without its name? A handset needs earpiece,
+   mouthpiece and a curved grip; a fingerprint needs irregular ridges and loops.
+2. What is sent, changed, consumed or produced? Identify the source, path and
+   destination. Executing code produces output; a tool call moves a request
+   card out and a result card back. A generic spin does not explain either.
+3. Are sibling verbs distinct? Separate locate/repair, request/grant, copy/paste
+   and join/camera-off. Do not give them the same movement with different labels.
+4. What survives at rest? Loaded cart, received letter, torn receipt, verified
+   code and generated object need persistent result poses. A temporary preview
+   may return home; a completed business action must retain its outcome.
+5. Does the transition preserve causality? Put paper behind the pocket front,
+   keep a phone outline when its code expires, and freeze a clock at its current
+   hand angles on pause. Do not reconstruct completed work when settling.
+
+- `tap`/`press` may remain internal API feedback. Mark them `internal:true`; do
+  not invent or display a second product verb just to fill a catalogue. Primary
+  gallery controls and the default review ZIP omit internal feedback. Add
+  `?feedback=1` to the gallery URL to include it in the ZIP.
+- Derive approval colour from an approval state, never from the knob's temporary
+  position during a request. Colour supports an outcome; it is not the outcome.
+- When an action declares `pose`, the engine applies it **before** `run`. Never
+  inspect `c.pose` to infer the prior state inside that run. Use current numeric
+  state or explicit `from`. For a paused continuous value use `setGoal` to retain
+  the current value; resetting/starting a new operation must clear that override.
+- Isolated frame captures use fresh instances per sequence and disable CSS colour
+  transitions. This prevents driven goals or an in-flight colour fade from leaking
+  into another sequence. Product state continuity still needs a focused live chain;
+  isolated capture cannot prove cancellation/retry behavior.
+
+Human visual review may score subject recognition, action meaning, sibling
+separation, continuity and final-state correctness (1–5 each). A suggested
+review threshold is 21/25 and no dimension below 3; never auto-award these scores
+from motion distance, rest checks or a screenshot export. Blind interpretation
+and 16/24 px readability are design evidence, not numerical spring tests.

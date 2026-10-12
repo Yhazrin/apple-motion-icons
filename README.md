@@ -105,3 +105,11 @@ On the [gallery](https://skills.yhazrin.xyz/motion-icons/), click **导出审阅
 to download all action sequences as PNGs, with 10 sequences per overview sheet
 and 10 separate images per folder. The package includes labels, timestamps and
 a manifest. Export is local to the browser and follows the selected theme.
+
+### Semantic quality pass
+
+Load `assets/motion-icons-semantics.js` last (six runtime files in total). It
+redraws ambiguous subjects and preserves business outcomes: loaded cart, matched
+code, torn receipt and generated object. See [the changed contracts](reference/semantics.md).
+Internal tap/press feedback remains callable but is omitted from main gallery
+controls and default ZIP; use `gallery.html?feedback=1` to include it.

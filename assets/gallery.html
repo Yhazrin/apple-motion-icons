@@ -306,6 +306,7 @@
 <script src="motion-icons-learning.js"></script>
 <script src="motion-icons-catalog.js"></script>
 <script src="motion-icons-refinements.js"></script>
+<script src="motion-icons-semantics.js"></script>
 <script>
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const framesMode = new URLSearchParams(location.search).has('frames');
@@ -333,7 +334,7 @@
     check:['勾选','描边画出并落定','status'],warning:['警告','三角与标记错开','status'],
     error:['错误','拒绝与重试变形','status'],loading:['加载','胶囊在轨道里滑动','status'],
     hourglass:['沙漏','沙量跟随进度，翻转是旋转','status'],clock:['时钟','时针和分针走动','status'],
-    folder:['文件夹','盖子开合，纸张滑入','files'],copy:['复制','两张纸错开','files'],
+    folder:['文件夹','前片展开，文件收入或取出','files'],copy:['复制','两张纸错开','files'],
     bookmark:['书签','书签缺口加深并收录','files'],printer:['打印机','纸张送出，机身不转','files'],
     archive:['归档盒','打开、存入、取出','files'],clipboard:['剪贴板','复制、粘贴、清空','files'],
     filter:['筛选','应用、调节、清除','files'],sort:['排序','线条真正换位','files'],
@@ -347,10 +348,10 @@
     passcode:['密码','圆点填满；核对只在播放该动作时发生','security'],'two-factor':['双重验证','请求、核对、过期','security'],
     permission:['权限','请求、允许、拒绝、收回','security'],'secure-connection':['安全连接','建立、锁上、断开','security'],
     camera:['相机','快门、对焦、切换','security'],'screen-recording':['屏幕录制','开始、暂停、继续、停止','security'],
-    'face-id':['面容轮廓','四角张开，扫描线走过；不是生物识别结果','security'],fingerprint:['指纹','纹路由内向外亮起；不是生物识别结果','security'],
-    'ai-thinking':['思考','节点连上再松开','ai'],'ai-browsing':['浏览','窗口里的内容移动','ai'],
+    'face-id':['面容轮廓','四角张开，扫描线走过；不是生物识别结果','security'],fingerprint:['指纹','扫描真实纹线；不是生物识别接口','security'],
+    'ai-thinking':['思考','信号传播、暂停与结论','ai'],'ai-browsing':['浏览','窗口里的内容移动','ai'],
     'ai-reading':['阅读','文本逐行扫过','ai'],'ai-writing':['书写','线条长出，光标移动','ai'],
-    'ai-coding':['代码','括号张开，不是书写图标','ai'],'ai-tool-call':['工具调用','请求在两端之间往返','ai'],
+    'ai-coding':['代码','输入、执行输出、定位与修复','ai'],'ai-tool-call':['工具调用','请求在两端之间往返','ai'],
     'ai-agent':['智能体','空闲或持续工作','ai'],'ai-handoff':['交接','标记沿连线走到另一端','ai'],
     'ai-generating':['生成','碎片拼成一块','ai'],'ai-queue':['队列','卡片排队、进入、离开','ai']
   };
@@ -461,7 +462,7 @@
     const row = el('div', {className: 'actions'}, card);
     const loops = [];
     for (const [action, a] of Object.entries(recipe.actions)) {
-      if (action === 'tap') continue;
+      if (a.internal || action === 'tap' || action === 'press') continue;
       if (a.drive) {
         const lab = el('label', {className: 'drive'}, card);
         el('span', {textContent: a.label || action}, lab);
