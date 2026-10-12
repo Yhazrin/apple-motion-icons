@@ -258,3 +258,28 @@ and nothing may poke far outside the icon box.
 For an existing SwiftUI/AppKit application, keep its native controls, focus and accessibility labels. Host the original engine in a small transparent WKWebView when reusing its recipes; do not translate or fork the spring engine just to match the UI framework. A native bridge sends only the icon name, action, appearance and an event token, never application content or credentials. Stop loops when their host is hidden or removed; do not delay the underlying operation for an animation. Keep status words in native UI.
 
 Copy runtime assets into the application bundle, with project-specific recipes in a third file. Preserve the source engine and built-in recipes byte-for-byte. Extend the gallery with that third file and run its existing frames checker for project recipes as well as built-ins.
+
+
+## Restrained motion refinement layer
+
+Load `assets/motion-icons-refinements.js` **last**, after engine, built-ins,
+learning and catalog. It registers updated product recipes under the same 87
+names; it is not an engine fork. The upstream engine and built-in source stay
+byte-identical. Standalone integrations must copy this fifth runtime asset too.
+The Vord host and gallery load it automatically.
+
+Updated authoring rules take precedence over the older overshoot examples above:
+- One meaningful contact/release accent per one-shot. Mechanical hinges use
+  `gentle`/`snap`; free pendulums may use `swing`.
+- Opacity and stroke progress use `fade`/`draw`. Never animate them with `pop`.
+- Do not finish a semantic action with whole-icon compression.
+- A tap previews one subject-specific mechanism. Keep it shorter than a full
+  action; do not apply a common shrink to every subject.
+- Squash is area-preserving and anchored at the local contact. Rotation/hinge
+  perspective stays in recipe render functions, using existing spring presets.
+- Distinguish visual quality from deterministic rest checks. Passing the frame
+  checker does not establish an amplitude floor or a library-wide overshoot rate.
+
+The four local geometry tools and action-by-action changes are documented in
+[reference/refinements.md](reference/refinements.md). The prior audit remains in
+`review/motion-audit.json` as a baseline, not evidence for the new recipes.

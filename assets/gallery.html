@@ -171,7 +171,7 @@
     <nav class="links">
       <a href="https://github.com/Yhazrin/apple-motion-icons">GitHub</a>
       <a href="../examples/workflows.html">交互示例</a>
-      <a href="../review/index.html">动作序列帧</a>
+      <a href="gallery.html?frames">新版动作帧</a><a href="../review/improvement-plan.html">基线方案</a>
       <a href="https://github.com/Yhazrin/apple-motion-icons/blob/main/docs/MAINTENANCE.md">维护</a>
     </nav>
   </header>
@@ -251,14 +251,15 @@
 <script src="motion-icons-recipes.js"></script>
 <script src="motion-icons-learning.js"></script>
 <script src="motion-icons-catalog.js"></script>
+<script src="motion-icons-refinements.js"></script>
 <script>
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const framesMode = new URLSearchParams(location.search).has('frames');
   const icons = window.galleryIcons = {};
   const grid = document.getElementById('grid');
   const subjects = {
-    daylight:['今天','Today · 主导航','navigation'],cards:['学习词卡','Study · 导航 / Known 与 Again 评分回执','navigation'],
-    book:['词库','Library · 主导航','navigation'],plus:['添加','磁吸加号 · 点按弹性复位，成功才变成对勾','navigation'],
+    daylight:['今天','Today · 主导航','navigation'],cards:['学习词卡','Review · 词卡浏览与翻面','navigation'],
+    book:['词库','Library · 主导航','navigation'],plus:['添加','加号轻转预演，成功才变成对勾','navigation'],
     conversation:['助手','小猫助手 · ^_^  >_<  O_O  T_T  扑和扭','navigation'],settings:['设置','Settings · 主导航','navigation'],
     lookup:['查词','添加页与快加浮窗','actions'],lexicon:['词汇收录','保存中与确认入库','actions'],
     sentence:['例句','复习页 · 生成与结果反馈','actions'],memory:['记忆情景','生成与绑定词条','actions'],
@@ -270,16 +271,16 @@
     wifi:['无线网络','信号弧从内向外亮起','system'],bluetooth:['蓝牙','符文分段点亮','system'],
     cloud:['云','轮廓不动，内部箭头进出','system'],sync:['对向同步','两支箭头相向，冲突时挡住','system'],
     upload:['上传','箭头从托盘升起','system'],battery:['电池','填充宽度等于电量','system'],
-    power:['电源','弧与杆，点按会压扁','system'],search:['搜索','镜片本身移动并倾斜','system'],
+    power:['电源','竖杆压入圆弧','system'],search:['搜索','镜片本身移动并倾斜','system'],
     link:['链接','两环扣上或弹开','system'],cellular:['蜂窝','信号柱，不是弧线','system'],
     hotspot:['热点','打开并接入一台设备','system'],usb:['USB','插入、识别、弹出','system'],
     server:['服务器','在线、忙碌、离线','system'],brightness:['亮度','光线长短，不是扬声器','system'],
     storage:['存储','填充高度跟随用量','system'],
     check:['勾选','描边画出并落定','status'],warning:['警告','三角与标记错开','status'],
-    error:['错误','拒绝是回弹','status'],loading:['加载','胶囊在轨道里滑动','status'],
+    error:['错误','拒绝与重试变形','status'],loading:['加载','胶囊在轨道里滑动','status'],
     hourglass:['沙漏','沙量跟随进度，翻转是旋转','status'],clock:['时钟','时针和分针走动','status'],
     folder:['文件夹','盖子开合，纸张滑入','files'],copy:['复制','两张纸错开','files'],
-    bookmark:['书签','填充并压扁','files'],printer:['打印机','纸张送出，机身不转','files'],
+    bookmark:['书签','书签缺口加深并收录','files'],printer:['打印机','纸张送出，机身不转','files'],
     archive:['归档盒','打开、存入、取出','files'],clipboard:['剪贴板','复制、粘贴、清空','files'],
     filter:['筛选','应用、调节、清除','files'],sort:['排序','线条真正换位','files'],
     mail:['邮件','收到、打开、寄出、归档','commerce'],phone:['电话','响铃、接听、挂断','commerce'],

@@ -45,7 +45,7 @@ git push origin main
 
 ## 自动发布实际做了什么
 
-服务器运行 `yhazrin-motion-icons.timer` / `.service`。更新器下载公开仓库指定 commit 的静态白名单，包括 gallery、四个图标脚本、原生宿主、工作流示例及帧检查器；不执行仓库程序，不需要 GitHub token。
+服务器运行 `yhazrin-motion-icons.timer` / `.service`。更新器下载公开仓库指定 commit 的静态白名单，包括 gallery、五个图标脚本、原生宿主、工作流示例及帧检查器；不执行仓库程序，不需要 GitHub token。
 
 站点首页是 gallery 的同版本内容，部署时加入 `./assets/` 基址。服务器保存 `releases/<commit>`，`current` 指向已发布版本；version.json 记录 commit、发布时间与各静态文件摘要。网络失败保留现版，不生成半成品。
 
@@ -90,3 +90,11 @@ cat /opt/1panel/www/sites/motion-icons/current/version.json
 - 回切时只在已存在的 releases 内选版本，使用临时相对软链接后原子替换 current；不要删除历史目录或覆盖当前版本内的文件。
 
 交付记录至少包括：改了什么、实际接入位置、commit、站点 URL、部署版本、最小检查结果、有没有更新应用，以及仍未验证的边界。不要用本地页面截图冒充线上或原生应用验收。
+
+
+### Refinement asset
+
+`assets/motion-icons-refinements.js` must load last and be included in server
+FILES, native bundle copies and skill mirrors. A release missing it may still
+show 87 subjects but will play the earlier motions. Review JSON remains a
+baseline unless explicitly regenerated with the same measurement method.

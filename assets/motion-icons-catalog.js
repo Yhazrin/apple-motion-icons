@@ -1,6 +1,16 @@
 /* Catalog recipes. Loaded after motion-icons-learning.js. Defines subjects only. */
 (function (M) {
   'use strict';
+  // Recipe-local contact, without a second decorative bounce.
+  async function contact(c, key, value) {
+    c.to(key, value, 'snap'); await c.wait(100);
+    c.to(key, c.goal(key), 'settle'); await c.wait(100);
+  }
+  async function preview(c, key, delta) {
+    c.to(key, c.goal(key) + delta, 'snap'); await c.wait(120);
+    c.to(key, c.goal(key), 'settle'); await c.wait(100);
+  }
+
   const {around, aroundXY, clamp01, arc, polar, wave} = M.util;
   const dash = (part, length, progress) => {
     const value = Math.max(0, Math.min(1, progress));
@@ -8,26 +18,23 @@
     part.setAttribute('opacity', clamp01(value * 8));
   };
   const op = (part, value) => part.setAttribute('opacity', clamp01(value));
-  const tapSq = (label = '点按') => ({label, async run(c) {
-    c.to('sq', 0.94, 'impact');
-    await c.wait(90);
-    c.to('sq', c.goal('sq'), 'rebound');
-    await c.wait(100);
-  }});
+  const componentPreview = {wifi:['spread',6],bluetooth:['nudge',8],cloud:['ay',-10],sync:['ax',8],upload:['ay',-10],battery:['boltY',-8],power:['stem',8],search:['x',-8],link:['gap',8],check:['box',-.18],warning:['my',8],error:['x',8],loading:['x',16],hourglass:['turn',15],clock:['minute',30],fingerprint:['r4',-.4],'face-id':['open',-.6],folder:['lid',-32],copy:['fx',10],bookmark:['sink',8],cellular:['b3',-.45],hotspot:['r2',-.4],usb:['y',8],server:['dim',-.35],brightness:['reach',.45],storage:['level',.3],printer:['feed',12],archive:['lid',-32],clipboard:['gx',10],filter:['kx',16],sort:['y1',12],star:['fill',.7],mail:['flap',-.35],phone:['angle',20],'video-call':['x',-10],share:['ay',-10],'qr-scan':['line',18],wallet:['flap',-32],cart:['roll',36],calendar:['leaf',.35],receipt:['gap',15],gift:['lid',-32],shield:['tilt',15],key:['turn',35],passcode:['dy',-8],'two-factor':['by',-10],permission:['x',16],'secure-connection':['gap',-8],camera:['blade',-.65],'screen-recording':['bar',1],'ai-thinking':['n0',-8],'ai-browsing':['x',-12],'ai-reading':['headY',20],'ai-writing':['cx',16],'ai-coding':['gap',10],'ai-tool-call':['tx',18],'ai-agent':['head',.18],'ai-handoff':['tx',24],'ai-generating':['k0',-.2],'ai-queue':['y2',-12]};
   function add(name, svg, state, poses, render, actions, extra) {
+    const [key, amount] = componentPreview[name];
+    actions.tap = {label: '点按预演', run: c => preview(c, key, amount)};
     M.define(name, Object.assign({
       svg: `<g data-part="body">${svg}</g>`,
       state: Object.assign({sq: 1}, state),
       poses,
       render(s, p) {
-        p.body.setAttribute('transform', around(s.sq));
+        p.body.setAttribute('transform', aroundXY(1 / Math.max(.5, s.sq), s.sq, 60, 100));
         render(s, p);
       },
       actions
     }, extra || {}));
   }
   const bodyAt = (p, s, cx, cy) => {
-    p.body.setAttribute('transform', aroundXY(1 + (1 - s.sq) * 0.42, s.sq, cx, cy));
+    p.body.setAttribute('transform', aroundXY(1 / Math.max(.5, s.sq), s.sq, cx, cy));
   };
 
   add('wifi',
@@ -39,7 +46,7 @@
     {a1: 1, a2: 1, a3: 1, spread: 0, slash: 0, tilt: 0},
     {connected: {}, weak: {a2: 0, a3: 0}, off: {a1: 0, a2: 0, a3: 0, slash: 1}},
     (s, p) => {
-      p.body.setAttribute('transform', `rotate(${s.tilt} 60 80) ${around(s.sq)}`);
+      p.body.setAttribute('transform', `rotate(${s.tilt} 60 80) ${aroundXY(1 / Math.max(.5, s.sq), s.sq, 60, 100)}`);
       op(p.dot, 1 - s.slash * 0.65);
       [1, 2, 3].forEach(i => {
         const part = p['a' + i];
@@ -50,16 +57,15 @@
       dash(p.slash, 78, s.slash);
     },
     {
-      tap: tapSq('点按'),
       search: {label: '搜索', async run(c) {
         c.to('spread', 8, 'snap');
         c.to('a3', 0, 'snap');
         await c.wait(80);
-        c.to('a1', 1, 'pop');
+        c.to('a1', 1, 'gentle');
         await c.wait(70);
-        c.to('a2', 1, 'pop');
-        c.to('a3', 1, 'pop');
-        c.to('spread', 0, 'pop');
+        c.to('a2', 1, 'gentle');
+        c.to('a3', 1, 'gentle');
+        c.to('spread', 0, 'gentle');
         await c.wait(160);
       }},
       searching: {label: '搜索中', loop: true, run(c) {
@@ -74,12 +80,12 @@
       }},
       connect: {label: '连接', pose: 'connected', from: 'off', async run(c) {
         c.to('slash', 0, 'fade');
-        c.to('a1', 1, 'pop');
+        c.to('a1', 1, 'gentle');
         await c.wait(70);
-        c.to('a2', 1, 'pop');
+        c.to('a2', 1, 'gentle');
         await c.wait(70);
-        c.to('a3', 1, 'pop');
-        c.to('spread', 7, 'pop');
+        c.to('a3', 1, 'gentle');
+        c.to('spread', 7, 'gentle');
         await c.wait(160);
       }},
       disconnect: {label: '断开', pose: 'off', from: 'connected', async run(c) {
@@ -95,11 +101,11 @@
         c.to('slash', 0, 'exit');
         c.to('spread', -4, 'snap');
         await c.wait(70);
-        c.to('a1', 1, 'pop');
+        c.to('a1', 1, 'gentle');
         await c.wait(60);
-        c.to('a2', 1, 'pop');
-        c.to('a3', 1, 'pop');
-        c.to('spread', 6, 'rebound');
+        c.to('a2', 1, 'gentle');
+        c.to('a3', 1, 'gentle');
+        c.to('spread', 6, 'settle');
         await c.wait(160);
       }},
       loseSignal: {label: '信号丢失', pose: 'weak', from: 'connected', async run(c) {
@@ -107,8 +113,8 @@
         c.to('a3', 0, 'snap');
         c.to('spread', 8, 'snap');
         await c.wait(100);
-        c.to('a2', 0, 'pop');
-        c.to('tilt', -4, 'rebound');
+        c.to('a2', 0, 'gentle');
+        c.to('tilt', -4, 'settle');
         await c.wait(160);
       }},
       signal: {label: '信号', drive(c, v) {
@@ -138,17 +144,16 @@
       dash(p.slash, 86, s.slash);
     },
     {
-      tap: tapSq('点按'),
       enable: {label: '打开', pose: 'on', from: 'off', async run(c) {
         c.to('slash', 0, 'fade');
-        c.to('stem', 1, 'pop');
+        c.to('stem', 1, 'gentle');
         c.to('nudge', -16, 'snap');
         await c.wait(80);
-        c.to('up', 1, 'pop');
-        c.to('side', 1, 'pop');
+        c.to('up', 1, 'gentle');
+        c.to('side', 1, 'gentle');
         await c.wait(70);
-        c.to('dn', 1, 'pop');
-        c.to('nudge', 0, 'rebound');
+        c.to('dn', 1, 'gentle');
+        c.to('nudge', 0, 'settle');
         await c.wait(160);
       }},
       disable: {label: '关闭', pose: 'off', from: 'on', async run(c) {
@@ -167,16 +172,16 @@
         c.to('dn', 0.2, 'snap');
         c.to('side', 0.2, 'snap');
         await c.wait(50);
-        c.to('stem', 1, 'pop');
+        c.to('stem', 1, 'gentle');
         c.to('nudge', -18, 'snap');
         await c.wait(80);
-        c.to('up', 1, 'pop');
-        c.to('nudge', 18, 'pop');
+        c.to('up', 1, 'gentle');
+        c.to('nudge', 18, 'gentle');
         await c.wait(80);
-        c.to('side', 1, 'pop');
+        c.to('side', 1, 'gentle');
         await c.wait(70);
-        c.to('dn', 1, 'pop');
-        c.to('nudge', 0, 'rebound');
+        c.to('dn', 1, 'gentle');
+        c.to('nudge', 0, 'settle');
         await c.wait(150);
       }},
       pairing: {label: '配对中', loop: true, run(c) {
@@ -193,16 +198,16 @@
       }},
       connect: {label: '连上', pose: 'connected', from: 'on', async run(c) {
         c.to('nudge', -10, 'snap');
-        c.to('dot', 1, 'pop');
+        c.to('dot', 1, 'gentle');
         await c.wait(90);
-        c.to('nudge', 0, 'rebound');
+        c.to('nudge', 0, 'settle');
         await c.wait(150);
       }},
       disconnect: {label: '断开', pose: 'on', from: 'connected', async run(c) {
         c.to('dot', 0, 'fade');
         c.to('nudge', 16, 'snap');
         await c.wait(120);
-        c.to('nudge', 0, 'rebound');
+        c.to('nudge', 0, 'settle');
         await c.wait(140);
       }}
     });
@@ -221,11 +226,10 @@
       dash(p.slash, 86, s.slash);
     },
     {
-      tap: tapSq('点按'),
       upload: {label: '上传', async run(c) {
         c.to('ay', 12, 'snap');
         await c.wait(80);
-        c.to('ay', -34, 'pop');
+        c.to('ay', -34, 'gentle');
         await c.wait(150);
         c.to('ao', 0, 'fade');
         await c.wait(90);
@@ -235,7 +239,7 @@
         c.to('dir', -1, 'snap');
         c.to('ay', -10, 'snap');
         await c.wait(90);
-        c.to('ay', 28, 'pop');
+        c.to('ay', 28, 'gentle');
         await c.wait(150);
         c.to('ao', 0, 'fade');
         await c.wait(80);
@@ -244,10 +248,10 @@
       sync: {label: '同步', async run(c) {
         c.to('ay', -22, 'snap');
         await c.wait(120);
-        c.to('ay', 20, 'pop');
+        c.to('ay', 20, 'gentle');
         c.to('dir', -1, 'snap');
         await c.wait(140);
-        c.to('dir', 1, 'pop');
+        c.to('dir', 1, 'gentle');
         await c.wait(120);
       }},
       syncing: {label: '同步中', loop: true, run(c) {
@@ -258,10 +262,8 @@
         c.to('ay', -18, 'snap');
         await c.wait(100);
         c.to('ao', 0, 'fade');
-        c.to('sq', 0.84, 'impact');
         await c.wait(80);
-        c.to('mark', 1, 'pop');
-        c.to('sq', 1, 'rebound');
+        c.to('mark', 1, 'gentle');
         await c.wait(160);
       }},
       disconnect: {label: '断开', pose: 'offline', from: 'idle', async run(c) {
@@ -284,13 +286,12 @@
       p.bot.setAttribute('transform', `translate(${s.bx} 0) ${aroundXY(1, s.hit, 50, 78)}`);
     },
     {
-      tap: tapSq('点按'),
       start: {label: '开始', async run(c) {
         c.to('ax', -18, 'snap');
         c.to('bx', 18, 'snap');
         await c.wait(90);
-        c.to('ax', 18, 'pop');
-        c.to('bx', -18, 'pop');
+        c.to('ax', 18, 'gentle');
+        c.to('bx', -18, 'gentle');
         await c.wait(150);
       }},
       syncing: {label: '同步中', loop: true, run(c) {
@@ -307,9 +308,9 @@
         await c.wait(140);
         c.to('hit', 0.84, 'impact');
         await c.wait(80);
-        c.to('hit', 1, 'rebound');
-        c.to('ax', 8, 'pop');
-        c.to('bx', -8, 'pop');
+        c.to('hit', 1, 'settle');
+        c.to('ax', 8, 'gentle');
+        c.to('bx', -8, 'gentle');
         await c.wait(160);
       }},
       conflict: {label: '冲突', pose: 'conflict', from: 'idle', async run(c) {
@@ -319,15 +320,15 @@
         c.to('hit', 0.76, 'impact');
         c.error();
         await c.wait(120);
-        c.to('hit', 1, 'rebound');
+        c.to('hit', 1, 'settle');
         await c.wait(160);
       }},
       retry: {label: '重试', pose: 'idle', from: 'conflict', async run(c) {
         c.to('ax', -22, 'snap');
         c.to('bx', 22, 'snap');
         await c.wait(80);
-        c.to('ax', 16, 'pop');
-        c.to('bx', -16, 'pop');
+        c.to('ax', 16, 'gentle');
+        c.to('bx', -16, 'gentle');
         c.to('hit', 0.86, 'impact');
         await c.wait(140);
       }}
@@ -349,16 +350,14 @@
     },
     {
       tap: {label: '点按', async run(c) {
-        c.to('sq', 0.78, 'impact');
         c.to('ay', 8, 'snap');
         await c.wait(110);
-        c.to('sq', 1, 'rebound');
         await c.wait(140);
       }},
       start: {label: '开始', async run(c) {
         c.to('ay', 14, 'snap');
         await c.wait(80);
-        c.to('ay', -26, 'pop');
+        c.to('ay', -26, 'gentle');
         await c.wait(150);
         c.to('ao', 0, 'fade');
         await c.wait(90);
@@ -381,11 +380,10 @@
         c.to('ay', -18, 'snap');
         await c.wait(90);
         c.to('ay', 16, 'impact');
-        c.to('sq', 0.86, 'impact');
         await c.wait(140);
       }},
       resume: {label: '继续', pose: 'idle', from: 'paused', async run(c) {
-        c.to('ay', -26, 'pop');
+        c.to('ay', -26, 'gentle');
         await c.wait(150);
         c.to('ao', 0, 'fade');
         await c.wait(90);
@@ -399,10 +397,9 @@
         await c.wait(120);
       }},
       complete: {label: '完成', pose: 'completed', from: 'idle', async run(c) {
-        c.to('ay', -26, 'pop');
+        c.to('ay', -26, 'gentle');
         c.to('bar', 1, 'draw');
         await c.wait(140);
-        c.to('sq', 0.84, 'impact');
         c.to('ao', 0, 'fade');
         await c.wait(100);
         c.set({ay: 16, ao: 0});
@@ -412,7 +409,6 @@
         c.error();
         await c.wait(90);
         c.to('ay', 20, 'impact');
-        c.to('sq', 0.8, 'impact');
         await c.wait(140);
       }}
     },
@@ -435,12 +431,11 @@
       p.shell.setAttribute('opacity', String(s.low > 0.5 ? 1 : 1));
     },
     {
-      tap: tapSq('点按'),
       charge: {label: '充电', pose: 'charging', from: 'normal', async run(c) {
-        c.to('bolt', 1, 'pop');
+        c.to('bolt', 1, 'gentle');
         c.to('boltY', -16, 'snap');
         await c.wait(110);
-        c.to('boltY', 0, 'rebound');
+        c.to('boltY', 0, 'settle');
         await c.wait(150);
       }},
       charging: {label: '充电中', loop: true, pose: 'charging', run(c) {
@@ -456,7 +451,6 @@
       }},
       discharge: {label: '耗电', pose: 'low', from: 'normal', async run(c) {
         c.to('fill', 0.16, 'snap');
-        c.to('sq', 0.9, 'impact');
         await c.wait(160);
       }},
       full: {label: '充满', pose: 'full', from: 'charging', async run(c) {
@@ -464,15 +458,12 @@
         c.to('boltY', -18, 'snap');
         await c.wait(120);
         c.to('bolt', 0, 'fade');
-        c.to('sq', 0.84, 'impact');
         await c.wait(140);
       }},
       lowBattery: {label: '电量低', pose: 'low', from: 'normal', async run(c) {
         c.to('fill', 0.16, 'impact');
         c.error();
-        c.to('sq', 0.78, 'impact');
         await c.wait(120);
-        c.to('sq', 1, 'rebound');
         await c.wait(160);
       }}
     });
@@ -488,27 +479,22 @@
     },
     {
       tap: {label: '点按', async run(c) {
-        c.to('sq', 0.76, 'impact');
         c.to('stem', 10, 'impact');
         await c.wait(120);
-        c.to('sq', c.goal('sq'), 'rebound');
-        c.to('stem', c.goal('stem'), 'rebound');
+        c.to('stem', c.goal('stem'), 'settle');
         await c.wait(150);
       }},
       press: {label: '按下', async run(c) {
-        c.to('sq', 0.7, 'impact');
         c.to('stem', 18, 'impact');
         await c.wait(140);
-        c.to('sq', c.goal('sq'), 'rebound');
-        c.to('stem', c.goal('stem'), 'rebound');
+        c.to('stem', c.goal('stem'), 'settle');
         await c.wait(160);
       }},
       powerOn: {label: '开机', pose: 'on', from: 'off', async run(c) {
-        c.to('sq', 0.72, 'impact');
         c.to('stem', 12, 'snap');
         await c.wait(90);
-        c.to('stem', -16, 'pop');
-        c.to('wide', 0.82, 'pop');
+        c.to('stem', -16, 'gentle');
+        c.to('wide', 0.82, 'gentle');
         await c.wait(160);
       }},
       powerOff: {label: '关机', pose: 'off', from: 'on', async run(c) {
@@ -516,16 +502,14 @@
         await c.wait(80);
         c.to('stem', 8, 'impact');
         c.to('wide', 1, 'gentle');
-        c.to('sq', 0.8, 'impact');
         await c.wait(150);
       }},
       restart: {label: '重启', pose: 'on', from: 'on', async run(c) {
-        c.to('sq', 0.74, 'impact');
         c.to('turn', -36, 'snap');
         c.to('stem', 16, 'snap');
         await c.wait(120);
-        c.to('turn', 18, 'pop');
-        c.to('stem', -16, 'pop');
+        c.to('turn', 18, 'gentle');
+        c.to('stem', -16, 'gentle');
         await c.wait(160);
       }}
     });
@@ -542,17 +526,17 @@
         c.to('mag', 0.82, 'impact');
         c.to('y', 8, 'snap');
         await c.wait(110);
-        c.to('mag', c.goal('mag'), 'rebound');
-        c.to('y', c.goal('y'), 'rebound');
+        c.to('mag', c.goal('mag'), 'settle');
+        c.to('y', c.goal('y'), 'settle');
         await c.wait(140);
       }},
       start: {label: '开始找', async run(c) {
         c.to('x', -16, 'snap');
         c.to('tilt', 16, 'snap');
         await c.wait(110);
-        c.to('x', 16, 'pop');
-        c.to('y', -14, 'pop');
-        c.to('tilt', -14, 'pop');
+        c.to('x', 16, 'gentle');
+        c.to('y', -14, 'gentle');
+        c.to('tilt', -14, 'gentle');
         await c.wait(150);
       }},
       searching: {label: '搜索中', loop: true, run(c) {
@@ -567,18 +551,18 @@
         c.to('x', -16, 'snap');
         c.to('tilt', 14, 'snap');
         await c.wait(90);
-        c.to('x', 18, 'pop');
-        c.to('y', -12, 'pop');
-        c.to('mag', 1.24, 'pop');
-        c.to('tilt', -16, 'pop');
+        c.to('x', 18, 'gentle');
+        c.to('y', -12, 'gentle');
+        c.to('mag', 1.24, 'gentle');
+        c.to('tilt', -16, 'gentle');
         await c.wait(170);
       }},
       empty: {label: '没有', pose: 'empty', from: 'idle', async run(c) {
         c.to('x', -16, 'snap');
         c.to('tilt', -12, 'snap');
         await c.wait(100);
-        c.to('x', 16, 'pop');
-        c.to('y', 10, 'pop');
+        c.to('x', 16, 'gentle');
+        c.to('y', 10, 'gentle');
         c.to('mag', 0.84, 'impact');
         await c.wait(160);
       }},
@@ -586,10 +570,10 @@
         c.to('x', -16, 'snap');
         c.to('mag', 0.9, 'snap');
         await c.wait(100);
-        c.to('x', 0, 'pop');
-        c.to('y', 0, 'pop');
-        c.to('tilt', 0, 'rebound');
-        c.to('mag', 1, 'pop');
+        c.to('x', 0, 'gentle');
+        c.to('y', 0, 'gentle');
+        c.to('tilt', 0, 'settle');
+        c.to('mag', 1, 'gentle');
         await c.wait(150);
       }}
     });
@@ -607,7 +591,6 @@
       op(p.ghost, s.go);
     },
     {
-      tap: tapSq('点按'),
       connect: {label: '扣上', pose: 'linked', from: 'broken', async run(c) {
         c.to('gap', 14, 'snap');
         await c.wait(70);
@@ -619,7 +602,7 @@
       disconnect: {label: '分开', pose: 'broken', from: 'linked', async run(c) {
         c.to('gap', -4, 'snap');
         await c.wait(80);
-        c.to('gap', 16, 'pop');
+        c.to('gap', 16, 'gentle');
         c.to('hit', 0.9, 'impact');
         await c.wait(160);
       }},
@@ -635,7 +618,7 @@
         c.set({gy: 0, go: 0});
         c.to('go', 1, 'fade');
         await c.wait(70);
-        c.to('gy', -26, 'pop');
+        c.to('gy', -26, 'gentle');
         await c.wait(150);
         c.to('go', 0, 'fade');
         await c.wait(100);
@@ -655,14 +638,14 @@
       tap: {label: '点按', async run(c) {
         c.to('box', 0.84, 'impact');
         await c.wait(110);
-        c.to('box', 1, 'rebound');
+        c.to('box', 1, 'settle');
         await c.wait(140);
       }},
       draw: {label: '画出', pose: 'checked', from: 'empty', async run(c) {
         c.to('draw', 1, 'draw');
         c.to('box', 0.9, 'snap');
         await c.wait(160);
-        c.to('box', 1, 'pop');
+        c.to('box', 1, 'gentle');
         await c.wait(140);
       }},
       confirm: {label: '确认', pose: 'checked', from: 'empty', async run(c) {
@@ -671,14 +654,14 @@
         await c.wait(70);
         c.to('draw', 1, 'draw');
         await c.wait(120);
-        c.to('box', 1.06, 'pop');
+        c.to('box', 1.06, 'gentle');
         await c.wait(150);
       }},
       undo: {label: '撤销', pose: 'empty', from: 'checked', async run(c) {
         c.to('box', 0.88, 'snap');
         c.to('draw', 0, 'fade');
         await c.wait(160);
-        c.to('box', 1, 'rebound');
+        c.to('box', 1, 'settle');
         await c.wait(140);
       }},
       reset: {label: '清空', pose: 'empty', from: 'checked', async run(c) {
@@ -702,30 +685,27 @@
       op(p.dot, s.dot);
     },
     {
-      tap: tapSq('点按'),
       alert: {label: '警报', pose: 'active', from: 'idle', async run(c) {
         c.to('tilt', -14, 'snap');
         c.to('my', -24, 'snap');
         c.to('dot', 0.2, 'fade');
         await c.wait(110);
-        c.to('my', 4, 'pop');
-        c.to('dot', 1, 'pop');
-        c.to('tilt', 6, 'rebound');
+        c.to('my', 4, 'gentle');
+        c.to('dot', 1, 'gentle');
+        c.to('tilt', 6, 'settle');
         await c.wait(160);
       }},
       acknowledge: {label: '知道了', pose: 'idle', from: 'active', async run(c) {
-        c.to('sq', 0.8, 'impact');
         c.to('my', 8, 'impact');
         await c.wait(120);
-        c.to('my', 0, 'rebound');
-        c.to('tilt', 0, 'rebound');
+        c.to('my', 0, 'settle');
+        c.to('tilt', 0, 'settle');
         await c.wait(150);
       }},
       dismiss: {label: '收起', pose: 'idle', async run(c) {
         c.to('tilt', 10, 'snap');
         c.to('my', 18, 'snap');
         await c.wait(120);
-        c.to('sq', 0.84, 'impact');
         await c.wait(140);
       }}
     });
@@ -739,24 +719,20 @@
       op(p.badge, s.ao);
     },
     {
-      tap: tapSq('点按'),
       appear: {label: '出现', async run(c) {
         c.set({sq: 0.45, ao: 0});
         c.to('ao', 1, 'fade');
-        c.to('sq', 1.12, 'pop');
         await c.wait(170);
       }},
       reject: {label: '拒绝', pose: 'active', from: 'idle', async run(c) {
         c.to('x', 16, 'impact');
         c.error();
         await c.wait(120);
-        c.to('x', -10, 'rebound');
-        c.to('sq', 0.78, 'impact');
+        c.to('x', -10, 'settle');
         await c.wait(160);
       }},
       dismiss: {label: '收起', pose: 'idle', async run(c) {
         c.to('x', -18, 'snap');
-        c.to('sq', 0.7, 'snap');
         await c.wait(120);
         c.to('ao', 0, 'fade');
         await c.wait(100);
@@ -765,8 +741,7 @@
       retry: {label: '重试', pose: 'idle', from: 'active', async run(c) {
         c.to('x', 16, 'snap');
         await c.wait(90);
-        c.to('x', -8, 'rebound');
-        c.to('sq', 1.08, 'pop');
+        c.to('x', -8, 'settle');
         await c.wait(160);
       }}
     });
@@ -781,11 +756,10 @@
       p.cap.setAttribute('transform', `translate(${s.x} 0)`);
     },
     {
-      tap: tapSq('点按'),
       start: {label: '开始', pose: 'loading', from: 'idle', async run(c) {
         c.to('x', 46, 'snap');
         await c.wait(140);
-        c.to('x', 8, 'pop');
+        c.to('x', 8, 'gentle');
         await c.wait(140);
       }},
       loading: {label: '加载中', loop: true, pose: 'loading', run(c) {
@@ -795,16 +769,14 @@
       finish: {label: '完成', pose: 'idle', from: 'loading', async run(c) {
         c.to('x', 48, 'snap');
         await c.wait(120);
-        c.to('sq', 0.82, 'impact');
         await c.wait(100);
-        c.to('x', 0, 'pop');
+        c.to('x', 0, 'gentle');
         await c.wait(140);
       }},
       cancel: {label: '取消', pose: 'idle', async run(c) {
         c.to('x', -6, 'snap');
         await c.wait(80);
-        c.to('x', 0, 'rebound');
-        c.to('sq', 0.86, 'impact');
+        c.to('x', 0, 'settle');
         await c.wait(140);
       }}
     });
@@ -836,7 +808,6 @@
       op(p.grain, s.trickle);
     },
     {
-      tap: tapSq('点按'),
       start: {label: '开始', pose: 'running', from: 'ready', async run(c) {
         c.to('trickle', 1, 'fade');
         c.to('grain', 0, 'snap');
@@ -896,7 +867,6 @@
       op(p.flag, s.flag);
     },
     {
-      tap: tapSq('点按'),
       start: {label: '开始', pose: 'running', from: 'idle', async run(c) {
         c.to('minute', c.goal('minute') + 150, 'snap');
         c.to('flag', 0, 'fade');
@@ -915,12 +885,12 @@
       }},
       pause: {label: '暂停', pose: 'paused', from: 'running', async run(c) {
         c.to('minute', c.s.minute - 50, 'snap');
-        c.to('flag', 1, 'pop');
+        c.to('flag', 1, 'gentle');
         await c.wait(150);
       }},
       resume: {label: '继续', pose: 'running', from: 'paused', async run(c) {
         c.to('flag', 0, 'fade');
-        c.to('minute', c.s.minute + 80, 'pop');
+        c.to('minute', c.s.minute + 80, 'gentle');
         await c.wait(160);
       }},
       reset: {label: '归零', pose: 'idle', async run(c) {
@@ -947,18 +917,17 @@
       p.core.setAttribute('transform', around(0.4 + 0.6 * clamp01(s.core), 60, 86));
     },
     {
-      tap: tapSq('点按'),
       scan: {label: '扫描', pose: 'scanning', from: 'idle', async run(c) {
         c.set({r0: 0, r1: 0, r2: 0, r3: 0, r4: 0});
-        c.to('r0', 1, 'pop');
+        c.to('r0', 1, 'gentle');
         await c.wait(60);
-        c.to('r1', 1, 'pop');
+        c.to('r1', 1, 'gentle');
         await c.wait(60);
-        c.to('r2', 1, 'pop');
+        c.to('r2', 1, 'gentle');
         await c.wait(60);
-        c.to('r3', 1, 'pop');
+        c.to('r3', 1, 'gentle');
         await c.wait(60);
-        c.to('r4', 1, 'pop');
+        c.to('r4', 1, 'gentle');
         await c.wait(150);
       }},
       scanning: {label: '扫描中', loop: true, pose: 'scanning', run(c) {
@@ -972,15 +941,13 @@
         });
       }},
       accept: {label: '对上', pose: 'recognised', from: 'scanning', async run(c) {
-        c.to('r0', 1, 'pop');
-        c.to('r1', 1, 'pop');
-        c.to('r2', 1, 'pop');
-        c.to('r3', 1, 'pop');
-        c.to('r4', 1, 'pop');
-        c.to('sq', 0.86, 'impact');
+        c.to('r0', 1, 'gentle');
+        c.to('r1', 1, 'gentle');
+        c.to('r2', 1, 'gentle');
+        c.to('r3', 1, 'gentle');
+        c.to('r4', 1, 'gentle');
         await c.wait(100);
-        c.to('core', 1, 'pop');
-        c.to('sq', 1, 'rebound');
+        c.to('core', 1, 'gentle');
         await c.wait(160);
       }},
       reject: {label: '没对上', pose: 'idle', from: 'scanning', async run(c) {
@@ -989,22 +956,21 @@
         c.error();
         await c.wait(80);
         c.to('r2', 0.3, 'snap');
-        c.to('sq', 0.8, 'impact');
         await c.wait(100);
-        c.to('r0', 1, 'rebound');
-        c.to('r1', 1, 'rebound');
-        c.to('r2', 1, 'rebound');
-        c.to('r3', 1, 'rebound');
-        c.to('r4', 1, 'rebound');
+        c.to('r0', 1, 'settle');
+        c.to('r1', 1, 'settle');
+        c.to('r2', 1, 'settle');
+        c.to('r3', 1, 'settle');
+        c.to('r4', 1, 'settle');
         await c.wait(160);
       }},
       reset: {label: '复位', pose: 'idle', from: 'recognised', async run(c) {
         c.to('core', 0, 'fade');
         c.to('r4', 0.4, 'snap');
         await c.wait(80);
-        c.to('r4', 1, 'pop');
-        c.to('r3', 1, 'pop');
-        c.to('r2', 1, 'pop');
+        c.to('r4', 1, 'gentle');
+        c.to('r3', 1, 'gentle');
+        c.to('r2', 1, 'gentle');
         await c.wait(150);
       }}
     },
@@ -1021,7 +987,6 @@
       op(p.line, s.lineOn);
     },
     {
-      tap: tapSq('点按'),
       scan: {label: '扫过', pose: 'scanning', from: 'idle', async run(c) {
         c.to('lineOn', 1, 'fade');
         c.to('line', 0, 'snap');
@@ -1029,7 +994,7 @@
         await c.wait(60);
         c.to('line', 48, 'snap');
         await c.wait(160);
-        c.to('open', 1, 'pop');
+        c.to('open', 1, 'gentle');
         await c.wait(120);
       }},
       scanning: {label: '扫描中', loop: true, pose: 'scanning', run(c) {
@@ -1046,15 +1011,14 @@
         c.to('open', 0.7, 'impact');
         await c.wait(120);
         c.to('lineOn', 0, 'fade');
-        c.to('open', 1.08, 'pop');
-        c.to('sq', 0.9, 'impact');
+        c.to('open', 1.08, 'gentle');
         await c.wait(160);
       }},
       reject: {label: '没对上', pose: 'idle', from: 'scanning', async run(c) {
         c.to('line', 20, 'impact');
         c.error();
         await c.wait(90);
-        c.to('line', 4, 'rebound');
+        c.to('line', 4, 'settle');
         c.to('open', 0.8, 'snap');
         await c.wait(120);
         c.to('lineOn', 0, 'fade');
@@ -1065,7 +1029,7 @@
         c.to('line', 0, 'snap');
         c.to('lineOn', 0, 'fade');
         await c.wait(120);
-        c.to('open', 1, 'pop');
+        c.to('open', 1, 'gentle');
         await c.wait(140);
       }}
     });
@@ -1083,18 +1047,16 @@
       op(p.sheet, s.sheetOn);
     },
     {
-      tap: tapSq('点按'),
       open: {label: '打开', pose: 'open', from: 'closed', async run(c) {
         c.to('lid', 8, 'snap');
         await c.wait(80);
-        c.to('lid', -36, 'pop');
+        c.to('lid', -36, 'gentle');
         await c.wait(170);
       }},
       close: {label: '合上', pose: 'closed', from: 'open', async run(c) {
         c.to('lid', -36, 'snap');
         await c.wait(70);
         c.to('lid', 4, 'impact');
-        c.to('sq', 0.84, 'impact');
         await c.wait(150);
       }},
       insert: {label: '放入', pose: 'closed', from: 'open', async run(c) {
@@ -1103,7 +1065,6 @@
         c.to('sheet', -22, 'snap');
         await c.wait(80);
         c.to('sheet', 14, 'impact');
-        c.to('sq', 0.8, 'impact');
         await c.wait(110);
         c.to('lid', 0, 'snap');
         c.to('sheetOn', 0, 'fade');
@@ -1114,7 +1075,7 @@
         c.set({sheet: 12, sheetOn: 0});
         await c.wait(70);
         c.to('sheetOn', 1, 'fade');
-        c.to('sheet', -26, 'pop');
+        c.to('sheet', -26, 'gentle');
         await c.wait(150);
         c.to('sheetOn', 0, 'fade');
         await c.wait(90);
@@ -1134,18 +1095,16 @@
     },
     {
       tap: {label: '点按', async run(c) {
-        c.to('sq', 0.86, 'impact');
         c.to('fy', 6, 'snap');
         await c.wait(110);
-        c.to('sq', 1, 'rebound');
         await c.wait(130);
       }},
       copy: {label: '复制', pose: 'copied', from: 'idle', async run(c) {
         c.to('fy', 8, 'snap');
         c.to('fx', 6, 'snap');
         await c.wait(80);
-        c.to('fx', -14, 'pop');
-        c.to('fy', -16, 'pop');
+        c.to('fx', -14, 'gentle');
+        c.to('fy', -16, 'gentle');
         c.to('bx', 12, 'gentle');
         c.to('by', 10, 'gentle');
         await c.wait(170);
@@ -1160,20 +1119,19 @@
         c.set({bx: -10, by: 8, bo: 0});
       }},
       copied: {label: '已复制', pose: 'copied', from: 'idle', async run(c) {
-        c.to('sq', 0.82, 'impact');
-        c.to('fx', -16, 'pop');
-        c.to('fy', -12, 'pop');
+        c.to('fx', -16, 'gentle');
+        c.to('fy', -12, 'gentle');
         await c.wait(140);
-        c.to('bx', 10, 'rebound');
-        c.to('by', 8, 'rebound');
+        c.to('bx', 10, 'settle');
+        c.to('by', 8, 'settle');
         await c.wait(140);
       }},
       reset: {label: '复位', pose: 'idle', from: 'copied', async run(c) {
         c.to('fx', 8, 'snap');
         c.to('fy', 8, 'snap');
         await c.wait(90);
-        c.to('fx', 0, 'pop');
-        c.to('fy', 0, 'pop');
+        c.to('fx', 0, 'gentle');
+        c.to('fy', 0, 'gentle');
         c.to('bx', 0, 'gentle');
         c.to('by', 0, 'gentle');
         c.to('bo', 1, 'fade');
@@ -1194,35 +1152,29 @@
     },
     {
       tap: {label: '点按', async run(c) {
-        c.to('sq', 0.78, 'impact');
         c.to('sink', 8, 'impact');
         await c.wait(120);
-        c.to('sq', 1, 'rebound');
-        c.to('sink', 0, 'rebound');
+        c.to('sink', 0, 'settle');
         await c.wait(140);
       }},
       press: {label: '按下', async run(c) {
-        c.to('sq', 0.68, 'impact');
         c.to('sink', 10, 'impact');
         await c.wait(140);
-        c.to('sq', 1, 'rebound');
-        c.to('sink', 0, 'rebound');
+        c.to('sink', 0, 'settle');
         await c.wait(160);
       }},
       save: {label: '保存', pose: 'on', from: 'off', async run(c) {
-        c.to('sq', 0.74, 'impact');
         c.to('sink', 10, 'snap');
         await c.wait(80);
-        c.to('fill', 1, 'pop');
-        c.to('sink', -8, 'pop');
+        c.to('fill', 1, 'gentle');
+        c.to('sink', -8, 'gentle');
         await c.wait(160);
       }},
       unsave: {label: '取消保存', pose: 'off', from: 'on', async run(c) {
         c.to('sink', -12, 'snap');
         c.to('fill', 0, 'fade');
         await c.wait(100);
-        c.to('sq', 0.84, 'impact');
-        c.to('sink', 6, 'rebound');
+        c.to('sink', 6, 'settle');
         await c.wait(150);
       }}
     });
@@ -1243,20 +1195,18 @@
       });
     },
     {
-      tap: tapSq('点按'),
       connect: {label: '连接', pose: 'full', from: 'off', async run(c) {
-        c.to('b0', 1, 'pop');
+        c.to('b0', 1, 'gentle');
         await c.wait(60);
-        c.to('b1', 1, 'pop');
+        c.to('b1', 1, 'gentle');
         await c.wait(60);
-        c.to('b2', 1, 'pop');
+        c.to('b2', 1, 'gentle');
         await c.wait(60);
-        c.to('b3', 1, 'pop');
+        c.to('b3', 1, 'gentle');
         await c.wait(140);
       }},
       weaken: {label: '变弱', pose: 'weak', from: 'full', async run(c) {
         c.to('b3', 0, 'snap');
-        c.to('sq', 0.9, 'impact');
         await c.wait(80);
         c.to('b2', 0, 'snap');
         await c.wait(140);
@@ -1296,13 +1246,12 @@
       op(p.device, s.dOn);
     },
     {
-      tap: tapSq('点按'),
       enable: {label: '打开', pose: 'on', from: 'off', async run(c) {
-        c.to('r0', 1, 'pop');
+        c.to('r0', 1, 'gentle');
         await c.wait(70);
-        c.to('r1', 1, 'pop');
+        c.to('r1', 1, 'gentle');
         await c.wait(70);
-        c.to('r2', 1, 'pop');
+        c.to('r2', 1, 'gentle');
         await c.wait(150);
       }},
       connectDevice: {label: '设备接入', pose: 'connected', from: 'on', async run(c) {
@@ -1311,7 +1260,6 @@
         c.to('dx', 22, 'snap');
         await c.wait(60);
         c.to('dx', -2, 'impact');
-        c.to('sq', 0.9, 'impact');
         await c.wait(150);
       }},
       disconnect: {label: '断开', pose: 'on', from: 'connected', async run(c) {
@@ -1336,25 +1284,23 @@
       p.dot.setAttribute('transform', around(0.6 + 0.4 * clamp01(s.dot), 88, 94));
     },
     {
-      tap: tapSq('点按'),
       plug: {label: '插入', pose: 'in', from: 'idle', async run(c) {
         c.to('y', -4, 'snap');
         await c.wait(80);
         c.to('y', 18, 'impact');
         await c.wait(100);
-        c.to('sq', 0.94, 'impact');
-        c.to('y', 16, 'rebound');
+        c.to('y', 16, 'settle');
         await c.wait(150);
       }},
       recognise: {label: '认出', pose: 'ready', from: 'in', async run(c) {
-        c.to('dot', 1, 'pop');
+        c.to('dot', 1, 'gentle');
         await c.wait(180);
       }},
       eject: {label: '弹出', pose: 'idle', from: 'ready', async run(c) {
         c.to('dot', 0, 'fade');
         c.to('y', 18, 'snap');
         await c.wait(70);
-        c.to('y', -4, 'pop');
+        c.to('y', -4, 'gentle');
         await c.wait(150);
       }}
     });
@@ -1376,15 +1322,13 @@
       op(p.l0, s.l0); op(p.l1, s.l1); op(p.l2, s.l2);
     },
     {
-      tap: tapSq('点按'),
       online: {label: '在线', pose: 'online', from: 'offline', async run(c) {
         c.to('dim', 1, 'fade');
-        c.to('l0', 1, 'pop');
+        c.to('l0', 1, 'gentle');
         await c.wait(70);
-        c.to('l1', 1, 'pop');
+        c.to('l1', 1, 'gentle');
         await c.wait(70);
-        c.to('l2', 1, 'pop');
-        c.to('sq', 0.9, 'impact');
+        c.to('l2', 1, 'gentle');
         await c.wait(140);
       }},
       busy: {label: '忙碌', loop: true, pose: 'busy', run(c) {
@@ -1402,21 +1346,18 @@
         c.to('l1', 0.15, 'fade');
         c.to('l0', 0.15, 'fade');
         c.to('dim', 0.45, 'fade');
-        c.to('sq', 0.92, 'gentle');
         await c.wait(180);
       }},
       restart: {label: '重启', pose: 'online', from: 'online', async run(c) {
-        c.to('sq', 0.78, 'impact');
         c.to('l0', 0.2, 'snap');
         c.to('l1', 0.2, 'snap');
         c.to('l2', 0.2, 'snap');
         await c.wait(90);
-        c.to('l0', 1, 'pop');
+        c.to('l0', 1, 'gentle');
         await c.wait(60);
-        c.to('l1', 1, 'pop');
+        c.to('l1', 1, 'gentle');
         await c.wait(60);
-        c.to('l2', 1, 'pop');
-        c.to('sq', 1, 'rebound');
+        c.to('l2', 1, 'gentle');
         await c.wait(140);
       }}
     });
@@ -1442,11 +1383,10 @@
       p.sun.setAttribute('transform', around(0.82 + 0.18 * reach, 60, 60));
     },
     {
-      tap: tapSq('点按'),
       brighten: {label: '变亮', pose: 'bright', from: 'dim', async run(c) {
         c.to('reach', 0.15, 'snap');
         await c.wait(70);
-        c.to('reach', 1.08, 'pop');
+        c.to('reach', 1.08, 'gentle');
         await c.wait(160);
       }},
       dim: {label: '变暗', pose: 'dim', from: 'bright', async run(c) {
@@ -1475,22 +1415,18 @@
       op(p.fill, h < 0.8 ? 0 : 1);
     },
     {
-      tap: tapSq('点按'),
       fill: {label: '写入', pose: 'loaded', from: 'normal', async run(c) {
         c.to('level', 0.75, 'gentle');
-        c.to('sq', 0.9, 'impact');
         await c.wait(180);
       }},
       clear: {label: '清空', pose: 'empty', from: 'loaded', async run(c) {
         c.to('level', 0, 'snap');
         await c.wait(160);
-        c.to('sq', 0.92, 'rebound');
         await c.wait(120);
       }},
       full: {label: '已满', pose: 'full', from: 'loaded', async run(c) {
         c.to('level', 1, 'gentle');
         await c.wait(120);
-        c.to('sq', 0.8, 'impact');
         await c.wait(140);
       }},
       level: {label: '容量', drive(c, v) {
@@ -1518,7 +1454,6 @@
       op(p.fold, corner / 7);
     },
     {
-      tap: tapSq('点按'),
       print: {label: '打印', pose: 'done', from: 'idle', async run(c) {
         c.to('feed', 24, 'gentle');
         await c.wait(100);
@@ -1526,7 +1461,6 @@
         c.to('outOn', 1, 'fade');
         c.to('out', 18, 'gentle');
         await c.wait(190);
-        c.to('sq', 0.95, 'impact');
         await c.wait(100);
       }},
       printing: {label: '出纸', loop: true, run(c) {
@@ -1546,7 +1480,6 @@
         c.to('out', 18, 'gentle');
         c.to('corner', 0, 'gentle');
         await c.wait(190);
-        c.to('sq', 0.95, 'impact');
         await c.wait(110);
       }},
       jam: {label: '卡纸', pose: 'jammed', from: 'idle', async run(c) {
@@ -1574,11 +1507,10 @@
       op(p.file, s.fOn);
     },
     {
-      tap: tapSq('点按'),
       open: {label: '打开', pose: 'open', from: 'closed', async run(c) {
         c.to('lid', 6, 'snap');
         await c.wait(70);
-        c.to('lid', -34, 'pop');
+        c.to('lid', -34, 'gentle');
         await c.wait(160);
       }},
       archive: {label: '归档', pose: 'closed', from: 'open', async run(c) {
@@ -1587,7 +1519,6 @@
         c.to('fy', -20, 'snap');
         await c.wait(80);
         c.to('fy', 12, 'impact');
-        c.to('sq', 0.82, 'impact');
         await c.wait(110);
         c.to('lid', 0, 'snap');
         c.to('fOn', 0, 'fade');
@@ -1598,7 +1529,7 @@
         c.set({fy: 10, fOn: 0});
         await c.wait(70);
         c.to('fOn', 1, 'fade');
-        c.to('fy', -24, 'pop');
+        c.to('fy', -24, 'gentle');
         await c.wait(150);
         c.to('fOn', 0, 'fade');
         await c.wait(90);
@@ -1607,7 +1538,6 @@
         c.to('lid', -36, 'snap');
         await c.wait(70);
         c.to('lid', 3, 'impact');
-        c.to('sq', 0.86, 'impact');
         await c.wait(150);
       }}
     });
@@ -1625,27 +1555,24 @@
       op(p.ghost, s.go);
     },
     {
-      tap: tapSq('点按'),
       copy: {label: '复制', async run(c) {
         c.to('draw', 0, 'snap');
         await c.wait(60);
         c.to('draw', 1, 'draw');
-        c.to('sq', 0.9, 'impact');
         await c.wait(160);
       }},
       paste: {label: '粘贴', async run(c) {
         c.set({gx: 0, gy: 0, go: 0});
         c.to('go', 0.9, 'fade');
         await c.wait(60);
-        c.to('gx', 16, 'pop');
-        c.to('gy', -18, 'pop');
+        c.to('gx', 16, 'gentle');
+        c.to('gy', -18, 'gentle');
         await c.wait(150);
         c.to('go', 0, 'fade');
         await c.wait(90);
       }},
       clear: {label: '清空', pose: 'clear', from: 'idle', async run(c) {
         c.to('draw', 0, 'fade');
-        c.to('sq', 0.86, 'impact');
         await c.wait(160);
       }}
     });
@@ -1670,7 +1597,6 @@
       p.knob.setAttribute('transform', `translate(${s.kx} 0)`);
     },
     {
-      tap: tapSq('点按'),
       apply: {label: '筛选', pose: 'applied', from: 'idle', async run(c) {
         c.to('y0', 28, 'gentle');
         await c.wait(65);
@@ -1680,7 +1606,6 @@
         c.to('y2', 28, 'gentle');
         c.to('o2', 0.22, 'fade');
         await c.wait(150);
-        c.to('sq', 0.95, 'impact');
         await c.wait(100);
       }},
       adjust: {label: '调节', async run(c) {
@@ -1716,13 +1641,12 @@
       p.l3.setAttribute('transform', `translate(0 ${s.y3})`);
     },
     {
-      tap: tapSq('点按'),
       ascending: {label: '升序', pose: 'ascending', from: 'descending', async run(c) {
         c.to('y2', -10, 'snap');
         c.to('y1', 0, 'snap');
         c.to('y3', 0, 'snap');
         await c.wait(80);
-        c.to('y2', 0, 'pop');
+        c.to('y2', 0, 'gentle');
         await c.wait(150);
       }},
       descending: {label: '降序', pose: 'descending', from: 'ascending', async run(c) {
@@ -1730,7 +1654,7 @@
         c.to('y3', -52, 'snap');
         c.to('y2', 8, 'snap');
         await c.wait(140);
-        c.to('y2', 0, 'rebound');
+        c.to('y2', 0, 'settle');
         await c.wait(140);
       }},
       reorder: {label: '重排', pose: 'mixed', from: 'ascending', async run(c) {
@@ -1747,30 +1671,23 @@
     {fill: 0},
     {off: {}, on: {fill: 1}},
     (s, p) => {
-      p.body.setAttribute('transform', around(s.sq));
+      p.body.setAttribute('transform', aroundXY(1 / Math.max(.5, s.sq), s.sq, 60, 100));
       op(p.fill, s.fill);
     },
     {
-      tap: tapSq('点按'),
       favourite: {label: '收藏', pose: 'on', from: 'off', async run(c) {
-        c.to('sq', 0.72, 'impact');
         c.to('fill', 0, 'snap');
         await c.wait(80);
-        c.to('fill', 1, 'pop');
-        c.to('sq', 1.12, 'pop');
+        c.to('fill', 1, 'gentle');
         await c.wait(170);
       }},
       unfavourite: {label: '取消收藏', pose: 'off', from: 'on', async run(c) {
-        c.to('sq', 1.08, 'snap');
         await c.wait(70);
         c.to('fill', 0, 'fade');
-        c.to('sq', 0.84, 'impact');
         await c.wait(150);
       }},
       highlight: {label: '强调', async run(c) {
-        c.to('sq', 1.16, 'pop');
         await c.wait(140);
-        c.to('sq', 0.9, 'rebound');
         await c.wait(140);
       }}
     });
@@ -1787,14 +1704,12 @@
       op(p.letter, s.lOn);
     },
     {
-      tap: tapSq('点按'),
       receive: {label: '收信', async run(c) {
         c.set({ly: -22, lOn: 0, flap: 1});
         c.to('flap', 0.2, 'snap');
         c.to('lOn', 1, 'fade');
         await c.wait(70);
         c.to('ly', 16, 'impact');
-        c.to('sq', 0.84, 'impact');
         await c.wait(120);
         c.to('flap', 1, 'snap');
         c.to('lOn', 0, 'fade');
@@ -1803,10 +1718,10 @@
       open: {label: '拆开', pose: 'open', from: 'idle', async run(c) {
         c.to('flap', 1.05, 'snap');
         await c.wait(60);
-        c.to('flap', 0.12, 'pop');
+        c.to('flap', 0.12, 'gentle');
         c.set({ly: 8, lOn: 0});
         c.to('lOn', 1, 'fade');
-        c.to('ly', -8, 'pop');
+        c.to('ly', -8, 'gentle');
         await c.wait(170);
       }},
       send: {label: '寄出', async run(c) {
@@ -1814,7 +1729,7 @@
         c.set({ly: 6, lOn: 0, drop: 0});
         c.to('lOn', 1, 'fade');
         await c.wait(60);
-        c.to('ly', -24, 'pop');
+        c.to('ly', -24, 'gentle');
         c.to('drop', 18, 'snap');
         await c.wait(140);
         c.to('lOn', 0, 'fade');
@@ -1827,7 +1742,6 @@
         c.to('ly', 8, 'snap');
         await c.wait(70);
         c.to('ly', 22, 'impact');
-        c.to('sq', 0.8, 'impact');
         await c.wait(150);
       }}
     });
@@ -1840,15 +1754,14 @@
       p.hand.setAttribute('transform', `translate(0 ${s.y}) rotate(${-30 + s.angle} 60 60)`);
     },
     {
-      tap: tapSq('点按'),
       ring: {label: '响铃', async run(c) {
         c.to('angle', -18, 'snap');
         await c.wait(80);
-        c.to('angle', 16, 'pop');
+        c.to('angle', 16, 'gentle');
         await c.wait(90);
         c.to('angle', -12, 'snap');
         await c.wait(80);
-        c.to('angle', 0, 'rebound');
+        c.to('angle', 0, 'settle');
         await c.wait(120);
       }},
       ringing: {label: '响铃中', loop: true, run(c) {
@@ -1859,9 +1772,8 @@
         c.to('angle', 8, 'snap');
         c.to('y', 6, 'snap');
         await c.wait(80);
-        c.to('angle', 30, 'pop');
-        c.to('y', -4, 'rebound');
-        c.to('sq', 0.9, 'impact');
+        c.to('angle', 30, 'gentle');
+        c.to('y', -4, 'settle');
         await c.wait(160);
       }},
       hangup: {label: '挂断', pose: 'idle', from: 'answered', async run(c) {
@@ -1875,7 +1787,7 @@
         c.to('angle', 18, 'impact');
         c.error();
         await c.wait(90);
-        c.to('angle', -14, 'rebound');
+        c.to('angle', -14, 'settle');
         c.to('y', 8, 'snap');
         await c.wait(150);
       }}
@@ -1892,11 +1804,9 @@
       dash(p.slash, 100, s.slash);
     },
     {
-      tap: tapSq('点按'),
       join: {label: '加入', async run(c) {
         c.set({sq: 0.6, dim: 0});
         c.to('dim', 1, 'fade');
-        c.to('sq', 1.08, 'pop');
         await c.wait(170);
       }},
       leave: {label: '离开', async run(c) {
@@ -1910,13 +1820,11 @@
       cameraOff: {label: '关闭镜头', pose: 'off', from: 'idle', async run(c) {
         c.to('slash', 1, 'draw');
         c.to('dim', 0.35, 'fade');
-        c.to('sq', 0.9, 'impact');
         await c.wait(170);
       }},
       cameraOn: {label: '打开镜头', pose: 'idle', from: 'off', async run(c) {
         c.to('slash', 0, 'fade');
-        c.to('dim', 1, 'pop');
-        c.to('sq', 1.06, 'pop');
+        c.to('dim', 1, 'gentle');
         await c.wait(160);
       }}
     });
@@ -1934,17 +1842,16 @@
       op(p.mini, s.mo);
     },
     {
-      tap: tapSq('点按'),
       open: {label: '展开', pose: 'open', from: 'idle', async run(c) {
         c.to('ay', 8, 'snap');
         await c.wait(70);
-        c.to('ay', -18, 'pop');
+        c.to('ay', -18, 'gentle');
         await c.wait(150);
       }},
       share: {label: '分享', async run(c) {
         c.to('ay', 10, 'snap');
         await c.wait(70);
-        c.to('ay', -24, 'pop');
+        c.to('ay', -24, 'gentle');
         await c.wait(140);
         c.to('ao', 0, 'fade');
         await c.wait(80);
@@ -1953,9 +1860,8 @@
       copyLink: {label: '复制链接', async run(c) {
         c.set({mo: 0, my: 0});
         c.to('mo', 1, 'fade');
-        c.to('sq', 0.9, 'impact');
         await c.wait(70);
-        c.to('my', -22, 'pop');
+        c.to('my', -22, 'gentle');
         await c.wait(140);
         c.to('mo', 0, 'fade');
         await c.wait(90);
@@ -1964,7 +1870,6 @@
         c.to('ay', -16, 'snap');
         await c.wait(70);
         c.to('ay', 6, 'impact');
-        c.to('sq', 0.88, 'impact');
         await c.wait(140);
       }}
     });
@@ -1982,7 +1887,6 @@
       p.code.setAttribute('transform', around(0.86 + 0.14 * clamp01(s.code), 60, 60));
     },
     {
-      tap: tapSq('点按'),
       scan: {label: '扫描', async run(c) {
         c.to('lineOn', 1, 'fade');
         c.to('line', 0, 'snap');
@@ -2004,8 +1908,7 @@
         c.to('lineOn', 1, 'fade');
         c.to('line', 28, 'snap');
         await c.wait(100);
-        c.to('code', 1.2, 'pop');
-        c.to('sq', 0.9, 'impact');
+        c.to('code', 1.2, 'gentle');
         c.to('lineOn', 0, 'fade');
         await c.wait(160);
       }},
@@ -2014,7 +1917,7 @@
         c.error();
         c.to('lineOn', 1, 'fade');
         await c.wait(90);
-        c.to('line', 6, 'rebound');
+        c.to('line', 6, 'settle');
         c.to('code', 0.7, 'snap');
         await c.wait(140);
         c.to('lineOn', 0, 'fade');
@@ -2036,15 +1939,14 @@
       op(p.card, s.cOn);
     },
     {
-      tap: tapSq('点按'),
       open: {label: '打开', pose: 'open', from: 'closed', async run(c) {
         c.to('flap', 6, 'snap');
         await c.wait(70);
-        c.to('flap', -36, 'pop');
-        c.to('fy', -12, 'pop');
+        c.to('flap', -36, 'gentle');
+        c.to('fy', -12, 'gentle');
         c.set({cy: 8, cOn: 0});
         c.to('cOn', 1, 'fade');
-        c.to('cy', -16, 'pop');
+        c.to('cy', -16, 'gentle');
         await c.wait(170);
       }},
       close: {label: '合上', pose: 'closed', from: 'open', async run(c) {
@@ -2053,7 +1955,6 @@
         await c.wait(70);
         c.to('flap', 4, 'impact');
         c.to('fy', 0, 'impact');
-        c.to('sq', 0.86, 'impact');
         await c.wait(150);
       }},
       insertCard: {label: '放入卡片', pose: 'closed', from: 'open', async run(c) {
@@ -2062,7 +1963,6 @@
         c.to('cy', -24, 'snap');
         await c.wait(70);
         c.to('cy', 10, 'impact');
-        c.to('sq', 0.8, 'impact');
         await c.wait(110);
         c.to('cOn', 0, 'fade');
         c.to('flap', 0, 'snap');
@@ -2075,7 +1975,7 @@
         c.set({cy: 6, cOn: 0});
         await c.wait(70);
         c.to('cOn', 1, 'fade');
-        c.to('cy', -22, 'pop');
+        c.to('cy', -22, 'gentle');
         await c.wait(160);
       }}
     });
@@ -2099,14 +1999,12 @@
       p.w2.setAttribute('transform', `rotate(${s.roll} 78 90)`);
     },
     {
-      tap: tapSq('点按'),
       add: {label: '放入', async run(c) {
         c.set({iy: -22, io: 0});
         c.to('io', 1, 'fade');
         c.to('iy', -24, 'snap');
         await c.wait(60);
         c.to('iy', 6, 'impact');
-        c.to('sq', 0.76, 'impact');
         c.to('x', 12, 'snap');
         c.to('roll', 42, 'snap');
         await c.wait(150);
@@ -2118,8 +2016,7 @@
         c.to('io', 1, 'fade');
         c.to('iy', 0, 'snap');
         await c.wait(60);
-        c.to('iy', -20, 'pop');
-        c.to('sq', 0.9, 'snap');
+        c.to('iy', -20, 'gentle');
         await c.wait(140);
         c.to('io', 0, 'fade');
         await c.wait(80);
@@ -2128,9 +2025,8 @@
         c.to('x', -6, 'snap');
         c.to('roll', -12, 'snap');
         await c.wait(70);
-        c.to('x', 16, 'pop');
-        c.to('roll', 50, 'pop');
-        c.to('sq', 0.82, 'impact');
+        c.to('x', 16, 'gentle');
+        c.to('roll', 50, 'gentle');
         await c.wait(160);
       }}
     });
@@ -2150,7 +2046,6 @@
       p.dot.setAttribute('transform', around(0.4 + 0.6 * clamp01(s.dot), 48, 66));
     },
     {
-      tap: tapSq('点按'),
       next: {label: '下个月', async run(c) {
         c.to('leaf', 1, 'snap');
         c.to('pageOn', 1, 'fade');
@@ -2163,19 +2058,18 @@
       previous: {label: '上个月', async run(c) {
         c.set({leaf: 1, pageOn: 0});
         c.to('pageOn', 1, 'fade');
-        c.to('leaf', 0, 'pop');
+        c.to('leaf', 0, 'gentle');
         await c.wait(180);
       }},
       addEvent: {label: '添加', pose: 'marked', from: 'idle', async run(c) {
-        c.to('dot', 1, 'pop');
-        c.to('sq', 0.9, 'impact');
+        c.to('dot', 1, 'gentle');
         await c.wait(150);
       }},
       removeEvent: {label: '移除', pose: 'idle', from: 'marked', async run(c) {
         c.to('dot', 0, 'fade');
         c.to('leaf', 0.35, 'snap');
         await c.wait(100);
-        c.to('leaf', 0, 'rebound');
+        c.to('leaf', 0, 'settle');
         await c.wait(140);
       }}
     });
@@ -2192,18 +2086,17 @@
       p.top.setAttribute('transform', `translate(0 ${s.ty}) rotate(${s.gap} 60 58)`);
     },
     {
-      tap: tapSq('点按'),
       print: {label: '出纸', async run(c) {
         c.set({y: 22});
         c.to('y', 18, 'snap');
         await c.wait(60);
-        c.to('y', -8, 'pop');
+        c.to('y', -8, 'gentle');
         await c.wait(160);
       }},
       tear: {label: '撕开', async run(c) {
         c.to('ty', 4, 'snap');
         await c.wait(70);
-        c.to('ty', -16, 'pop');
+        c.to('ty', -16, 'gentle');
         c.to('gap', 16, 'snap');
         await c.wait(160);
       }},
@@ -2212,8 +2105,7 @@
         c.to('tilt', 10, 'snap');
         c.error();
         await c.wait(100);
-        c.to('y', 8, 'rebound');
-        c.to('sq', 0.84, 'impact');
+        c.to('y', 8, 'settle');
         await c.wait(150);
       }}
     });
@@ -2228,26 +2120,25 @@
       p.lid.setAttribute('transform', `translate(0 ${s.ly}) rotate(${s.lid} 22 48)`);
     },
     {
-      tap: tapSq('点按'),
       shake: {label: '摇一摇', async run(c) {
         c.to('tilt', -16, 'snap');
         c.to('y', -8, 'snap');
         await c.wait(90);
-        c.to('tilt', 18, 'pop');
-        c.to('y', 4, 'pop');
+        c.to('tilt', 18, 'gentle');
+        c.to('y', 4, 'gentle');
         await c.wait(110);
         c.to('tilt', -12, 'snap');
         await c.wait(90);
-        c.to('tilt', 0, 'rebound');
-        c.to('y', 0, 'rebound');
+        c.to('tilt', 0, 'settle');
+        c.to('y', 0, 'settle');
         await c.wait(140);
       }},
       open: {label: '打开', pose: 'open', from: 'closed', async run(c) {
         c.to('lid', 6, 'snap');
         c.to('y', 4, 'snap');
         await c.wait(80);
-        c.to('lid', -34, 'pop');
-        c.to('ly', -14, 'pop');
+        c.to('lid', -34, 'gentle');
+        c.to('ly', -14, 'gentle');
         await c.wait(170);
       }},
       close: {label: '合上', pose: 'closed', from: 'open', async run(c) {
@@ -2255,7 +2146,6 @@
         await c.wait(60);
         c.to('lid', 4, 'impact');
         c.to('ly', 0, 'impact');
-        c.to('sq', 0.82, 'impact');
         await c.wait(150);
       }}
     });
@@ -2271,28 +2161,23 @@
       dash(p.mark, 52, s.draw);
     },
     {
-      tap: tapSq('点按'),
       protect: {label: '护住', async run(c) {
         c.set({sq: 0.72});
-        c.to('sq', 1.1, 'pop');
         c.to('tilt', -6, 'snap');
         await c.wait(150);
-        c.to('tilt', 0, 'rebound');
+        c.to('tilt', 0, 'settle');
         await c.wait(120);
       }},
       alert: {label: '警示', pose: 'alerted', from: 'idle', async run(c) {
         c.to('tilt', -14, 'snap');
         await c.wait(90);
-        c.to('tilt', 6, 'rebound');
-        c.to('sq', 0.9, 'impact');
+        c.to('tilt', 6, 'settle');
         await c.wait(150);
       }},
       verified: {label: '核验', pose: 'verified', from: 'idle', async run(c) {
-        c.to('sq', 0.86, 'impact');
         c.to('draw', 0, 'snap');
         await c.wait(60);
         c.to('draw', 1, 'draw');
-        c.to('sq', 1.06, 'pop');
         await c.wait(170);
       }}
     });
@@ -2308,25 +2193,22 @@
       p.hole.setAttribute('transform', aroundXY(1, 1 + s.gap * 0.35, 96, 60));
     },
     {
-      tap: tapSq('点按'),
       insert: {label: '插入', pose: 'in', from: 'idle', async run(c) {
         c.to('x', -8, 'snap');
         await c.wait(70);
         c.to('x', 16, 'impact');
-        c.to('sq', 0.9, 'impact');
         await c.wait(150);
       }},
       turn: {label: '转动', from: 'in', async run(c) {
         c.to('turn', -62, 'snap');
         await c.wait(140);
-        c.to('turn', 0, 'rebound');
+        c.to('turn', 0, 'settle');
         await c.wait(150);
       }},
       unlock: {label: '打开', pose: 'open', from: 'in', async run(c) {
         c.to('turn', -58, 'snap');
         await c.wait(120);
-        c.to('gap', 1, 'pop');
-        c.to('sq', 0.9, 'impact');
+        c.to('gap', 1, 'gentle');
         await c.wait(160);
       }}
     });
@@ -2351,16 +2233,14 @@
       dash(p.ok, 48, s.ok);
     },
     {
-      tap: tapSq('点按'),
       input: {label: '输入', pose: 'entered', from: 'empty', async run(c) {
-        c.to('d0', 1, 'pop');
+        c.to('d0', 1, 'gentle');
         await c.wait(70);
-        c.to('d1', 1, 'pop');
+        c.to('d1', 1, 'gentle');
         await c.wait(70);
-        c.to('d2', 1, 'pop');
+        c.to('d2', 1, 'gentle');
         await c.wait(70);
-        c.to('d3', 1, 'pop');
-        c.to('sq', 0.92, 'impact');
+        c.to('d3', 1, 'gentle');
         await c.wait(140);
       }},
       verify: {label: '核对', pose: 'verified', from: 'entered', async run(c) {
@@ -2368,17 +2248,15 @@
         c.to('d1', 1, 'snap');
         c.to('d2', 1, 'snap');
         c.to('d3', 1, 'snap');
-        c.to('sq', 0.84, 'impact');
         await c.wait(90);
         c.to('ok', 1, 'draw');
-        c.to('sq', 1.04, 'pop');
         await c.wait(170);
       }},
       reject: {label: '拒绝', pose: 'empty', from: 'entered', async run(c) {
         c.to('dy', -16, 'impact');
         c.error();
         await c.wait(100);
-        c.to('dy', 8, 'rebound');
+        c.to('dy', 8, 'settle');
         c.to('d0', 0, 'fade');
         c.to('d1', 0, 'fade');
         c.to('d2', 0, 'fade');
@@ -2409,13 +2287,12 @@
       dash(p.code, 32, s.code);
     },
     {
-      tap: tapSq('点按'),
       request: {label: '请求', pose: 'shown', from: 'idle', async run(c) {
         c.set({by: -20, bScale: 0.2});
-        c.to('bScale', 1, 'pop');
+        c.to('bScale', 1, 'gentle');
         c.to('by', 6, 'impact');
         await c.wait(120);
-        c.to('by', 0, 'rebound');
+        c.to('by', 0, 'settle');
         c.to('code', 1, 'draw');
         await c.wait(150);
       }},
@@ -2423,8 +2300,7 @@
         c.to('code', 1, 'draw');
         c.to('bScale', 0.84, 'impact');
         await c.wait(100);
-        c.to('bScale', 1.08, 'pop');
-        c.to('sq', 0.92, 'impact');
+        c.to('bScale', 1.08, 'gentle');
         await c.wait(150);
       }},
       expire: {label: '过期', pose: 'expired', from: 'shown', async run(c) {
@@ -2448,39 +2324,34 @@
     },
     {
       tap: {label: '点按', async run(c) {
-        c.to('sq', 0.86, 'impact');
         c.to('x', c.goal('x') + 6, 'snap');
         await c.wait(100);
-        c.to('x', c.goal('x'), 'rebound');
+        c.to('x', c.goal('x'), 'settle');
         await c.wait(130);
       }},
       request: {label: '请求', async run(c) {
         c.to('x', c.goal('x') - 8, 'snap');
         await c.wait(80);
-        c.to('x', c.goal('x') + 14, 'pop');
-        c.to('sq', 0.9, 'impact');
+        c.to('x', c.goal('x') + 14, 'gentle');
         await c.wait(140);
       }},
       grant: {label: '允许', pose: 'granted', from: 'idle', async run(c) {
         c.to('x', -6, 'snap');
         await c.wait(70);
-        c.to('x', 40, 'pop');
-        c.to('sq', 0.88, 'impact');
+        c.to('x', 40, 'gentle');
         await c.wait(160);
       }},
       deny: {label: '拒绝', pose: 'idle', from: 'idle', async run(c) {
         c.to('x', 18, 'impact');
         c.error();
         await c.wait(100);
-        c.to('x', -6, 'rebound');
-        c.to('sq', 0.86, 'impact');
+        c.to('x', -6, 'settle');
         await c.wait(150);
       }},
       revoke: {label: '收回', pose: 'idle', from: 'granted', async run(c) {
         c.to('x', 42, 'snap');
         await c.wait(60);
-        c.to('x', 0, 'pop');
-        c.to('sq', 0.9, 'impact');
+        c.to('x', 0, 'gentle');
         await c.wait(150);
       }}
     });
@@ -2498,7 +2369,6 @@
       op(p.lock, s.lock);
     },
     {
-      tap: tapSq('点按'),
       establish: {label: '建立', pose: 'open', from: 'lost', async run(c) {
         c.to('ly', 0, 'snap');
         c.to('gap', 0, 'snap');
@@ -2508,11 +2378,10 @@
       secure: {label: '锁上', pose: 'secured', from: 'open', async run(c) {
         c.to('wire', 1, 'draw');
         c.set({lock: 0.2, ly: -16});
-        c.to('lock', 1, 'pop');
+        c.to('lock', 1, 'gentle');
         c.to('ly', 4, 'impact');
         await c.wait(120);
-        c.to('ly', 0, 'rebound');
-        c.to('sq', 0.9, 'impact');
+        c.to('ly', 0, 'settle');
         await c.wait(140);
       }},
       lost: {label: '断开', pose: 'lost', from: 'secured', async run(c) {
@@ -2539,24 +2408,22 @@
       p.lens.setAttribute('transform', around(s.lens, 60, 68));
     },
     {
-      tap: tapSq('点按'),
       shutter: {label: '快门', async run(c) {
         c.to('blade', 0.06, 'snap');
         await c.wait(120);
-        c.to('blade', 1, 'pop');
-        c.to('sq', 0.9, 'impact');
+        c.to('blade', 1, 'gentle');
         await c.wait(150);
       }},
       focus: {label: '对焦', async run(c) {
         c.to('lens', 1.35, 'snap');
         await c.wait(120);
-        c.to('lens', 0.9, 'rebound');
+        c.to('lens', 0.9, 'settle');
         await c.wait(140);
       }},
       switchCamera: {label: '切换', async run(c) {
         c.to('wide', 0.06, 'snap');
         await c.wait(130);
-        c.to('wide', 1, 'pop');
+        c.to('wide', 1, 'gentle');
         await c.wait(160);
       }}
     });
@@ -2573,12 +2440,11 @@
       p.screen.setAttribute('transform', aroundXY(s.wide, 1, 60, 50));
     },
     {
-      tap: tapSq('点按'),
       start: {label: '开始', pose: 'recording', from: 'idle', async run(c) {
-        c.to('dot', 1, 'pop');
+        c.to('dot', 1, 'gentle');
         c.to('wide', 0.92, 'impact');
         await c.wait(140);
-        c.to('wide', 1, 'rebound');
+        c.to('wide', 1, 'settle');
         await c.wait(120);
       }},
       recording: {label: '录制中', loop: true, pose: 'recording', run(c) {
@@ -2592,13 +2458,12 @@
       }},
       resume: {label: '继续', pose: 'recording', from: 'paused', async run(c) {
         c.to('bar', 0, 'snap');
-        c.to('dot', 1.2, 'pop');
+        c.to('dot', 1.2, 'gentle');
         await c.wait(140);
       }},
       stop: {label: '停止', pose: 'idle', from: 'recording', async run(c) {
         c.to('dot', 0.2, 'fade');
         c.to('bar', 0, 'fade');
-        c.to('sq', 0.88, 'impact');
         await c.wait(160);
       }}
     });
@@ -2628,7 +2493,6 @@
       });
     },
     {
-      tap: tapSq('点按'),
       think: {label: '思考', async run(c) {
         c.set({e0: 0, e1: 0, e2: 0});
         c.to('n0', 9, 'snap');
@@ -2640,9 +2504,9 @@
         c.to('n2', -7, 'snap');
         await c.wait(80);
         c.to('e2', 1, 'draw');
-        c.to('n0', 0, 'pop');
-        c.to('n1', 0, 'pop');
-        c.to('n2', 0, 'pop');
+        c.to('n0', 0, 'gentle');
+        c.to('n1', 0, 'gentle');
+        c.to('n2', 0, 'gentle');
         await c.wait(160);
       }},
       pause: {label: '暂停', pose: 'paused', from: 'idle', async run(c) {
@@ -2658,10 +2522,9 @@
         c.to('e0', 1, 'draw');
         c.to('e1', 1, 'draw');
         c.to('e2', 1, 'draw');
-        c.to('n0', 0, 'pop');
-        c.to('n1', 0, 'pop');
-        c.to('n2', 0, 'pop');
-        c.to('sq', 0.9, 'impact');
+        c.to('n0', 0, 'gentle');
+        c.to('n1', 0, 'gentle');
+        c.to('n2', 0, 'gentle');
         await c.wait(180);
       }}
     });
@@ -2678,7 +2541,6 @@
       op(p.content, s.cOn);
     },
     {
-      tap: tapSq('点按'),
       navigate: {label: '前往', async run(c) {
         c.to('x', 10, 'snap');
         await c.wait(60);
@@ -2687,20 +2549,20 @@
         await c.wait(120);
         c.set({x: 16, cOn: 0});
         c.to('cOn', 1, 'fade');
-        c.to('x', 0, 'pop');
+        c.to('x', 0, 'gentle');
         await c.wait(150);
       }},
       inspect: {label: '查看', async run(c) {
-        c.to('z', 1.045, 'pop');
+        c.to('z', 1.045, 'gentle');
         c.to('x', -12, 'gentle');
         await c.wait(160);
-        c.to('x', 0, 'rebound');
+        c.to('x', 0, 'settle');
         await c.wait(120);
       }},
       return: {label: '返回', async run(c) {
         c.to('x', 22, 'snap');
         await c.wait(90);
-        c.to('x', -8, 'pop');
+        c.to('x', -8, 'gentle');
         c.to('z', 0.94, 'impact');
         await c.wait(150);
       }}
@@ -2721,7 +2583,6 @@
       dash(p.footer, 32, s.footer);
     },
     {
-      tap: tapSq('点按'),
       read: {label: '阅读', pose: 'done', from: 'idle', async run(c) {
         c.to('headOn', 1, 'fade');
         c.to('r0', 1, 'draw');
@@ -2777,7 +2638,6 @@
       op(p.caret, s.caret);
     },
     {
-      tap: tapSq('点按'),
       write: {label: '书写', pose: 'writing', from: 'idle', async run(c) {
         c.set({a: 0.2, b: 0, c: 0, cx: 0, cy: 0, caret: 1});
         c.to('a', 1, 'draw');
@@ -2798,7 +2658,7 @@
         c.to('cx', 10, 'snap');
         await c.wait(90);
         c.to('b', 1, 'draw');
-        c.to('cx', 64, 'pop');
+        c.to('cx', 64, 'gentle');
         await c.wait(160);
       }},
       finish: {label: '写完', pose: 'writing', async run(c) {
@@ -2806,7 +2666,6 @@
         c.to('b', 1, 'draw');
         c.to('c', 1, 'draw');
         c.to('caret', 0, 'fade');
-        c.to('sq', 0.9, 'impact');
         await c.wait(170);
       }}
     });
@@ -2836,7 +2695,6 @@
       op(p.caret, s.caret);
     },
     {
-      tap: tapSq('点按'),
       type: {label: '输入', async run(c) {
         c.to('caret', 0.15, 'fade');
         await c.wait(80);
@@ -2874,35 +2732,32 @@
       op(p.packet, s.po);
     },
     {
-      tap: tapSq('点按'),
       connect: {label: '接上', async run(c) {
         c.to('wire', 0, 'snap');
         await c.wait(50);
         c.to('wire', 1, 'draw');
-        c.to('sq', 0.92, 'impact');
         await c.wait(160);
       }},
       invoke: {label: '调用', async run(c) {
         c.to('tx', 8, 'snap');
         await c.wait(50);
-        c.to('tx', 56, 'pop');
+        c.to('tx', 56, 'gentle');
         await c.wait(150);
-        c.to('tx', 0, 'rebound');
+        c.to('tx', 0, 'settle');
         await c.wait(140);
       }},
       return: {label: '返回', async run(c) {
         c.set({tx: 56});
         c.to('tx', 52, 'snap');
         await c.wait(50);
-        c.to('tx', 0, 'pop');
-        c.to('sq', 0.9, 'impact');
+        c.to('tx', 0, 'gentle');
         await c.wait(160);
       }},
       fail: {label: '失败', async run(c) {
         c.to('tx', 30, 'impact');
         c.error();
         await c.wait(90);
-        c.to('tx', 4, 'rebound');
+        c.to('tx', 4, 'settle');
         c.to('po', 0.3, 'fade');
         await c.wait(140);
       }}
@@ -2922,12 +2777,11 @@
       op(p.orb, s.oo);
     },
     {
-      tap: tapSq('点按'),
       activate: {label: '激活', pose: 'active', from: 'idle', async run(c) {
         c.to('head', 0.82, 'impact');
-        c.to('halo', 1, 'pop');
+        c.to('halo', 1, 'gentle');
         await c.wait(120);
-        c.to('head', 1, 'rebound');
+        c.to('head', 1, 'settle');
         await c.wait(140);
       }},
       work: {label: '工作', loop: true, pose: 'active', run(c) {
@@ -2962,7 +2816,6 @@
       p.b.setAttribute('transform', aroundXY(1 + (1 - s.ack) * 0.2, s.ack, 94, 80));
     },
     {
-      tap: tapSq('点按'),
       prepare: {label: '准备', async run(c) {
         c.to('tx', -3, 'snap');
         c.to('tilt', -7, 'snap');
@@ -2991,8 +2844,8 @@
         c.to('ack', 0.93, 'impact');
         c.to('ty', 2, 'snap');
         await c.wait(90);
-        c.to('ack', 1, 'rebound');
-        c.to('ty', 0, 'rebound');
+        c.to('ack', 1, 'settle');
+        c.to('ty', 0, 'settle');
         await c.wait(140);
       }}
     });
@@ -3012,7 +2865,6 @@
       });
     },
     {
-      tap: tapSq('点按'),
       generate: {label: '生成', pose: 'generated', from: 'draft', async run(c) {
         if (c.pose !== 'draft') {
           [0, 1, 2, 3].forEach(i => {
@@ -3062,7 +2914,6 @@
       });
     },
     {
-      tap: tapSq('点按'),
       enqueue: {label: '入队', pose: 'queued', from: 'idle', async run(c) {
         c.set({x2: 8, y2: -5, o2: 0});
         c.to('o2', 1, 'fade');
@@ -3076,7 +2927,6 @@
         c.to('y0', 22, 'snap');
         await c.wait(120);
         c.to('o0', 0.45, 'fade');
-        c.to('sq', 0.94, 'impact');
         await c.wait(140);
       }},
       process: {label: '处理', pose: 'processed', from: 'claimed', async run(c) {

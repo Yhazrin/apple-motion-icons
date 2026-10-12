@@ -83,3 +83,13 @@ states are described in [the catalog vocabulary](reference/catalog.md).
 The existing frame checker reports **482 checks passed** for this revision. This
 checks numerical state and rest; visual review remains a separate design judgment.
 The engine and 13 original recipes remain byte-for-byte unchanged.
+
+
+### Restrained motion recipes
+
+The gallery now loads `assets/motion-icons-refinements.js` last. It gives all 87
+subjects quieter, component-specific motions while preserving the engine and
+upstream recipe hashes. Copy this asset when embedding the full collection.
+See [refinement notes](reference/refinements.md) and the preserved
+[baseline plan](review/improvement-plan.md). Frame checks establish rest and pose
+correctness; they do not replace judging the motion at actual icon sizes.

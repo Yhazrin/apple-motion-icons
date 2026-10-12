@@ -1,6 +1,16 @@
 /* Learning recipes: additive subjects; the animator and built-ins remain unchanged. */
 (function (M) {
   'use strict';
+  // Recipe-local contact, without a second decorative bounce.
+  async function contact(c, key, value) {
+    c.to(key, value, 'snap'); await c.wait(100);
+    c.to(key, c.goal(key), 'settle'); await c.wait(100);
+  }
+  async function preview(c, key, delta) {
+    c.to(key, c.goal(key) + delta, 'snap'); await c.wait(120);
+    c.to(key, c.goal(key), 'settle'); await c.wait(100);
+  }
+
   const {around, aroundXY, clamp01} = M.util;
   M.define('lookup', {
     svg: `<g data-part="page"><path d="M28 24h46a9 9 0 0 1 9 9v59a9 9 0 0 1-9 9H28a9 9 0 0 1-9-9V33a9 9 0 0 1 9-9Z"/><path d="M32 40h29M32 53h21M32 66h16"/></g>
@@ -12,7 +22,7 @@
       p.lens.setAttribute('transform', `translate(${s.lx} ${s.ly}) ${around(s.lensScale, 68, 70)}`);
     },
     actions: {
-      tap: {label: '轻触词页', run: c => c.nudge('lensScale', 0.08)},
+      tap: {label: '轻触词页', run: c => preview(c, 'lensScale', 0.08)},
       searching: {label: '检索词页', loop: true, run(c) {
         c.claim('lx', 'ly');
         c.loop(t => { c.s.lx = 16 * Math.sin(t * Math.PI * 2); c.s.ly = -10 * (1 - Math.cos(t * Math.PI * 2)); });
@@ -20,17 +30,17 @@
       found: {label: '聚焦词义', async run(c) {
         c.to('lensScale', 0.82, 'snap'); c.to('ly', 4, 'snap');
         await c.wait(80);
-        c.to('lx', 0, 'track'); c.to('ly', -12, 'pop'); c.to('lensScale', 1.38, 'pop');
+        c.to('lx', 0, 'track'); c.to('ly', -12, 'gentle'); c.to('lensScale', 1.38, 'gentle');
         await c.wait(260);
       }},
       empty: {label: '继续寻找', async run(c) {
         c.to('lx', -18, 'snap'); c.to('lensScale', 1.08, 'snap'); await c.wait(120);
-        c.to('lx', 18, 'pop'); await c.wait(160);
+        c.to('lx', 18, 'gentle'); await c.wait(160);
       }},
       fail: {label: '词页卡住', async run(c) {
         c.error(); c.to('pageTilt', -4, 'snap');
         c.to('ly', 5, 'impact'); await c.wait(100);
-        c.to('ly', -2, 'rebound'); await c.shake();
+        c.to('ly', -2, 'settle'); await c.shake();
         await c.wait(c.timing.holdFail);
       }}
     }
@@ -49,7 +59,7 @@
       p.bookmark.setAttribute('transform', around(0.6 + 0.4*s.mark, 77, 54));
     },
     actions: {
-      tap: {label: '轻触词本', run: c => c.squash('compression', 0.95)},
+      tap: {label: '轻触词本', run: c => contact(c, 'compression', 0.95)},
       saving: {label: '词卡就位', loop: true, run(c) {
         c.claim('paperY'); c.to('paperOpacity', 1, 'fade');
         c.loop(t => { c.s.paperY = -4 - 2*Math.sin(t*Math.PI*2); });
@@ -59,18 +69,18 @@
         c.to('paperOpacity', 1, 'fade'); c.to('paperY', -8, 'snap');
         await c.wait(100);
         c.to('paperY', 25, 'snap'); await c.wait(140);
-        c.squash('compression', 0.90); c.to('paperOpacity', 0, 'fade');
-        await c.wait(70); c.to('mark', 1, 'pop'); await c.wait(240);
+        contact(c, 'compression', 0.90); c.to('paperOpacity', 0, 'fade');
+        await c.wait(70); c.to('mark', 1, 'gentle'); await c.wait(240);
       }},
       reopen: {label: '取出词卡', pose: 'empty', from: 'saved', async run(c) {
         c.set({paperY: 25, paperOpacity: 0}); c.to('mark', 0, 'fade');
-        c.to('paperOpacity', 1, 'fade'); c.to('paperY', -6, 'pop');
+        c.to('paperOpacity', 1, 'fade'); c.to('paperY', -6, 'gentle');
         await c.wait(320); c.to('paperOpacity', 0, 'fade'); await c.wait(180);
       }},
       fail: {label: '词卡退回', from: 'empty', async run(c) {
         c.error(); c.set({paperY: -4, paperOpacity: 0}); c.to('paperOpacity', 1, 'fade');
         c.to('paperY', 8, 'snap'); await c.wait(100);
-        c.to('paperY', -8, 'rebound'); c.squash('compression', 0.95);
+        c.to('paperY', -8, 'settle'); contact(c, 'compression', 0.95);
         await c.shake(); await c.wait(c.timing.holdFail); c.to('paperOpacity', 0, 'fade');
       }}
     }
@@ -79,6 +89,16 @@
 
 (function (M) {
   'use strict';
+  // Recipe-local contact, without a second decorative bounce.
+  async function contact(c, key, value) {
+    c.to(key, value, 'snap'); await c.wait(100);
+    c.to(key, c.goal(key), 'settle'); await c.wait(100);
+  }
+  async function preview(c, key, delta) {
+    c.to(key, c.goal(key) + delta, 'snap'); await c.wait(120);
+    c.to(key, c.goal(key), 'settle'); await c.wait(100);
+  }
+
   const {around, aroundXY, clamp01, lerpPath} = M.util;
   const attr = (part, name, value) => part.setAttribute(name, value);
   const dash = (part, length, progress) => {
@@ -132,7 +152,7 @@
       attr(p.stars, 'd', turnPath(starOutline, angle, 0, 0.62 + 0.38 * night));
     },
     actions: {
-      tap: {label: '轻触天光', run: c => c.nudge('warmth', .06)},
+      tap: {label: '轻触天光', run: c => preview(c, 'warmth', .06)},
       peek: {label: '天光舒展', async run(c) {
         c.to('warmth', 1.04, 'gentle'); c.to('rayAngle', c.goal('rayAngle') + 9, 'slow');
         await c.wait(220);
@@ -140,22 +160,22 @@
       select: {label: '迎接白昼', pose: 'selected', async run(c) {
         c.to('phase', 0, 'slow');
         c.to('rayAngle', -16, 'snap'); c.to('rise', -6, 'snap'); await c.wait(90);
-        c.to('rayAngle', 36, 'pop'); c.to('warmth', 1.14, 'pop'); c.to('rise', 0, 'rebound'); await c.wait(240);
+        c.to('rayAngle', 36, 'gentle'); c.to('warmth', 1.14, 'gentle'); c.to('rise', 0, 'settle'); await c.wait(240);
       }},
       selectNight: {label: '迎接夜晚', pose: 'nightSelected', from: 'night', async run(c) {
         c.to('phase', 1, 'slow');
         c.to('rayAngle', -16, 'snap'); c.to('rise', -6, 'snap'); await c.wait(90);
-        c.to('rayAngle', 36, 'pop'); c.to('warmth', 1.14, 'pop'); c.to('rise', 0, 'rebound'); await c.wait(240);
+        c.to('rayAngle', 36, 'gentle'); c.to('warmth', 1.14, 'gentle'); c.to('rise', 0, 'settle'); await c.wait(240);
       }},
       toNight: {label: '太阳变月亮', pose: 'night', from: 'idle', async run(c) {
         c.to('phase', 1, 'slow'); c.to('rise', -3, 'snap');
         await c.wait(150);
-        c.to('rise', 1, 'pop'); await c.wait(320);
+        c.to('rise', 1, 'gentle'); await c.wait(320);
       }},
       toDay: {label: '月亮变太阳', pose: 'idle', from: 'night', async run(c) {
         c.to('phase', 0, 'slow'); c.to('rise', -3, 'snap');
         await c.wait(150);
-        c.to('rise', 1, 'pop'); await c.wait(320);
+        c.to('rise', 1, 'gentle'); await c.wait(320);
       }}
     }
   });
@@ -169,21 +189,21 @@
       attr(p.front, 'transform', `translate(${s.frontX} ${s.frontY}) rotate(${s.tilt} 61 97) ${aroundXY(1 + (1-s.contact)*.4, s.contact, 61, 97)}`);
     },
     actions: {
-      tap: {label: '轻触词卡', run: c => c.squash('contact', .94)},
+      tap: {label: '轻触词卡', run: c => contact(c, 'contact', .94)},
       peek: {label: '错开卡片', async run(c) {
         c.to('frontX', 4, 'gentle'); c.to('tilt', 4, 'gentle'); await c.wait(45);
         c.to('backAngle', c.goal('backAngle') - 6, 'swing'); await c.wait(200);
       }},
       select: {label: '抽出一张', pose: 'selected', async run(c) {
         c.to('frontY', 6, 'snap'); c.to('frontX', -4, 'snap'); await c.wait(80);
-        c.to('frontY', -16, 'pop'); c.to('frontX', 18, 'pop'); c.to('tilt', -12, 'pop');
+        c.to('frontY', -16, 'gentle'); c.to('frontX', 18, 'gentle'); c.to('tilt', -12, 'gentle');
         c.to('backAngle', -18, 'gentle'); await c.wait(160);
         c.to('frontY', -8, 'settle'); c.to('frontX', 14, 'settle'); c.to('tilt', -8, 'settle'); await c.wait(160);
       }},
       remember: {label: '词卡归位', async run(c) {
         c.to('frontY', -5, 'snap'); await c.wait(95);
         c.to('frontY', 0, 'impact'); await c.wait(80);
-        c.squash('contact', .90); c.to('backAngle', c.goal('backAngle') - 3, 'swing'); await c.wait(220);
+        contact(c, 'contact', .90); c.to('backAngle', c.goal('backAngle') - 3, 'swing'); await c.wait(220);
       }},
       revisit: {label: '留待再看', async run(c) {
         c.to('frontX', -5, 'gentle'); c.to('tilt', -5, 'gentle'); await c.wait(230);
@@ -221,21 +241,21 @@
       attr(p.leaf, 'opacity', clamp01(s.leafOpacity) * opening);
     },
     actions: {
-      tap: {label: '轻触词本', run: c => c.nudge('bodyAngle', -3)},
+      tap: {label: '轻触词本', run: c => preview(c, 'bodyAngle', -3)},
       peek: {label: '展开词本', pose: 'open', from: 'idle', async run(c) {
         c.to('opening', 1, 'gentle'); c.to('bodyAngle', 2, 'snap');
         await c.wait(85);
-        c.to('bodyAngle', -2, 'pop'); await c.wait(260);
+        c.to('bodyAngle', -2, 'gentle'); await c.wait(260);
       }},
       select: {label: '选中词本', pose: 'selected', async run(c) {
         c.to('opening', 1, 'gentle'); c.to('bodyAngle', 3, 'snap');
         await c.wait(90);
-        c.to('bodyAngle', -2, 'pop'); await c.wait(260);
+        c.to('bodyAngle', -2, 'gentle'); await c.wait(260);
       }},
       close: {label: '合上词本', pose: 'idle', from: 'open', async run(c) {
         c.to('opening', 0, 'gentle'); c.to('bodyAngle', -2, 'snap');
         await c.wait(85);
-        c.to('bodyAngle', 0, 'pop'); await c.wait(260);
+        c.to('bodyAngle', 0, 'gentle'); await c.wait(260);
       }},
       turn: {label: '翻过一页', pose: 'open', from: 'open', async run(c) {
         c.to('leafOpacity', 1, 'fade'); c.to('leaf', .12, 'snap'); await c.wait(70);
@@ -258,10 +278,10 @@
       attr(p.answer, 'opacity', clamp01((opening-.2)/.8));
     },
     actions: {
-      tap: {label: '轻触回忆卡', run: c => c.nudge('tilt', -3)},
+      tap: {label: '轻触回忆卡', run: c => preview(c, 'tilt', -3)},
       reveal: {label: '展开答案', pose: 'revealed', from: 'idle', async run(c) {
         c.to('cardY', 3, 'snap'); await c.wait(90);
-        c.to('opening', 1, 'gentle'); c.to('cardY', -2, 'pop'); await c.wait(260);
+        c.to('opening', 1, 'gentle'); c.to('cardY', -2, 'gentle'); await c.wait(260);
       }},
       close: {label: '收起答案', pose: 'idle', from: 'revealed', async run(c) {
         c.to('opening', 0, 'gentle'); await c.wait(240);
@@ -271,11 +291,11 @@
         c.to('cardX', 48, 'snap'); c.to('cardY', -6, 'gentle');
         c.to('opacity', 0, 'fade'); await c.wait(130);
         c.set({cardX: -36, cardY: 0, opening: 0, opacity: 0});
-        c.to('opacity', 1, 'fade'); c.to('cardX', 0, 'pop'); await c.wait(180);
+        c.to('opacity', 1, 'fade'); c.to('cardX', 0, 'gentle'); await c.wait(180);
       }},
       retry: {label: '留待重温', pose: 'idle', from: 'revealed', async run(c) {
         c.to('cardY', -4, 'gentle'); c.to('tilt', -6, 'gentle'); await c.wait(180);
-        c.to('opening', 0, 'gentle'); c.to('tilt', 0, 'pop'); await c.wait(180);
+        c.to('opening', 0, 'gentle'); c.to('tilt', 0, 'gentle'); await c.wait(180);
       }}
     }
   });
@@ -292,11 +312,11 @@
       dash(p.check, 24, s.check);
     },
     actions: {
-      tap: {label: '轻触整轮词本', run: c => c.nudge('pageAngle', 3)},
+      tap: {label: '轻触整轮词本', run: c => preview(c, 'pageAngle', 3)},
       complete: {label: '背完一轮', pose: 'complete', from: 'idle', async run(c) {
         c.to('pageY', -8, 'snap'); await c.wait(100);
         c.to('pageY', 0, 'impact'); c.to('pageAngle', 0, 'gentle'); await c.wait(100);
-        c.squash('contact', .92); c.to('sealOpacity', 1, 'fade'); c.to('sealScale', 1, 'pop');
+        contact(c, 'contact', .92); c.to('sealOpacity', 1, 'fade'); c.to('sealScale', 1, 'gentle');
         await c.wait(85); c.to('check', 1, 'draw'); await c.wait(240);
       }},
       restart: {label: '开始新一轮', pose: 'idle', from: 'complete', async run(c) {
@@ -320,9 +340,9 @@
     c.to('vy', 1 - .48 * k, 'snap');
     c.to('hx', 1 + .42 * k, 'snap');
     await c.wait(90);
-    c.to('vy', 1 + .32 * k, 'pop');
+    c.to('vy', 1 + .32 * k, 'gentle');
     await c.wait(40);
-    c.to('hx', 1 - .18 * k, 'pop');
+    c.to('hx', 1 - .18 * k, 'gentle');
     await c.wait(100);
     c.to('vy', 1, 'settle');
     c.to('hx', 1, 'settle');
@@ -352,19 +372,19 @@
       }},
       reject: {label: '没加上', async run(c) {
         c.to('vy', .5, 'impact'); c.to('hx', 1.28, 'snap'); await c.wait(80);
-        c.to('vy', 1.18, 'rebound'); await c.wait(40);
-        c.to('hx', .86, 'pop'); await c.wait(80);
+        c.to('vy', 1.18, 'settle'); await c.wait(40);
+        c.to('hx', .86, 'gentle'); await c.wait(80);
         c.to('vy', 1, 'settle'); c.to('hx', 1, 'settle'); await c.wait(150);
       }},
       reset: {label: '回到加号', pose: 'idle', from: 'confirmed', async run(c) {
         c.to('bend', 0, 'gentle'); c.to('turn', 0, 'gentle'); await c.wait(150);
-        c.to('vy', 1.08, 'pop'); await c.wait(30);
-        c.to('hx', .97, 'pop'); await c.wait(80);
+        c.to('vy', 1.08, 'gentle'); await c.wait(30);
+        c.to('hx', .97, 'gentle'); await c.wait(80);
         c.to('vy', 1, 'settle'); c.to('hx', 1, 'settle'); await c.wait(140);
       }},
       toClose: {label: '变成关闭', pose: 'closed', from: 'idle', async run(c) {
         c.to('turn', -8, 'snap'); c.to('bend', 0, 'gentle'); await c.wait(70);
-        c.to('turn', 45, 'pop'); await c.wait(220);
+        c.to('turn', 45, 'gentle'); await c.wait(220);
       }}
     }
   });
@@ -409,7 +429,7 @@
   const BODY_BASE = catPt(511, 551);
   const lidSpring = {stiffness: 1400, damping: 50};
   const shut = (c, v = .06) => { c.to('blinkL', v, lidSpring); c.to('blinkR', v, lidSpring); };
-  const open = c => { c.to('blinkL', 1, 'pop'); c.to('blinkR', 1, 'pop'); };
+  const open = c => { c.to('blinkL', 1, 'snap'); c.to('blinkR', 1, 'snap'); };
   const ease = t => 1 - Math.pow(1 - Math.min(1, t / .4), 3);
   const blinkAt = (t, period) => 1 - .94 * Math.exp(-Math.pow(((t % period) - (period - .25)) / .05, 2));
 
@@ -438,7 +458,7 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
       joy: 0, flat: 0, cross: 0, cry: 0, talk: 0, grin: 0, frown: 0, soft: 0, blush: 0, earL: 0, earR: 0, tail: 0, whisk: 1},
     poses: {idle: {}, selected: {bodyY: -1.5, earL: 4, earR: 4, tail: -8}},
     render(s, p) {
-      const sx = 1 + (1 - s.squash) * .5;
+      const sx = 1 / Math.max(.5, s.squash);
       attr(p.cat, 'transform', `translate(0 ${s.bodyY}) rotate(${s.tilt} ${PIVOT.head}) ${aroundXY(sx, s.squash, ...BODY_BASE)}`);
       attr(p.earL, 'transform', `rotate(${s.earL} ${PIVOT.earL})`);
       attr(p.earR, 'transform', `rotate(${-s.earR} ${PIVOT.earR})`);
@@ -471,70 +491,70 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
     actions: {
       tap: {label: '轻触', async run(c) {
         c.to('squash', .9, 'snap'); c.to('bodyY', c.goal('bodyY') + 2, 'snap'); shut(c); await c.wait(70);
-        open(c); c.to('squash', 1.04, 'pop'); c.to('bodyY', c.goal('bodyY') - 3, 'pop');
-        c.to('earL', c.goal('earL') + 8, 'pop'); c.to('earR', c.goal('earR') + 8, 'pop');
-        c.to('whisk', 1.12, 'pop'); await c.wait(120);
+        open(c); c.to('squash', 1.04, 'gentle'); c.to('bodyY', c.goal('bodyY') - 3, 'gentle');
+        c.to('earL', c.goal('earL') + 8, 'gentle'); c.to('earR', c.goal('earR') + 8, 'gentle');
+        c.to('whisk', 1.12, 'gentle'); await c.wait(120);
       }},
       peek: {label: '看过来', async run(c) {
         c.to('gazeX', 8, 'snap'); c.to('earL', c.goal('earL') + 16, 'snap');
         c.to('tilt', -6, 'snap'); c.to('tail', c.goal('tail') - 24, 'snap'); await c.wait(90);
         shut(c, .1); await c.wait(70);
-        open(c); c.to('gazeX', 3, 'pop'); await c.wait(140);
+        open(c); c.to('gazeX', 3, 'gentle'); await c.wait(140);
       }},
       select: {label: '醒过来', pose: 'selected', from: 'idle', async run(c) {
         c.to('bodyY', 3, 'snap'); c.to('squash', .93, 'snap'); shut(c);
         c.to('earL', -4, 'snap'); c.to('earR', -4, 'snap'); await c.wait(80);
-        open(c); c.to('squash', 1.05, 'pop'); c.to('bodyY', -5, 'pop');
-        c.to('earL', 12, 'pop'); c.to('earR', 12, 'pop'); c.to('tail', -16, 'pop');
-        c.to('whisk', 1.16, 'pop'); c.to('grin', .35, 'pop'); await c.wait(160);
+        open(c); c.to('squash', 1.05, 'gentle'); c.to('bodyY', -5, 'gentle');
+        c.to('earL', 12, 'gentle'); c.to('earR', 12, 'gentle'); c.to('tail', -16, 'gentle');
+        c.to('whisk', 1.16, 'gentle'); c.to('grin', .35, 'gentle'); await c.wait(160);
         c.to('squash', 1, 'gentle'); c.to('bodyY', -1.5, 'gentle'); c.to('earL', 4, 'gentle');
         c.to('earR', 4, 'gentle'); c.to('tail', -8, 'gentle'); c.to('whisk', 1, 'gentle');
         c.to('grin', 0, 'gentle'); await c.wait(200);
       }},
       reply: {label: '点头', async run(c) {
         c.to('tilt', 5, 'snap'); shut(c, .1); c.to('bodyY', c.goal('bodyY') + 3, 'impact'); await c.wait(80);
-        open(c); c.to('tilt', -2, 'pop'); c.to('bodyY', c.goal('bodyY') - 2, 'rebound');
-        c.to('talk', .35, 'pop'); await c.wait(110);
+        open(c); c.to('tilt', -2, 'gentle'); c.to('bodyY', c.goal('bodyY') - 2, 'settle');
+        c.to('talk', .35, 'gentle'); await c.wait(110);
         c.to('talk', 0, 'gentle'); await c.wait(120);
       }},
       blink: {label: '眨眼', async run(c) {
         c.to('bodyY', c.goal('bodyY') + 4, 'snap');
         c.to('earL', c.goal('earL') - 12, 'snap'); c.to('earR', c.goal('earR') - 12, 'snap');
         shut(c); await c.wait(160);
-        open(c); c.to('bodyY', c.goal('bodyY') - 3, 'pop');
-        c.to('earL', c.goal('earL'), 'pop'); c.to('earR', c.goal('earR'), 'pop'); await c.wait(110);
+        open(c); c.to('bodyY', c.goal('bodyY') - 3, 'gentle');
+        c.to('earL', c.goal('earL'), 'gentle'); c.to('earR', c.goal('earR'), 'gentle'); await c.wait(110);
       }},
       wink: {label: '眨一只眼', async run(c) {
-        c.to('blinkR', .06, lidSpring); c.to('tilt', -4, 'snap'); c.to('grin', .5, 'pop');
+        c.to('blinkR', .06, lidSpring); c.to('tilt', -4, 'snap'); c.to('grin', .5, 'gentle');
         c.to('earR', c.goal('earR') - 5, 'snap'); await c.wait(220);
-        c.to('blinkR', 1, 'pop'); await c.wait(120);
+        c.to('blinkR', 1, 'snap'); await c.wait(120);
       }},
       happy: {label: '开心 ^_^', async run(c) {
         c.to('squash', .78, 'snap'); c.to('bodyY', c.goal('bodyY') + 6, 'snap');
-        c.to('joy', 1, {stiffness: 700, damping: 40}); c.to('soft', 1, 'pop'); await c.wait(80);
-        c.to('squash', .98, 'pop'); c.to('bodyY', c.goal('bodyY') - 14, 'pop');
-        c.to('blush', 1, 'fade'); c.to('earL', 18, 'pop'); c.to('earR', 18, 'pop'); c.to('whisk', 1.28, 'pop');
+        c.to('joy', 1, {stiffness: 700, damping: 40}); c.to('soft', 1, 'gentle'); await c.wait(80);
+        c.to('squash', .98, 'gentle'); c.to('bodyY', c.goal('bodyY') - 14, 'gentle');
+        c.to('blush', 1, 'fade'); c.to('earL', 18, 'gentle'); c.to('earR', 18, 'gentle'); c.to('whisk', 1.28, 'gentle');
         c.to('tail', 28, 'snap'); await c.wait(100);
         c.to('squash', .7, 'impact'); c.to('bodyY', c.goal('bodyY') + 4, 'impact'); c.to('tail', -26, 'snap'); await c.wait(90);
-        c.to('squash', 1.08, 'pop'); c.to('bodyY', c.goal('bodyY') - 6, 'rebound'); c.to('tail', 12, 'pop'); await c.wait(80);
+        c.to('squash', 1.08, 'gentle'); c.to('bodyY', c.goal('bodyY') - 6, 'settle'); c.to('tail', 12, 'gentle'); await c.wait(80);
         c.to('bodyY', c.goal('bodyY'), 'settle'); c.to('squash', 1, 'settle'); c.to('tail', c.goal('tail'), 'gentle');
         await c.wait(240);
       }},
       squeeze: {label: '>_<', async run(c) {
         c.to('cross', 1, 'snap'); c.to('squash', .82, 'impact'); c.to('bodyY', c.goal('bodyY') + 3, 'impact');
-        c.to('blush', 1, 'fade'); c.to('soft', 1, 'pop'); c.to('earL', -10, 'snap'); c.to('earR', -10, 'snap');
-        c.to('whisk', 1.3, 'pop'); await c.wait(90);
+        c.to('blush', 1, 'fade'); c.to('soft', 1, 'gentle'); c.to('earL', -10, 'snap'); c.to('earR', -10, 'snap');
+        c.to('whisk', 1.3, 'gentle'); await c.wait(90);
         c.to('tilt', 6, 'snap'); await c.wait(60);
         c.to('tilt', -6, 'snap'); c.to('squash', .78, 'snap'); await c.wait(70);
-        c.to('tilt', 0, 'pop'); c.to('squash', 1.06, 'pop'); c.to('bodyY', c.goal('bodyY') - 4, 'pop'); await c.wait(200);
+        c.to('tilt', 0, 'gentle'); c.to('squash', 1.06, 'gentle'); c.to('bodyY', c.goal('bodyY') - 4, 'gentle'); await c.wait(200);
       }},
       surprised: {label: '惊讶 O_O', async run(c) {
         c.to('squash', 1.02, 'snap'); c.to('bodyY', c.goal('bodyY') + 1, 'snap'); await c.wait(50);
-        c.to('earL', 16, 'snap'); c.to('earR', 16, 'snap'); c.to('eyeScale', 1.55, 'pop');
-        c.to('talk', 1, 'pop'); c.to('whisk', 1.3, 'pop'); c.to('bodyY', c.goal('bodyY') - 7, 'pop');
-        c.to('squash', 1.08, 'pop'); c.to('tail', -20, 'snap'); await c.wait(140);
+        c.to('earL', 16, 'snap'); c.to('earR', 16, 'snap'); c.to('eyeScale', 1.55, 'gentle');
+        c.to('talk', 1, 'gentle'); c.to('whisk', 1.3, 'gentle'); c.to('bodyY', c.goal('bodyY') - 7, 'gentle');
+        c.to('squash', 1.08, 'gentle'); c.to('tail', -20, 'snap'); await c.wait(140);
         c.to('bodyY', c.goal('bodyY') + 2, 'impact'); c.to('squash', .94, 'impact'); await c.wait(70);
-        c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'settle'); await c.wait(280);
+        c.to('bodyY', c.goal('bodyY'), 'settle'); c.to('squash', 1, 'settle'); await c.wait(280);
       }},
       curious: {label: '歪头', async run(c) {
         c.to('tilt', -9, 'gentle'); c.to('earL', -7, 'gentle'); c.to('earR', 11, 'snap');
@@ -547,7 +567,7 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
         c.to('gazeY', 1.6, 'gentle'); c.to('tilt', 7, 'gentle'); c.to('squash', .95, 'gentle');
         c.to('earL', -6, 'gentle'); c.to('earR', -6, 'gentle'); c.to('bodyY', c.goal('bodyY') + 1, 'gentle');
         await c.wait(160);
-        c.to('tilt', -4, 'pop'); await c.wait(280);
+        c.to('tilt', -4, 'gentle'); await c.wait(280);
       }},
       blank: {label: '-_-', async run(c) {
         c.to('flat', 1, 'snap'); c.to('earL', -6, 'gentle'); c.to('earR', -6, 'gentle');
@@ -564,7 +584,7 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
       wiggle: {label: '扭一扭', async run(c) {
         c.to('squash', .9, 'snap'); c.to('joy', .7, 'snap'); c.to('tail', 12, 'snap'); await c.wait(60);
         for (const angle of [-8, 9, -7, 6, -3]) {
-          c.to('tilt', angle, 'snap'); c.to('tail', -angle * 1.6, 'pop'); await c.wait(65);
+          c.to('tilt', angle, 'snap'); c.to('tail', -angle * 1.6, 'gentle'); await c.wait(65);
         }
         c.to('squash', 1, 'settle'); await c.wait(140);
       }},
@@ -572,26 +592,26 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
         c.to('squash', .8, 'snap'); c.to('bodyY', c.goal('bodyY') + 4, 'snap');
         c.to('cross', 1, 'snap'); c.to('tail', 14, 'snap'); c.to('earL', -6, 'snap'); c.to('earR', -6, 'snap');
         await c.wait(90);
-        c.to('cross', 0, 'fade'); c.to('joy', 1, 'snap'); c.to('squash', 1.1, 'pop');
-        c.to('bodyY', c.goal('bodyY') - 9, 'pop'); c.to('earL', 16, 'pop'); c.to('earR', 16, 'pop');
+        c.to('cross', 0, 'fade'); c.to('joy', 1, 'snap'); c.to('squash', 1.1, 'gentle');
+        c.to('bodyY', c.goal('bodyY') - 9, 'gentle'); c.to('earL', 16, 'gentle'); c.to('earR', 16, 'gentle');
         c.to('tail', -18, 'snap'); await c.wait(110);
         c.to('bodyY', c.goal('bodyY') + 3, 'impact'); c.to('squash', .86, 'impact'); c.to('joy', 0, 'fade');
         await c.wait(70);
-        c.to('bodyY', c.goal('bodyY'), 'rebound'); c.to('squash', 1, 'rebound'); c.to('tail', c.goal('tail'), 'gentle');
+        c.to('bodyY', c.goal('bodyY'), 'settle'); c.to('squash', 1, 'settle'); c.to('tail', c.goal('tail'), 'gentle');
         await c.wait(180);
       }},
       wag: {label: '摇尾巴', async run(c) {
         const flick = {stiffness: 1100, damping: 34};
         for (const angle of [34, -30, 22]) {
           c.to('tail', angle, flick);
-          c.to('tilt', angle * -.2, 'pop');
+          c.to('tilt', angle * -.2, 'gentle');
           await c.wait(150);
         }
       }},
       ears: {label: '动耳朵', async run(c) {
         c.to('earR', c.goal('earR') + 24, 'snap'); c.to('earL', c.goal('earL') - 8, 'snap'); await c.wait(70);
-        c.to('earL', c.goal('earL') + 22, 'snap'); c.to('earR', c.goal('earR') - 6, 'pop'); await c.wait(70);
-        c.to('earR', c.goal('earR') + 10, 'pop'); c.to('earL', c.goal('earL') + 6, 'pop'); await c.wait(120);
+        c.to('earL', c.goal('earL') + 22, 'snap'); c.to('earR', c.goal('earR') - 6, 'gentle'); await c.wait(70);
+        c.to('earR', c.goal('earR') + 10, 'gentle'); c.to('earL', c.goal('earL') + 6, 'gentle'); await c.wait(120);
       }},
       talking: {label: '说话', loop: true, run(c) {
         c.claim('talk', 'blinkL', 'blinkR', 'bodyY');
@@ -642,14 +662,14 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
     actions: {
       tap: {label: '轻触旋钮', async run(c) {
         c.to('press', .68, 'snap'); c.to('thumb', .12, 'snap'); await c.wait(80);
-        c.to('press', 1, 'pop'); c.to('dialScale', 1.1, 'pop'); c.to('thumb', c.goal('thumb'), 'rebound'); await c.wait(110);
+        c.to('press', 1, 'gentle'); c.to('dialScale', 1.1, 'gentle'); c.to('thumb', c.goal('thumb'), 'settle'); await c.wait(110);
       }},
       peek: {label: '旋钮预览', async run(c) {
         c.to('thumb', c.goal('thumb') + .42, 'snap'); c.to('angle', c.goal('angle') + 24, 'snap'); await c.wait(200);
       }},
       select: {label: '调到设置', pose: 'selected', async run(c) {
         c.to('thumb', -.08, 'snap'); c.to('angle', -14, 'snap'); c.to('press', .8, 'snap'); await c.wait(80);
-        c.to('thumb', 1.06, 'pop'); c.to('angle', 52, 'pop'); c.to('press', 1, 'pop'); c.to('dialScale', 1.08, 'pop');
+        c.to('thumb', 1.06, 'gentle'); c.to('angle', 52, 'gentle'); c.to('press', 1, 'gentle'); c.to('dialScale', 1.08, 'gentle');
         await c.wait(180);
         c.to('thumb', 1, 'settle'); await c.wait(120);
       }},
@@ -674,7 +694,7 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
       tap: {label: '轻触句页', async run(c) {
         c.to('penOpacity', 1, 'fade'); c.to('penX', -6, 'snap'); c.to('penY', -22, 'snap'); await c.wait(70);
         c.to('penY', -6, 'impact'); c.to('inkC', .35, 'snap'); await c.wait(90);
-        c.to('penY', -14, 'rebound'); await c.wait(110);
+        c.to('penY', -14, 'settle'); await c.wait(110);
       }},
       peek: {label: '展开句子', async run(c) {
         c.to('penOpacity', 1, 'fade'); c.to('penX', -22, 'snap'); c.to('penY', -36, 'snap'); await c.wait(80);
@@ -682,7 +702,7 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
       }},
       select: {label: '阅读句子', pose: 'selected', async run(c) {
         c.to('penOpacity', 1, 'fade'); c.to('penY', -24, 'snap'); c.to('penX', 4, 'snap'); await c.wait(70);
-        c.to('penY', -10, 'impact'); c.to('penX', -12, 'pop'); c.to('inkC', .32, 'draw'); await c.wait(200);
+        c.to('penY', -10, 'impact'); c.to('penX', -12, 'gentle'); c.to('inkC', .32, 'draw'); await c.wait(200);
       }},
       writing: {label: '写下例句', loop: true, run(c) {
         c.claim('penX', 'penY'); c.to('penOpacity', 1, 'fade');
@@ -696,7 +716,7 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
       }},
       fail: {label: '笔尖停住', async run(c) {
         c.error(); c.to('penOpacity', 1, 'fade'); c.to('penY', 4, 'impact'); await c.wait(100);
-        c.to('penY', -3, 'rebound'); await c.shake();
+        c.to('penY', -3, 'settle'); await c.shake();
         await c.wait(c.timing.holdFail); c.to('penOpacity', 0, 'fade');
       }}
     },
@@ -713,13 +733,13 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
       attr(p.tag, 'transform', aroundXY(1, s.tagHeight, 85, 25));
     },
     actions: {
-      tap: {label: '轻触情景', run: c => c.nudge('frameAngle', -3)},
+      tap: {label: '轻触情景', run: c => preview(c, 'frameAngle', -3)},
       peek: {label: '看向情景', async run(c) {
         c.to('landX', 3, 'gentle'); c.to('frameAngle', -3, 'gentle'); await c.wait(230);
       }},
       select: {label: '记下情景', pose: 'selected', async run(c) {
         c.to('tagHeight', .45, 'snap'); c.to('landX', 6, 'snap'); await c.wait(70);
-        c.to('tagHeight', 1.85, 'pop'); c.to('landX', -14, 'pop'); c.to('frameAngle', -7, 'pop'); await c.wait(180);
+        c.to('tagHeight', 1.85, 'gentle'); c.to('landX', -14, 'gentle'); c.to('frameAngle', -7, 'gentle'); await c.wait(180);
         c.to('tagHeight', 1.7, 'settle'); c.to('landX', -12, 'settle'); c.to('frameAngle', -6, 'settle'); await c.wait(140);
       }},
       imagining: {label: '构思情景', loop: true, run(c) {
@@ -727,7 +747,7 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
       }},
       bind: {label: '情景入册', pose: 'selected', async run(c) {
         c.to('frameAngle', 4, 'snap'); await c.wait(100);
-        c.to('frameAngle', -3, 'pop'); c.to('tagHeight', 1, 'pop'); await c.wait(240);
+        c.to('frameAngle', -3, 'gentle'); c.to('tagHeight', 1, 'gentle'); await c.wait(240);
       }},
       fail: {label: '画面搁置', async run(c) {
         c.error(); c.to('frameAngle', -5, 'snap'); await c.shake(); await c.wait(c.timing.holdFail);
@@ -742,7 +762,7 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
     poses: {idle: {}, selected: {angle: -3}},
     render(s, p) { attr(p.pen, 'transform', `translate(${s.penX} ${s.penY}) rotate(${s.angle} 43 85)`); },
     actions: {
-      tap: {label: '轻触笔尖', run: c => c.nudge('penY', -4)},
+      tap: {label: '轻触笔尖', run: c => preview(c, 'penY', -4)},
       peek: {label: '执笔待写', async run(c) { c.to('angle', c.goal('angle') - 5, 'gentle'); await c.wait(200); }},
       select: {label: '准备落笔', pose: 'selected', async run(c) {
         c.to('penY', -4, 'snap'); await c.wait(100); c.to('penY', 0, 'impact'); await c.wait(210);
@@ -768,7 +788,7 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
     actions: {
       tap: {label: '轻触话筒', async run(c) {
         c.to('capsuleY', 5, 'snap'); await c.wait(70);
-        c.to('capsuleY', c.goal('capsuleY') - 6, 'pop'); c.to('waveAlpha', Math.min(1, c.goal('waveAlpha') + .45), 'fade');
+        c.to('capsuleY', c.goal('capsuleY') - 6, 'gentle'); c.to('waveAlpha', Math.min(1, c.goal('waveAlpha') + .45), 'fade');
         await c.wait(120);
       }},
       peek: {label: '轻声回应', async run(c) {
@@ -776,7 +796,7 @@ ${weigh(INK.mouth, `<path data-part="mouth" d="${mouthBase}"/>`)}
       }},
       select: {label: '开始表达', pose: 'selected', async run(c) {
         c.to('capsuleY', 6, 'snap'); c.to('waveAlpha', 0, 'fade'); await c.wait(80);
-        c.to('capsuleY', -3, 'pop'); c.to('waveAlpha', 1, 'fade'); await c.wait(220);
+        c.to('capsuleY', -3, 'gentle'); c.to('waveAlpha', 1, 'fade'); await c.wait(220);
       }},
       speaking: {label: '正在表达', loop: true, run(c) {
         c.claim('waveAlpha', 'capsuleY');
