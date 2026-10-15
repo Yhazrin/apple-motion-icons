@@ -19,6 +19,7 @@ const LAYERS = [
   'motion-icons-refinements.js',
   'motion-icons-semantics.js',
   'motion-icons-signature.js',
+  'motion-icons-geometric.js',
   'motion-icon-element.js'
 ];
 

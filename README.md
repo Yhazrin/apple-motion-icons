@@ -5,10 +5,12 @@ object. A Codex / Cursor skill and a dependency-free browser library.
 
 **[Live gallery →](https://skills.yhazrin.xyz/motion-icons/)** — play every icon action, search by use, change size and appearance. The gallery follows the public `main` branch; published changes are checked about every five minutes.
 
-**87 subjects:** 13 general-purpose icons, 14 learning, capture and navigation
-icons, and 60 catalog icons (system, status, files, communication, security and
-AI). Hover, selection, lookup, card insertion, recall, page-turning, writing and
-scene binding have their own movements. Motion stops when the object is at rest.
+**[Continuous morph example →](examples/continuous-morph.html)** — scrub Add and Library through the same production geometry; [construction rules](reference/continuous-morph.md).
+
+**95 subjects:** 13 general-purpose icons, 14 learning, capture and navigation
+icons, 60 catalog icons, and 8 looping loaders (radial ticks, typing dots, a
+comet, equalizer bars, a figure-eight, a tumbling tile, a 3×3 dot matrix and a
+sphere of dots). Motion stops when the object is at rest.
 
 ![Workflow examples](examples/workflows-preview.jpg)
 

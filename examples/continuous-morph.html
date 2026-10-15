@@ -1,0 +1,26 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>连续变形 · Add / Library</title>
+<style>
+:root{color-scheme:light;--bg:#f2f1ed;--surface:#fbfbf9;--ink:#262824;--muted:#767b72;--line:#26282416}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 -apple-system,BlinkMacSystemFont,system-ui,sans-serif}main{max-width:940px;padding:28px 20px 48px;margin:auto}header{display:flex;align-items:center;justify-content:space-between;gap:12px}h1{font-size:25px;letter-spacing:-.7px;margin:0}h2{font-size:14px;margin:0 0 12px}p{color:var(--muted);font-size:12px;margin:8px 0 18px}.live{display:grid;grid-template-columns:1fr 1fr;gap:12px}.stage,.frame{background:var(--surface);border-radius:18px;text-align:center;padding:16px 8px}.glyph{display:flex;align-items:center;justify-content:center;min-height:105px;gap:12px}.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0}input[type=range]{flex:1;min-width:100px;accent-color:var(--ink)}output{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;min-width:35px}button,a{font:inherit;color:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:7px 12px}button:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:3px}a{font-size:12px;text-decoration:none}.frames{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0 22px}.frame{padding:10px 2px;border-radius:13px}.frame .glyph{min-height:62px}.label{font-size:11px;color:var(--muted)}.mi{transition:none!important}@media(max-width:480px){.frame .mi{--mi-size:38px!important}.frames{gap:5px}}:root.dark{color-scheme:dark;--bg:#191c1a;--surface:#242824;--ink:#eff1eb;--muted:#a6ada0;--line:#ffffff18}
+</style>
+<main><header><h1>连续变形</h1><button id="theme" aria-label="切换深浅色">◐</button></header><p>同一套真实配方。拖动进度，观察线段、圆角、遮挡如何接续。</p>
+<div class="live"><section class="stage"><h2>Add</h2><div class="glyph" id="add"></div></section><section class="stage"><h2>Library</h2><div class="glyph" id="book"></div></section></div>
+<div class="controls"><button id="open">展开</button><button id="close">收回</button><input id="progress" aria-label="变形进度" type="range" min="0" max="100" step="1" value="0"><output id="value">0%</output></div>
+<h2>Add · 相切的圆角</h2><div class="frames" id="add-frames"></div><h2>Library · 不靠淡入淡出</h2><div class="frames" id="book-frames"></div>
+<a href="../assets/gallery.html">完整图标库 ↗</a>　<a href="../reference/continuous-morph.md">构造规则 ↗</a>
+</main>
+<script src="../assets/motion-icons.js"></script><script src="../assets/motion-icons-recipes.js"></script><script src="../assets/motion-icons-learning.js"></script><script src="../assets/motion-icons-catalog.js"></script><script src="../assets/motion-icons-refinements.js"></script><script src="../assets/motion-icons-semantics.js"></script><script src="../assets/motion-icons-signature.js"></script><script src="../assets/motion-icons-geometric.js?v=20261015h"></script>
+<script>
+(()=>{
+ const icons=['plus','book'].map((name,i)=>MotionIcon.create(document.querySelector(i?'#book':'#add'),name,{size:88,pose:'idle'}));
+ const progress=document.querySelector('#progress'),value=document.querySelector('#value');
+ progress.oninput=()=>{value.textContent=progress.value+'%';icons.forEach(icon=>icon.drive('unfold',Number(progress.value)/100));};
+ document.querySelector('#open').onclick=()=>{progress.value=100;value.textContent='100%';icons.forEach(icon=>icon.play('peek'));};
+ document.querySelector('#close').onclick=()=>{progress.value=0;value.textContent='0%';icons.forEach(icon=>icon.setPose('idle'));};
+ document.querySelector('#theme').onclick=()=>document.documentElement.classList.toggle('dark');
+ for(const [name,id]of [['plus','add-frames'],['book','book-frames']])for(const t of [0,.25,.5,.75,1]){
+  const frame=document.createElement('div');frame.className='frame';frame.dataset.progress=t;
+  frame.innerHTML='<div class="glyph"></div><div class="label">'+Math.round(t*100)+'%</div>';document.getElementById(id).append(frame);
+  const icon=MotionIcon.create(frame.querySelector('.glyph'),name,{size:56,pose:'idle'});icon.drive('unfold',t);
+ }
+})();
+</script></html>

@@ -46,10 +46,11 @@ Explore the [live icon gallery](https://skills.yhazrin.xyz/motion-icons/) for vi
 
 1. For the complete current library, use the single-file build
    (`node scripts/build.mjs` → `dist/motion-icons.js` / `.mjs`, which also
-   registers `<motion-icon>`), or copy the seven runtime files in order:
+   registers `<motion-icon>`), or copy the eight runtime files in order:
    `motion-icons.js`, `motion-icons-recipes.js`, `motion-icons-learning.js`,
    `motion-icons-catalog.js`, `motion-icons-refinements.js`,
-   `motion-icons-semantics.js`, `motion-icons-signature.js`. The last three
+   `motion-icons-semantics.js`, `motion-icons-signature.js`,
+   `motion-icons-geometric.js`. The final layers
    carry the colour, occlusion and Apple spring rules. Put project recipes after
    them; `MotionIcon.define` still routes them through the contract.
 2. Use it:
@@ -146,6 +147,26 @@ Custom springs: `MotionIcon.apple.spring(response, dampingFraction)`.
 Timing: taps ≤ 250 ms, most actions 250–600 ms of visible motion, a
 confirmation holds 900 ms (700 ms for errors). Task busy states show for at
 least 600 ms.
+
+## Continuous geometric transformations
+
+For an object changing shape, prefer a readable geometric cause: a hinge moves,
+a line bends, a page emerges from behind its cover. Do not replace that journey
+with an opacity cross-fade. Keep fading for secondary emphasis, semantic feedback
+or an actual appearance/disappearance; this is not a blanket ban on opacity.
+
+- Derive adjacent segments from shared anchors and tangent constraints; do not
+  independently interpolate every control point. Preserve tangent direction at
+  line/curve joins, and check the middle of the transformation, not just its ends.
+- Keep one reversible spring coordinate for coupled geometry. Rapid reversal
+  should retrace the same shape family without queued stages or replacement SVGs.
+- Respect actual occlusion with silhouette masks/clips that follow the final
+  geometry; never simulate opaque paper with a white background rectangle.
+- Preserve stroke weight and the approved rest/expanded silhouettes. Turn a short
+  line into a corner by changing its geometry or visible length, not fading it out.
+
+See [continuous-morph rules and the Add construction](reference/continuous-morph.md)
+and the [scrubbable Add / Library example](examples/continuous-morph.html).
 
 ## Visual rules
 
@@ -342,7 +363,7 @@ what shape/position/label still explains that state without colour?
 
 ## One-click review export
 
-Use **导出审阅 ZIP** in the live gallery. It samples all 87 subjects and their public semantic actions, regardless
+Use **导出审阅 ZIP** in the live gallery. It samples every registered subject and its public semantic actions, regardless
 of the current filter/search, using the same virtual 120 Hz clock as the frame
 board. The export keeps the chosen light/dark appearance. Generation runs in an
 isolated hidden frame; it does not mutate the user's visible icon selection.
@@ -420,8 +441,12 @@ single-file build already does). It is the final authority on motion feel:
   baseline, release with `bouncy`), `wiggle` (8°, −6°, 3°, then rest) and
   `breathe` (loop, ±5 % at 0.5 Hz). The effect state keys `fxX, fxY, fxRot,
   fxScale, fxSquash` are reserved. Catalog subjects use `bounce` as their tap.
-- Redraws 16 subjects that did not read at rest (see README). Their verb and pose
-  names are kept; new loops are `ai-generating.generating` and `ai-writing.typing`.
+- Adds eight looping loaders: `load-activity`, `load-typing`, `load-comet`,
+  `load-bars`, `load-infinity`, `load-tumble`, `load-matrix` and `load-sphere`.
+  Each has `idle` / `busy`,
+  a one-shot `start`, a `loading` loop and `finish`. Loops claim their phase
+  and write it directly. The geometric layer supplies the final exits: coast to
+  a saved phase rather than winding back to zero.
 
 When authoring under the contract: decide the one moment that deserves
 emphasis, use `bouncy` there and `smooth`/`snappy` everywhere else. Express
@@ -429,3 +454,27 @@ emphasis, use `bouncy` there and `smooth`/`snappy` everywhere else. Express
 flowing, a token that travels to its receiver), not with extra oscillation.
 [reference/apple-motion.md](reference/apple-motion.md) lists the vocabulary of
 each redrawn subject and the SwiftUI mapping.
+
+
+## Product navigation and geometric waiting (2026-10)
+
+Load `assets/motion-icons-geometric.js` **after** semantics/signature and before
+project-specific overrides. Include this layer in HTML hosts, frame capture pages
+and package builds; its source is shared with the Vord navigation integration.
+
+- `plus.peek`: four arms unfold into a new-space frame. Hover is not `tap`, wiggle,
+  or a rotation into the close symbol. Hold the `open` pose until pointer leave.
+- `book`: opaque geometric unfolding, one shared gutter, and a flexing page edge.
+  Never rock the whole book as a substitute for opening it.
+- `settings`: real segmented tracks and moving knobs; each track leaves a gap
+  around its thumb. `adjusting` and `selected` are stable parameter combinations.
+- Loading subjects use a single periodic phase plus a spring-driven activation
+  envelope. Value and first derivative must agree at the loop seam. No per-frame
+  DOM sorting, global squeeze, 3D wireframe transparency, or sawtooth opacity.
+- Distinguish phase/time from path distance: the infinity loader uses an arc-length
+  lookup table, so its tight turns do not create accidental speed surges.
+- Keep dots the same size; change spacing, phase, or meaningful stroke geometry.
+  Lower intensity at finish before returning to the idle pose. Honor reduced motion
+  and document visibility via the existing engine. Do not start a private rAF timer.
+
+See [the implementation notes](docs/GEOMETRIC-MOTION.md).

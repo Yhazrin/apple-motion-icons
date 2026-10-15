@@ -13,7 +13,7 @@
   'use strict';
   const M = root.MotionIcon;
   if (!M) throw new Error('motion-icons-signature.js must load after motion-icons.js');
-  const {clamp, clamp01, lerp, lerpPath, around, aroundXY, arc, wave} = M.util;
+  const {clamp, clamp01, lerp, lerpPath, around, aroundXY, arc, wave, polar} = M.util;
   const S = M.SPRINGS;
 
   // ---------------------------------------------------------------------------
@@ -232,7 +232,7 @@
   const BULB = [];
   for (let i = 0; i <= 20; i++) {
     const t = i / 20, u = 1 - t;
-    BULB.push([u * u * u * 38 + 3 * u * u * t * 38 + 3 * u * t * t * 57 + t * t * t * 57,
+    BULB.push([u * u * u * 38 + 3 * u * u * t * 38 + 3 * u * t * t * 46 + t * t * t * 46,
       u * u * u * 16 + 3 * u * u * t * 42 + 3 * u * t * t * 48 + t * t * t * 60]);
   }
   const bulbX = y => {
@@ -254,7 +254,7 @@
   const flowGrains = c => { c.claim('grain'); c.loop((t, dt) => { c.s.grain += 64 * dt; }); };
   M.define('hourglass', {
     svg: `<g data-part="glass"><path d="M32 16H88M32 104H88"/>
-<path d="M38 16C38 42 57 48 57 60C57 72 38 78 38 104M82 16C82 42 63 48 63 60C63 72 82 78 82 104"/>
+<path d="M38 16C38 42 46 48 46 60C46 72 38 78 38 104M82 16C82 42 74 48 74 60C74 72 82 78 82 104"/>
 <path data-part="top" data-fill/><path data-part="bottom" data-fill/><path data-part="stream" d="M60 60V96" stroke-dasharray="3 7"/></g>`,
     state: {sand: 1, flow: 0, grain: 0, turn: 0, sandOn: 1},
     poses: {ready: {}, running: {sand: 0.55, flow: 1}, finished: {sand: 0}},
@@ -604,15 +604,25 @@
   // ---------- secure-connection: a globe with a lock badge ----------
   const BADGE_GAP = 'M82 76H98Q110 76 110 88V100Q110 110 100 110H80Q70 110 70 100V88Q70 76 82 76Z'
     + 'M90 63A14 14 0 1 1 89.99 63Z';
+  // One elliptical arc of fixed radii. `turn` slides it along that ellipse
+  // (one lap per 180°), so the meridian never collapses to a vertical line.
+  const meridianArc = turn => {
+    const cx = 54, cy = 56, rx = 24, ry = 32;
+    const mid = (turn / 180) * Math.PI * 2;
+    const half = 80 * Math.PI / 180;
+    const at = a => [cx + rx * Math.cos(a), cy + ry * Math.sin(a)];
+    const [x0, y0] = at(mid - half), [x1, y1] = at(mid + half);
+    return `M${x0.toFixed(2)} ${y0.toFixed(2)}A${rx} ${ry} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+  };
   M.define('secure-connection', {
     svg: `<g data-part="world"><circle cx="54" cy="56" r="34"/><path d="M20 56H88"/>
-<ellipse data-part="meridian" cx="54" cy="56" rx="14" ry="34"/><path data-part="slash" d="M24 26L84 86"/></g>
+<path data-part="meridian"/><path data-part="slash" d="M24 26L84 86"/></g>
 <g data-part="lock"><path data-part="shackle" d="M82 82V77A8 8 0 0 1 98 77V82"/><rect data-part="body" x="76" y="82" width="28" height="21" rx="6"/></g>`,
     state: {turn: 0, lockOn: 1, lk: 1, shackle: 0, slash: 0, dim: 0, ok: 1},
     poses: {secured: {}, open: {shackle: 1, ok: 0}, lost: {lockOn: 0, lk: 0.6, shackle: 1, slash: 1, dim: 1, ok: 0}},
     periodic: {turn: 180},
     render(s, p) {
-      attr(p.meridian, 'rx', +(34 * Math.abs(Math.sin((24.3 + s.turn) * Math.PI / 180))).toFixed(2));
+      attr(p.meridian, 'd', meridianArc(s.turn));
       fade(p.world, 1 - 0.5 * clamp01(s.dim));
       drawOn(p.slash, s.slash);
       fade(knockout(p.world, BADGE_GAP), s.lockOn);
@@ -854,18 +864,20 @@
     }
   });
 
-  // ---------- key: a key that slides into a slot and turns over ----------
+  // ---------- key: a key that slides into a slot and turns in the plane ----------
   M.define('key', {
-    svg: `<g data-part="sheath"><g data-part="key"><ellipse data-part="bow" cx="32" cy="60" rx="17" ry="17"/>
-<path d="M49 60H92"/><path data-part="teeth"/></g></g><path data-part="slot"/>`,
+    svg: `<g data-part="sheath"><g data-part="key"><ellipse data-part="bow" cx="30" cy="60" rx="20" ry="20"/>
+<path d="M46 60H96"/><path data-part="teeth"/></g></g><path data-part="slot"/>`,
     state: {kx: 0, turn: 0, gap: 0, ok: 0},
     poses: {idle: {}, in: {kx: 14}, open: {kx: 14, turn: 180, gap: 1, ok: 1}},
     periodic: {turn: 360},
     render(s, p) {
-      const cos = Math.cos(s.turn * Math.PI / 180);
+      const rad = s.turn * Math.PI / 180, dx = Math.sin(rad), dy = Math.cos(rad);
+      const tooth = (x, len) => `M${x} 60L${(x + dx * len).toFixed(2)} ${(60 + dy * len).toFixed(2)}`;
       attr(p.key, 'transform', `translate(${s.kx} 0)`);
-      attr(p.bow, 'ry', +(17 * Math.max(0.1, Math.abs(cos))).toFixed(2));
-      attr(p.teeth, 'd', `M76 60V${(60 + 12 * cos).toFixed(2)}M86 60V${(60 + 8 * cos).toFixed(2)}`);
+      attr(p.bow, 'rx', 20);
+      attr(p.bow, 'ry', 20);
+      attr(p.teeth, 'd', tooth(66, 16) + tooth(88, 12));
       knockout(p.sheath, 'M103 0H140V120H103Z');
       const g = 4 * clamp01(s.gap);
       attr(p.slot, 'd', `M${103 - g} 44V76M${103 + g} 44V76`);
@@ -893,11 +905,15 @@
   });
 
   // ---------- filter: items drop in, one passes, the funnel fills as "on" ----------
-  const funnel = h => `M24 28H96L${(60 + h).toFixed(2)} 62V90L${(60 - h).toFixed(2)} 98V62Z`;
-  const DROP_X = [40, 60, 80];
+  // Neck stays wide enough that a 16px stroke cannot weld the two sides together.
+  const funnel = h => {
+    const half = Math.max(11, 14 + (h - 8));
+    return `M32 30H88L${(60 + half).toFixed(2)} 58V94H${(60 - half).toFixed(2)}V58Z`;
+  };
+  const DROP_X = [28, 60, 92];
   M.define('filter', {
     svg: `<path data-part="funnel" d="${funnel(8)}"/>`
-      + DROP_X.map((x, i) => `<circle data-part="d${i}" data-fill cx="${x}" cy="12" r="4.5"/>`).join(''),
+      + DROP_X.map((x, i) => `<circle data-part="d${i}" data-fill cx="${x}" cy="16" r="7"/>`).join(''),
     state: {neck: 8, on: 0, y0: 0, y1: 0, y2: 0, o0: 0, o1: 0, o2: 0},
     poses: {idle: {}, applied: {on: 1}},
     render(s, p) {
@@ -937,11 +953,403 @@
     }
   });
 
+  // ---------- folder: a tabbed pocket whose lip drops; a sheet peeks once filed ----------
+  M.define('folder', {
+    svg: `<path data-part="shell" d="M34 32H50L62 46H88Q100 46 100 58V88Q100 100 88 100H32Q20 100 20 88V44Q20 32 34 32Z"/>
+<g data-part="sheet"><rect x="38" y="50" width="46" height="42" rx="3"/><path d="M46 62H76M46 72H66"/></g>
+<path data-part="lip" d="M22 66H98"/>`,
+    state: {lip: 66, lipOn: 0, paperY: 0, paperOn: 0},
+    poses: {closed: {}, open: {lip: 86, lipOn: 1}, loaded: {lip: 66, lipOn: 1, paperOn: 1}},
+    render(s, p) {
+      attr(p.sheet, 'transform', `translate(0 ${s.paperY})`);
+      fade(p.sheet, s.paperOn);
+      knockout(p.sheet, `M16 ${s.lip}H104V120H16Z`);
+      attr(p.lip, 'd', `M22 ${s.lip.toFixed(2)}H98`);
+      fade(p.lip, s.lipOn);
+    },
+    actions: {
+      tap: tap(async c => {
+        c.to('lipOn', 1, 'quick');
+        c.to('lip', c.goal('lip') + 5, 'snappy');
+        await c.wait(120);
+        c.to('lip', c.goal('lip'), 'smooth');
+        c.to('lipOn', c.goal('lipOn'), 'smooth');
+        await c.wait(180);
+      }),
+      open: {label: '展开盖口', pose: 'open', from: 'closed', async run(c) {
+        c.to('lipOn', 1, 'quick');
+        c.to('lip', 60, 'quick');
+        await c.wait(70);
+        c.to('lip', 86, 'snappy');
+        await c.wait(220);
+      }},
+      close: {label: '合上盖口', pose: 'closed', from: 'open', async run(c) {
+        c.to('lip', 66, 'bouncy');
+        await c.wait(200);
+        c.to('lipOn', 0, 'smooth');
+        await c.wait(180);
+      }},
+      insert: {label: '收入文件', pose: 'loaded', from: 'open', async run(c) {
+        c.set({paperY: -24, paperOn: 0});
+        c.to('paperOn', 1, 'quick');
+        c.to('paperY', 0, 'snappy');
+        await c.wait(170);
+        c.to('lip', 66, 'bouncy');
+        await c.wait(260);
+      }},
+      remove: {label: '取出文件', pose: 'open', from: 'loaded', async run(c) {
+        c.to('lip', 86, 'snappy');
+        await c.wait(110);
+        c.to('paperY', -26, 'snappy');
+        await c.wait(150);
+        c.to('paperOn', 0, 'smooth');
+        await c.wait(280);
+        c.set({paperY: 0});
+      }}
+    }
+  });
+
+  // ---------- loading loops: one motion each, calm enough to watch ----------
+  // Every loop claims the channels it drives and writes them directly, so stop()
+  // springs back to the still pose instead of unwinding a long spin.
+  const cycle = async (c, key, turns = 1) => {
+    c.to(key, turns, spring(0.7, 1));
+    await c.wait(820);
+    c.set({[key]: 0});
+  };
+  const restAmp = async (c, key = 'amp') => {
+    c.to(key, 0, 'smooth');
+    await c.wait(480);
+  };
+
+  const SPOKES = 8;
+  M.define('load-activity', {
+    svg: Array.from({length: SPOKES}, (_, i) => {
+      const a = -Math.PI / 2 + (i / SPOKES) * Math.PI * 2;
+      const p = r => `${(60 + Math.cos(a) * r).toFixed(2)} ${(60 + Math.sin(a) * r).toFixed(2)}`;
+      return `<path data-part="t${i}" d="M${p(18)}L${p(36)}"/>`;
+    }).join(''),
+    state: {phase: 0},
+    poses: {idle: {}, busy: {}},
+    periodic: {phase: 1},
+    render(s, p) {
+      for (let i = 0; i < SPOKES; i++) {
+        let d = s.phase - i / SPOKES;
+        d -= Math.floor(d);
+        fade(p['t' + i], 0.16 + 0.84 * Math.pow(1 - d, 2.4));
+      }
+    },
+    actions: {
+      tap: tap(bounce),
+      start: {label: '转一圈', pose: 'busy', from: 'idle', run: c => cycle(c, 'phase')},
+      loading: {label: '加载中', loop: true, pose: 'busy', run(c) {
+        c.claim('phase');
+        c.loop(t => { c.s.phase = t % 1; });
+      }},
+      finish: {label: '停下', pose: 'idle', from: 'busy', async run(c) {
+        c.to('phase', 0.18, 'snappy');
+        await c.wait(160);
+        c.to('phase', 0, 'smooth');
+        await c.wait(400);
+      }}
+    }
+  });
+
+  const TYPE_X = [36, 60, 84];
+  M.define('load-typing', {
+    svg: TYPE_X.map((x, i) => `<circle data-part="d${i}" data-fill cx="${x}" cy="68" r="6.5"/>`).join(''),
+    state: {phase: 0, amp: 0},
+    poses: {idle: {}, busy: {}},
+    periodic: {phase: 1},
+    render(s, p) {
+      TYPE_X.forEach((x, i) => {
+        const k = s.amp * Math.pow(Math.max(0, Math.sin(s.phase * Math.PI * 2 - i * 1.05)), 1.15);
+        attr(p['d' + i], 'cy', (68 - 16 * k).toFixed(2));
+        attr(p['d' + i], 'r', (6.5 * (1 + 0.2 * k)).toFixed(2));
+      });
+    },
+    actions: {
+      tap: tap(bounce),
+      start: {label: '跳一下', pose: 'busy', from: 'idle', async run(c) {
+        c.to('amp', 1, 'snappy');
+        c.to('phase', 1, spring(0.85, 1));
+        await c.wait(980);
+        c.set({phase: 0});
+        c.to('amp', 0, 'smooth');
+        await c.wait(460);
+      }},
+      loading: {label: '等待中', loop: true, pose: 'busy', run(c) {
+        c.claim('phase', 'amp');
+        c.loop(t => { c.s.amp = 1; c.s.phase = (t * 1.15) % 1; });
+      }},
+      finish: {label: '停下', pose: 'idle', from: 'busy', run: c => restAmp(c)}
+    }
+  });
+
+  M.define('load-comet', {
+    svg: `<circle data-part="track" cx="60" cy="60" r="32"/><path data-part="tail"/><circle data-part="head" data-fill cx="60" cy="28" r="6.5"/>`,
+    state: {angle: 0, tail: 0},
+    poses: {idle: {}, busy: {}},
+    periodic: {angle: 360},
+    render(s, p) {
+      fade(p.track, 0.34);
+      const head = -90 + s.angle;
+      const sweep = Math.max(0, s.tail);
+      attr(p.tail, 'd', arc(60, 60, 32, head - Math.max(sweep, 0.01), head));
+      fade(p.tail, clamp01(sweep / 72));
+      const [x, y] = polar(60, 60, 32, head);
+      attr(p.head, 'cx', x.toFixed(2));
+      attr(p.head, 'cy', y.toFixed(2));
+    },
+    actions: {
+      tap: tap(bounce),
+      start: {label: '跑一圈', pose: 'busy', from: 'idle', async run(c) {
+        c.to('tail', 72, 'smooth');
+        c.to('angle', 360, spring(0.9, 1));
+        await c.wait(1100);
+        c.set({angle: 0});
+        c.to('tail', 0, 'smooth');
+        await c.wait(420);
+      }},
+      loading: {label: '加载中', loop: true, pose: 'busy', run(c) {
+        c.claim('angle', 'tail');
+        c.loop(t => { c.s.tail = 72; c.s.angle = (t * 280) % 360; });
+      }},
+      finish: {label: '停下', pose: 'idle', from: 'busy', async run(c) {
+        c.to('tail', 0, 'smooth');
+        await c.wait(420);
+      }}
+    }
+  });
+
+  const BAR_X = [26, 46, 66, 86];
+  M.define('load-bars', {
+    svg: BAR_X.map((x, i) => `<rect data-part="b${i}" data-fill x="${x}" y="56" width="10" height="22" rx="5"/>`).join(''),
+    state: {phase: 0, amp: 0},
+    poses: {idle: {}, busy: {}},
+    periodic: {phase: 1},
+    render(s, p) {
+      BAR_X.forEach((x, i) => {
+        const h = 16 + 32 * s.amp * (0.5 - 0.5 * Math.cos(s.phase * Math.PI * 2 - i * 0.62));
+        attr(p['b' + i], 'y', (84 - h).toFixed(2));
+        attr(p['b' + i], 'height', h.toFixed(2));
+      });
+    },
+    actions: {
+      tap: tap(bounce),
+      start: {label: '起伏一次', pose: 'busy', from: 'idle', async run(c) {
+        c.to('amp', 1, 'snappy');
+        c.to('phase', 1, spring(0.8, 1));
+        await c.wait(960);
+        c.set({phase: 0});
+        c.to('amp', 0, 'smooth');
+        await c.wait(460);
+      }},
+      loading: {label: '加载中', loop: true, pose: 'busy', run(c) {
+        c.claim('phase', 'amp');
+        c.loop(t => { c.s.amp = 1; c.s.phase = (t * 0.85) % 1; });
+      }},
+      finish: {label: '停下', pose: 'idle', from: 'busy', run: c => restAmp(c)}
+    }
+  });
+
+  // Four cubics, each lobe open enough that the hole survives a 16px stroke.
+  const LOBES = [
+    [[18, 60], [18, 22], [52, 22], [60, 60]],
+    [[60, 60], [68, 98], [102, 98], [102, 60]],
+    [[102, 60], [102, 22], [68, 22], [60, 60]],
+    [[60, 60], [52, 98], [18, 98], [18, 60]]
+  ];
+  const eight = phase => {
+    const p = ((phase % 1) + 1) % 1, seg = Math.min(3, Math.floor(p * 4)), t = p * 4 - seg, u = 1 - t;
+    const [a, b, c, d] = LOBES[seg];
+    return [u*u*u*a[0] + 3*u*u*t*b[0] + 3*u*t*t*c[0] + t*t*t*d[0],
+      u*u*u*a[1] + 3*u*u*t*b[1] + 3*u*t*t*c[1] + t*t*t*d[1]];
+  };
+  const infinityPath = 'M18 60C18 22 52 22 60 60C68 98 102 98 102 60C102 22 68 22 60 60C52 98 18 98 18 60';
+  M.define('load-infinity', {
+    svg: `<path data-part="track" d="${infinityPath}"/>`
+      + [0, 1, 2, 3].map(i => `<circle data-part="d${i}" data-fill cx="94" cy="60" r="${(5.2 - i * 1.1).toFixed(1)}"/>`).join(''),
+    state: {phase: 0, trail: 0},
+    poses: {idle: {}, busy: {}},
+    periodic: {phase: 1},
+    render(s, p) {
+      fade(p.track, 0.38);
+      for (let i = 0; i < 4; i++) {
+        const [x, y] = eight(s.phase - i * 0.045);
+        attr(p['d' + i], 'cx', x.toFixed(2));
+        attr(p['d' + i], 'cy', y.toFixed(2));
+        fade(p['d' + i], i === 0 ? 1 : s.trail * (1 - i / 4));
+      }
+    },
+    actions: {
+      tap: tap(bounce),
+      start: {label: '走一圈', pose: 'busy', from: 'idle', async run(c) {
+        c.to('trail', 1, 'smooth');
+        c.to('phase', 1, spring(1.15, 1));
+        await c.wait(1400);
+        c.set({phase: 0});
+        c.to('trail', 0, 'smooth');
+        await c.wait(420);
+      }},
+      loading: {label: '加载中', loop: true, pose: 'busy', run(c) {
+        c.claim('phase', 'trail');
+        c.loop(t => { c.s.trail = 1; c.s.phase = (t * 0.42) % 1; });
+      }},
+      finish: {label: '停下', pose: 'idle', from: 'busy', async run(c) {
+        c.to('trail', 0, 'smooth');
+        await c.wait(420);
+      }}
+    }
+  });
+
+  // Wireframe cube. A fixed tilt keeps other faces in view; every edge is one stroke.
+  const CUBE_S = 24, CUBE_TILT = 0.62, CUBE_YAW0 = 26;
+  const CUBE_V = [];
+  for (let i = 0; i < 8; i++) CUBE_V.push([(i & 4) ? 1 : -1, (i & 2) ? 1 : -1, (i & 1) ? 1 : -1]);
+  const CUBE_E = [];
+  for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++) {
+    if (CUBE_V[i].reduce((n, v, k) => n + (v !== CUBE_V[j][k]), 0) === 1) CUBE_E.push([i, j]);
+  }
+  const projectCube = (x, y, z, deg) => {
+    const a = (deg + CUBE_YAW0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    const x1 = x * c - z * s, z1 = x * s + z * c;
+    const ct = Math.cos(CUBE_TILT), st = Math.sin(CUBE_TILT);
+    return {x: 60 + x1, y: 60 + (y * ct - z1 * st), z: y * st + z1 * ct};
+  };
+  M.define('load-tumble', {
+    svg: CUBE_E.map((_, i) => `<path data-part="e${i}"/>`).join(''),
+    state: {angle: 0},
+    poses: {idle: {}, busy: {}},
+    periodic: {angle: 360},
+    render(s, p) {
+      const v = CUBE_V.map(([x, y, z]) => projectCube(x * CUBE_S, y * CUBE_S, z * CUBE_S, s.angle));
+      const edges = CUBE_E.map(([a, b], i) => ({i, z: (v[a].z + v[b].z) / 2,
+        d: `M${v[a].x.toFixed(2)} ${v[a].y.toFixed(2)}L${v[b].x.toFixed(2)} ${v[b].y.toFixed(2)}`}));
+      edges.sort((a, b) => a.z - b.z);
+      for (const e of edges) {
+        const el = p['e' + e.i];
+        attr(el, 'd', e.d);
+        fade(el, 1);
+        el.parentNode.appendChild(el);
+      }
+    },
+    actions: {
+      tap: tap(bounce),
+      start: {label: '翻一面', pose: 'busy', from: 'idle', async run(c) {
+        c.to('angle', 360, spring(0.85, 1));
+        await c.wait(1100);
+        c.set({angle: 0});
+      }},
+      loading: {label: '加载中', loop: true, pose: 'busy', run(c) {
+        c.claim('angle');
+        c.loop(t => { c.s.angle = (t * 150) % 360; });
+      }},
+      finish: {label: '正过来', pose: 'idle', from: 'busy', async run(c) {
+        const turns = Math.ceil(c.s.angle / 360);
+        c.to('angle', turns * 360, 'smooth');
+        await c.wait(520);
+        c.set({angle: 0});
+      }}
+    }
+  });
+
+  // 3×3, pitched so a 16px stroke-sized dot still has air around it.
+  const CELL = [];
+  for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) CELL.push([60 + (col - 1) * 30, 60 + (row - 1) * 30]);
+  M.define('load-matrix', {
+    svg: CELL.map(([x, y], i) => `<circle data-part="p${i}" data-fill cx="${x}" cy="${y}" r="7.2"/>`).join(''),
+    state: {phase: 0, amp: 0},
+    poses: {idle: {}, busy: {}},
+    periodic: {phase: 1},
+    render(s, p) {
+      const head = s.phase * 9;
+      CELL.forEach((_, i) => {
+        let behind = head - i;
+        behind -= Math.floor(behind / 9) * 9;
+        if (behind < 0) behind += 9;
+        const glow = s.amp < 0.01 ? 1 : (behind < 2.4 ? Math.pow(1 - behind / 2.4, 1.35) : 0);
+        fade(p['p' + i], s.amp < 0.01 ? 1 : 0.2 + 0.8 * glow);
+        attr(p['p' + i], 'r', (7.2 * (s.amp < 0.01 ? 1 : 0.84 + 0.26 * glow)).toFixed(2));
+      });
+    },
+    actions: {
+      tap: tap(bounce),
+      start: {label: '走一圈', pose: 'busy', from: 'idle', async run(c) {
+        c.to('amp', 1, 'snappy');
+        c.to('phase', 1, spring(1.1, 1));
+        await c.wait(1300);
+        c.set({phase: 0});
+        c.to('amp', 0, 'smooth');
+        await c.wait(460);
+      }},
+      loading: {label: '加载中', loop: true, pose: 'busy', run(c) {
+        c.claim('phase', 'amp');
+        c.loop(t => { c.s.amp = 1; c.s.phase = (t * 0.42) % 1; });
+      }},
+      finish: {label: '停下', pose: 'idle', from: 'busy', run: c => restAmp(c)}
+    }
+  });
+
+  // Six dots, none on the yaw axis. Different latitudes and phases, so each
+  // ellipse is visible. Depth only orders paint; radius and opacity stay put.
+  const spherePoint = (lat, lon) => {
+    const la = lat * Math.PI / 180, lo = lon * Math.PI / 180, c = Math.cos(la);
+    return [c * Math.cos(lo), Math.sin(la), c * Math.sin(lo)];
+  };
+  const SPHERE = [[48, 20], [22, 140], [-8, 80], [-46, 200], [34, 260], [-24, 320]].map(([lat, lon]) => spherePoint(lat, lon));
+  const SPHERE_R = 34;
+  const SPHERE_TILT = 0.58;
+  const SPHERE_DOT = 6;
+  const projectSphere = (x, y, z, deg) => {
+    const a = deg * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    const x1 = x * c - z * s, z1 = x * s + z * c;
+    const ct = Math.cos(SPHERE_TILT), st = Math.sin(SPHERE_TILT);
+    const y2 = y * ct - z1 * st, z2 = y * st + z1 * ct;
+    return {x: 60 + x1, y: 60 + y2, z: z2};
+  };
+  M.define('load-sphere', {
+    svg: SPHERE.map((_, i) => `<circle data-part="s${i}" data-fill cx="60" cy="60" r="${SPHERE_DOT}"/>`).join(''),
+    state: {turn: 0},
+    poses: {idle: {}, busy: {}},
+    periodic: {turn: 360},
+    render(s, p) {
+      const dots = SPHERE.map(([x, y, z], i) => ({i, ...projectSphere(x * SPHERE_R, y * SPHERE_R, z * SPHERE_R, s.turn)}));
+      dots.sort((a, b) => a.z - b.z);
+      for (const dot of dots) {
+        const el = p['s' + dot.i];
+        attr(el, 'cx', dot.x.toFixed(2));
+        attr(el, 'cy', dot.y.toFixed(2));
+        attr(el, 'r', SPHERE_DOT);
+        fade(el, 1);
+        el.parentNode.appendChild(el);
+      }
+    },
+    actions: {
+      tap: tap(bounce),
+      start: {label: '转一圈', pose: 'busy', from: 'idle', async run(c) {
+        c.to('turn', 360, spring(1.05, 1));
+        await c.wait(1300);
+        c.set({turn: 0});
+      }},
+      loading: {label: '加载中', loop: true, pose: 'busy', run(c) {
+        c.claim('turn');
+        c.loop(t => { c.s.turn = (t * 80) % 360; });
+      }},
+      finish: {label: '正过来', pose: 'idle', from: 'busy', async run(c) {
+        const turns = Math.ceil(c.s.turn / 360);
+        c.to('turn', turns * 360, 'smooth');
+        await c.wait(560);
+        c.set({turn: 0});
+      }}
+    }
+  });
+
   // Catalog subjects keep their own verbs; their feedback tap becomes the SF bounce
   // instead of a uniform 4 % shrink that reads as nothing at 24 px.
   const CATALOG = ['wifi', 'bluetooth', 'cloud', 'sync', 'upload', 'battery', 'power', 'search', 'link',
     'cellular', 'hotspot', 'server', 'brightness', 'storage', 'check', 'warning', 'error', 'loading',
-    'folder', 'copy', 'bookmark', 'printer', 'archive', 'clipboard', 'mail', 'phone',
+    'copy', 'bookmark', 'printer', 'archive', 'clipboard', 'mail', 'phone',
     'video-call', 'share', 'qr-scan', 'wallet', 'cart', 'calendar', 'gift', 'star', 'shield',
     'passcode', 'permission', 'camera', 'face-id', 'fingerprint', 'ai-thinking', 'ai-browsing',
     'ai-reading', 'ai-coding'];

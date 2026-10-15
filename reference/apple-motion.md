@@ -113,3 +113,34 @@ MotionIcon.define('my-subject', {
 
 Recipes defined after the signature layer are finalised automatically: they
 get the effect wrapper, the effects and the governor.
+
+## Looping loaders
+
+Eight `load-*` subjects plus `loading` use the geometric layer after signature.
+They expose `start` (preview), `loading` (loop), and `finish`; the loop's exit
+coasts to a saved phase rather than rewinding. `busy()` calls the intended loader.
+
+| subject | mechanism | period |
+|---|---|---|
+| `load-activity` | continuous luminance wave around radial ticks | 1.55 s |
+| `load-typing` | equal dots, phase-shifted lift, no scale pulse | 1.7 s |
+| `load-comet` | varying arc, constant angular head speed | 1.8 s |
+| `load-bars` | centered capsules, phase-shifted height | 1.9 s |
+| `load-infinity` | arc-length parameterized figure eight | 2.8 s |
+| `load-tumble` | flat four-tile permutation | 3.2 s |
+| `load-matrix` | continuous diagonal intensity wave | 2.2 s |
+| `load-sphere` | nested flat counter-rotating point orbits | 3.4 s |
+| `loading` | capsule shuttle, slowing at each end | 1.85 s |
+
+Opacity can communicate secondary intensity in waiting indicators. That is distinct
+from dissolving between two drawings of a physical object: Add and Library use
+continuous geometric structure for their transformations.
+
+## Geometry-led transformations
+
+The geometric layer loads after signature and overrides navigation/loader recipes
+where documented. Use [the continuous-morph rules](continuous-morph.md) for Add and
+Library; the former no longer wiggles on hover, and the latter no longer dissolves
+between page states. The current [geometric vocabulary](../docs/GEOMETRIC-MOTION.md)
+documents the current loader implementation: loops coast to a saved phase
+on stop, and the tile/orbit loaders stay planar rather than projecting wireframes.

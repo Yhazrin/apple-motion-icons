@@ -228,6 +228,7 @@
       <nav class="links" aria-label="资源">
         <a href="https://github.com/Yhazrin/apple-motion-icons">GitHub</a>
         <a href="../examples/workflows.html">交互示例</a>
+        <a href="../examples/continuous-morph.html">连续变形</a>
         <a href="gallery.html?frames">新版动作帧</a>
         <a href="../review/improvement-plan.html">基线方案</a>
         <a href="https://github.com/Yhazrin/apple-motion-icons/blob/main/docs/MAINTENANCE.md">维护</a>
@@ -248,7 +249,7 @@
     <div class="grid" id="system-grid"></div>
   </section>
   <section class="section" id="status-section" data-group="status">
-    <div class="section-head"><h2>状态</h2><span>勾选、警告、加载与时间</span></div>
+    <div class="section-head"><h2>状态</h2><span>勾选、警告、循环加载与时间</span></div>
     <div class="grid" id="status-grid"></div>
   </section>
   <section class="section" id="files-section" data-group="files">
@@ -306,25 +307,26 @@
   <footer>Yhazrin · MIT · 点舞台可看点按反馈；循环可再次点击停止。新配方随仓库更新加入。<br><span id="release-info"></span></footer>
 </main>
 
-<script src="motion-icons.js"></script>
-<script src="motion-icons-recipes.js"></script>
-<script src="motion-icons-learning.js"></script>
-<script src="motion-icons-catalog.js"></script>
-<script src="motion-icons-refinements.js"></script>
-<script src="motion-icons-semantics.js"></script>
-<script src="motion-icons-signature.js"></script>
+<script src="motion-icons.js?v=20261013c"></script>
+<script src="motion-icons-recipes.js?v=20261013c"></script>
+<script src="motion-icons-learning.js?v=20261013c"></script>
+<script src="motion-icons-catalog.js?v=20261013c"></script>
+<script src="motion-icons-refinements.js?v=20261013c"></script>
+<script src="motion-icons-semantics.js?v=20261013c"></script>
+<script src="motion-icons-signature.js?v=20261013c"></script>
+<script src="motion-icons-geometric.js?v=20261015h"></script>
 <script>
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const framesMode = new URLSearchParams(location.search).has('frames');
   const icons = window.galleryIcons = {};
   const grid = document.getElementById('grid');
   const subjects = {
-    daylight:['今天','Today · 主导航','navigation'],cards:['学习词卡','Review · 词卡错开与抽取','navigation'],
-    book:['词库','Library · 主导航','navigation'],plus:['添加','加号轻转预演，成功才变成对勾','navigation'],
+    daylight:['今天','Today · 主导航','navigation'],cards:['学习词卡','Review · 固定词卡内滑开遮片','navigation'],
+    book:['词库','Library · 主导航','navigation'],plus:['添加','四臂展开为新空间，成功才变为对勾','navigation'],
     conversation:['助手','小猫助手 · ^_^  >_<  O_O  T_T  扑和扭','navigation'],settings:['设置','Settings · 主导航','navigation'],
     lookup:['查词','添加页与快加浮窗','actions'],lexicon:['词汇收录','保存中与确认入库','actions'],
     sentence:['例句','复习页 · 生成与结果反馈','actions'],memory:['记忆情景','生成与绑定词条','actions'],
-    refresh:['同步','同步状态与完成反馈','actions'],recall:['回忆卡','展开答案 / 记住过词 / 留待重温','actions'],milestone:['整轮词本','复习与默写完成 / 开始新一轮','actions'],pencil:['笔尖','默写 / 打字扩展配方','library'],voice:['话筒','口语扩展配方','library'],
+    refresh:['同步','同步状态与完成反馈','actions'],recall:['回忆卡','展开答案 / 记住过词 / 留待重温','actions'],milestone:['整轮词本','复习与默写完成 / 开始新一轮','actions'],pencil:['笔尖','笔尖沿同一曲线写出墨迹，然后抬笔','library'],voice:['话筒','口语扩展配方','library'],
     lock:['锁','上锁 / 解锁','library'],pay:['支付卡','感应 / 翻面 / 拒绝','library'],enter:['进入','敲门 / 进入 / 被拒','library'],
     download:['下载','连续进度 / 完成 / 取消','library'],send:['发送','发送 / 撤回','library'],delete:['删除','打开 / 丢入 / 恢复','library'],
     heart:['喜欢','喜欢 / 取消 / 心跳','library'],menu:['菜单','菜单 / 关闭 / 返回','library'],bell:['通知','响铃 / 已读 / 静音','library'],
@@ -338,9 +340,17 @@
     server:['服务器','在线、忙碌、离线','system'],brightness:['亮度','光线长短，不是扬声器','system'],
     storage:['存储','填充高度跟随用量','system'],
     check:['勾选','描边画出并落定','status'],warning:['警告','三角与标记错开','status'],
-    error:['错误','拒绝与重试变形','status'],loading:['加载','胶囊在轨道里滑动','status'],
+    error:['错误','拒绝与重试变形','status'],loading:['加载','胶囊沿轨道平滑往返，折返点自然减速','status'],
+    'load-activity':['活动指示','连续光带绕过八根刻度，无硬切闪烁','status'],
+    'load-typing':['等待输入','三个等大圆点错相起落，不挤压、不弹跳','status'],
+    'load-comet':['彗星','断弧舒展，细小光点沿环匀速行进','status'],
+    'load-bars':['均衡','四根胶囊条围绕中心错相起伏','status'],
+    'load-infinity':['无穷','沿八字按弧长匀速行进，交叉处不抢拍','status'],
+    'load-tumble':['几何换位','四块圆角方片在平面上循环换位','status'],
+    'load-matrix':['点阵','九宫格的亮度波沿对角线连续传递','status'],
+    'load-sphere':['双轨','两圈等大的点在平面轨道上反向交织','status'],
     hourglass:['沙漏','沙流下落，流尽后倒转','status'],clock:['时钟','表针扫动、冻结与回拨，外圈是计时进度','status'],
-    folder:['文件夹','前片展开，文件收入或取出','files'],copy:['复制','两张纸错开','files'],
+    folder:['文件夹','盖口落下，文件露出一角','files'],copy:['复制','两张纸错开','files'],
     bookmark:['书签','书签缺口加深并收录','files'],printer:['打印机','纸张送出，机身不转','files'],
     archive:['归档盒','打开、存入、取出','files'],clipboard:['剪贴板','复制、粘贴、清空','files'],
     filter:['筛选','条目落进漏斗，只放过匹配的一项','files'],sort:['排序','箭头翻转，长短条逐条重排','files'],
@@ -456,13 +466,14 @@
     el('p', {className:'usage',textContent:usage}, meta);
     const icon = icons[name] = MotionIcon.create(stage, name, name === 'daylight' && isDark() ? {pose:'night'} : {});
     let taskToken = 0, hoverRest = null;
-    if (name === 'book') {
+    const hoverPreview = ['plus','book','settings','cards','pencil'].includes(name);
+    if (hoverPreview) {
       stage.onpointerenter = () => { if (icon.pose === 'idle') { hoverRest = 'idle'; icon.play('peek'); } };
       stage.onpointerleave = () => { if (hoverRest) { icon.setPose(hoverRest); hoverRest = null; } };
       stage.onfocus = stage.onpointerenter;
       stage.onblur = stage.onpointerleave;
     }
-    stage.onclick = () => {taskToken++;hoverRest=null;if(name==='book')icon.play('select');else icon.tap();};
+    stage.onclick = () => {taskToken++;hoverRest=null;if(name==='plus')icon.play('add');else if(hoverPreview)icon.play('select');else icon.tap();};
     stage.onkeydown = e => {if(e.key==='Enter'||e.key===' '){e.preventDefault();stage.click();}};
 
     const row = el('div', {className: 'actions'}, card);

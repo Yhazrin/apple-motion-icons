@@ -214,52 +214,61 @@
     }
   });
 
-  const closedCover = 'M38 28C53 28 69 28 80 28Q84 28 84 32L84 88Q84 92 80 92C65 92 53 92 38 92L38 28Z';
-  const openCover = 'M60 34C72 26 88 26 98 29Q102 30 102 34L102 86Q102 90 98 89C84 87 73 89 60 96L60 34Z';
+  // Closed cover and each open page are the same rounded-rect skeleton, so the
+  // opening reads as the cover sliding aside and a second page growing out,
+  // the way the reference sheet draws it. A single fused outline loses the gutter.
+  const sheet = (x, y, w, h, r) => {
+    const rr = Math.min(r, w / 2, h / 2), x2 = x + w, y2 = y + h;
+    const n = v => +v.toFixed(2);
+    return `M${n(x + rr)} ${n(y)}H${n(x2 - rr)}Q${n(x2)} ${n(y)} ${n(x2)} ${n(y + rr)}V${n(y2 - rr)}Q${n(x2)} ${n(y2)} ${n(x2 - rr)} ${n(y2)}H${n(x + rr)}Q${n(x)} ${n(y2)} ${n(x)} ${n(y2 - rr)}V${n(y + rr)}Q${n(x)} ${n(y)} ${n(x + rr)} ${n(y)}Z`;
+  };
+  const closedCover = sheet(40, 16, 40, 88, 10);
+  const rightPage = sheet(62, 28, 42, 70, 8);
+  const leftShut = sheet(44, 22, 14, 76, 7);
+  const leftPage = sheet(16, 28, 42, 70, 8);
   M.define('book', {
-    svg: `<g data-part="body"><path data-part="left"/><path data-part="cover" d="${closedCover}"/><path data-part="spine"/><path data-part="mark" d="M69 29v22l-5-4-5 4V29"/><g data-part="lines"><path d="M72 44c7-2 13-2 20-1M72 57c7-2 13-2 20-1M72 70c7-2 13-2 20-1M28 44c8-1 14 0 21 2M28 57c8-1 14 0 21 2M28 70c8-1 14 0 21 2"/></g><g data-part="leaf"><path data-part="turning"/></g></g>`,
-    state: {opening: 0, bodyAngle: 0, leafWidth: 1, leafOpacity: 0, leaf: 0},
+    svg: `<g data-part="body"><path data-part="left"/><path data-part="cover" d="${closedCover}"/><path data-part="spine" d="M50 84H70"/><path data-part="mark" d="M55 16V36H65V16"/><g data-part="lines"><path d="M0 0"/></g><g data-part="leaf"><path data-part="turning"/></g></g>`,
+    state: {opening: 0, bodyAngle: 0, dip: 0, leafWidth: 1, leafOpacity: 0, leaf: 0},
     poses: {idle: {}, open: {opening: 1}, selected: {opening: 1}},
     render(s, p) {
-      const opening = clamp01(s.opening), hinge = 38 + 22 * opening;
-      const top = 28 + 6 * opening, bottom = 92 + 4 * opening;
-      const left = hinge - 42 * opening;
-      const cover = M.util.lerpPath(closedCover, openCover, opening);
-      attr(p.body, 'transform', `rotate(${s.bodyAngle} 60 92)`);
-      attr(p.cover, 'd', cover);
-      attr(p.left, 'd', `M${hinge} ${top}C${hinge-12*opening} ${top-8*opening} ${left+14*opening} ${top-8*opening} ${left} ${top-4*opening}V${bottom-9*opening}C${left+15*opening} ${bottom-13*opening} ${hinge-13*opening} ${bottom-11*opening} ${hinge} ${bottom}Z`);
-      attr(p.left, 'opacity', opening);
-      attr(p.spine, 'd', `M38 28C30 28 30 31 30 36V84Q30 92 38 92M38 84h46`);
-      attr(p.spine, 'opacity', clamp01(1-opening*2));
-      attr(p.mark, 'opacity', clamp01(1-opening*2.5));
-      attr(p.lines, 'opacity', clamp01((opening-.35)/.65));
+      const opening = clamp01(s.opening);
+      attr(p.body, 'transform', `translate(0 ${s.dip.toFixed(2)}) rotate(${s.bodyAngle} 60 100)`);
+      attr(p.cover, 'd', M.util.lerpPath(closedCover, rightPage, opening));
+      attr(p.left, 'd', M.util.lerpPath(leftShut, leftPage, opening));
+      attr(p.left, 'opacity', clamp01(opening * 1.7));
+      const closedInk = clamp01(1 - opening * 2.8);
+      attr(p.spine, 'opacity', closedInk);
+      attr(p.mark, 'opacity', closedInk);
+      attr(p.lines, 'opacity', 0);
       const sweep = clamp01(s.leaf);
-      const pageRight = 96 - sweep * 54, pageLeft = pageRight - 34;
-      const bow = Math.sin(sweep * Math.PI) * 10, mid = (pageLeft + pageRight) / 2;
-      attr(p.turning, 'd', `M${pageLeft.toFixed(1)} 38C${mid.toFixed(1)} ${(30 - bow).toFixed(1)} ${pageRight.toFixed(1)} 34 ${pageRight.toFixed(1)} 44L${pageRight.toFixed(1)} 82C${pageRight.toFixed(1)} ${(94 + bow).toFixed(1)} ${mid.toFixed(1)} 92 ${pageLeft.toFixed(1)} 88Z`);
+      const lift = Math.sin(sweep * Math.PI);
+      const x0 = 66 - sweep * 48, x1 = x0 + 30, mid = (x0 + x1) / 2;
+      const top = 34 - lift * 18, crown = top - lift * 16, bot = 90;
+      attr(p.turning, 'd', `M${x0.toFixed(1)} ${(top + 12).toFixed(1)}Q${mid.toFixed(1)} ${crown.toFixed(1)} ${x1.toFixed(1)} ${(top + 12).toFixed(1)}L${x1.toFixed(1)} ${(bot - 8).toFixed(1)}Q${x1.toFixed(1)} ${bot} ${(x1 - 8).toFixed(1)} ${bot}H${(x0 + 8).toFixed(1)}Q${x0.toFixed(1)} ${bot} ${x0.toFixed(1)} ${(bot - 8).toFixed(1)}Z`);
       attr(p.leaf, 'transform', '');
       attr(p.leaf, 'opacity', clamp01(s.leafOpacity) * opening);
     },
     actions: {
       tap: {label: '轻触词本', run: c => preview(c, 'bodyAngle', -3)},
       peek: {label: '展开词本', pose: 'open', from: 'idle', async run(c) {
-        c.to('opening', 1, 'gentle'); c.to('bodyAngle', 2, 'snap');
-        await c.wait(85);
-        c.to('bodyAngle', -2, 'gentle'); await c.wait(260);
+        c.to('bodyAngle', 8, 'snap');
+        await c.wait(80);
+        c.to('opening', 1, 'gentle'); c.to('bodyAngle', 0, 'gentle');
+        await c.wait(340);
       }},
       select: {label: '选中词本', pose: 'selected', async run(c) {
-        c.to('opening', 1, 'gentle'); c.to('bodyAngle', 3, 'snap');
-        await c.wait(90);
-        c.to('bodyAngle', -2, 'gentle'); await c.wait(260);
+        c.to('dip', 6, 'snap'); c.to('opening', 1, 'gentle');
+        await c.wait(120);
+        c.to('dip', 0, 'settle'); await c.wait(280);
       }},
       close: {label: '合上词本', pose: 'idle', from: 'open', async run(c) {
-        c.to('opening', 0, 'gentle'); c.to('bodyAngle', -2, 'snap');
-        await c.wait(85);
-        c.to('bodyAngle', 0, 'gentle'); await c.wait(260);
+        c.to('opening', 0, 'gentle'); c.to('bodyAngle', -6, 'snap');
+        await c.wait(90);
+        c.to('bodyAngle', 0, 'gentle'); await c.wait(280);
       }},
       turn: {label: '翻过一页', pose: 'open', from: 'open', async run(c) {
-        c.to('leafOpacity', 1, 'fade'); c.to('leaf', .12, 'snap'); await c.wait(70);
-        c.to('leaf', 1, 'gentle'); await c.wait(260);
+        c.to('leafOpacity', 1, 'fade'); c.to('leaf', .08, 'snap'); await c.wait(60);
+        c.to('leaf', 1, 'gentle'); await c.wait(320);
         c.to('leafOpacity', 0, 'fade'); await c.wait(120);
         c.set({leaf: 0});
       }}
