@@ -3,16 +3,26 @@
 Apple-inspired SVG motion icons with spring physics and a vocabulary for each
 object. A Codex / Cursor skill and a dependency-free browser library.
 
-**[Live gallery →](https://skills.yhazrin.xyz/motion-icons/)** — play every icon action, search by use, change size and appearance. The gallery follows the public `main` branch; published changes are checked about every five minutes.
+## Browse all 95 icons
 
-**[Continuous morph example →](examples/continuous-morph.html)** — scrub Add and Library through the same production geometry; [construction rules](reference/continuous-morph.md).
+**[skills.yhazrin.xyz/motion-icons →](https://skills.yhazrin.xyz/motion-icons/)**
+is the fastest way through the collection. Every subject is on one page,
+grouped by use and searchable by name, purpose or action (press `/`), with each
+verb playable, a 16–96 px size slider, light/dark appearance and a one-click
+review ZIP. The site is rebuilt from the public `main` branch about every five
+minutes, so what it shows is what `main` ships. Prefer to run it yourself? See
+[Explore examples](#explore-examples).
+
+Prefer reading the table? The same subjects ship as plain-text vocabularies —
+[common icons](reference/vocabulary.md), [learning and capture](reference/learning.md)
+and [catalog](reference/catalog.md) — listing every pose, action, loop and drive.
 
 **95 subjects:** 13 general-purpose icons, 14 learning, capture and navigation
 icons, 60 catalog icons, and 8 looping loaders (radial ticks, typing dots, a
 comet, equalizer bars, a figure-eight, a tumbling tile, a 3×3 dot matrix and a
 sphere of dots). Motion stops when the object is at rest.
 
-![Workflow examples](examples/workflows-preview.jpg)
+**[Continuous morph example →](examples/continuous-morph.html)** — scrub Add and Library through the same production geometry; [construction rules](reference/continuous-morph.md).
 
 ## Use the skill
 
