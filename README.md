@@ -5,10 +5,11 @@ object. A Codex / Cursor skill and a dependency-free browser library.
 
 ## Browse all 95 icons
 
-**[skills.yhazrin.xyz/motion-icons →](https://skills.yhazrin.xyz/motion-icons/)**
-is the fastest way through the collection. Every subject is on one page,
-grouped by use and searchable by name, purpose or action (press `/`), with each
-verb playable, a 16–96 px size slider, light/dark appearance and a one-click
+**[icon.yhazrin.xyz/motion →](https://icon.yhazrin.xyz/motion/)** is the fastest
+way through the collection, and **[icon.yhazrin.xyz](https://icon.yhazrin.xyz/)**
+is the hub that will hold my other illustrated icon sets. Every subject is on one
+page, grouped by use and searchable by name, purpose or action (press `/`), with
+each verb playable, a 16–96 px size slider, light/dark appearance and a one-click
 review ZIP. The site is rebuilt from the public `main` branch about every five
 minutes, so what it shows is what `main` ships. Prefer to run it yourself? See
 [Explore examples](#explore-examples).
@@ -152,7 +153,7 @@ semantic colour alongside distinct geometry. Most subjects stay planar; inserted
 paper and stacked cards have true transparent occlusion. See the authoring rules
 in [SKILL.md](SKILL.md#semantic-colour-foreground-and-background).
 
-On the [gallery](https://skills.yhazrin.xyz/motion-icons/), click **导出审阅 ZIP**
+On the [gallery](https://icon.yhazrin.xyz/motion/), click **导出审阅 ZIP**
 to download all action sequences as PNGs, with 10 sequences per overview sheet
 and 10 separate images per folder. The package includes labels, timestamps and
 a manifest. Export is local to the browser and follows the selected theme.

@@ -1,6 +1,6 @@
 # 展示站的同步与管理
 
-站点：[skills.yhazrin.xyz/motion-icons/](https://skills.yhazrin.xyz/motion-icons/)。
+站点：[icon.yhazrin.xyz](https://icon.yhazrin.xyz/)，图库为 [icon.yhazrin.xyz/motion/](https://icon.yhazrin.xyz/motion/)。
 源码：[Yhazrin/apple-motion-icons](https://github.com/Yhazrin/apple-motion-icons)。
 维护提示词：[CURSOR_PROMPT.md](CURSOR_PROMPT.md)。
 

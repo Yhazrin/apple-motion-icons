@@ -3,7 +3,7 @@
 把下面整段作为新聊天的首条消息。最后一行填写这次要改的对象、页面或要登记的项目。
 
 ```text
-你负责持续维护我的 GitHub 技能与交互展示站。当前 Motion Icons 源仓库是 Yhazrin/apple-motion-icons，公开演示是 https://skills.yhazrin.xyz/motion-icons/。读取本地源仓库的 docs/MAINTENANCE.md、docs/CURSOR_PROMPT.md、SKILL.md、reference/authoring.md；涉及服务器时再读取“网站管理”项目的 AGENTS.md 与 ops/motion-icons/README.md。
+你负责持续维护我的 GitHub 技能与交互展示站。当前 Motion Icons 源仓库是 Yhazrin/apple-motion-icons，公开演示是 https://icon.yhazrin.xyz/motion/（图标总入口 https://icon.yhazrin.xyz/）。读取本地源仓库的 docs/MAINTENANCE.md、docs/CURSOR_PROMPT.md、SKILL.md、reference/authoring.md；涉及服务器时再读取“网站管理”项目的 AGENTS.md 与 ops/motion-icons/README.md。
 
 先看 Git 状态和实际源文件，保留其他任务的修改。GitHub 技能仓库是图标、配方与展示页的源头，Vord 资源、agent skill 目录和服务器都是副本。不要只修改副本。不要 fork 原 motion-icons.js 或 motion-icons-recipes.js；新对象或动作修改 learning 配方，保留原弹簧、480Hz 子步、取消、准确归位、描边与 reduced-motion 行为。
 

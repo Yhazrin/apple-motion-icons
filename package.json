@@ -5,7 +5,7 @@
   "license": "MIT",
   "author": "Yhazrin",
   "repository": {"type": "git", "url": "git+https://github.com/Yhazrin/apple-motion-icons.git"},
-  "homepage": "https://skills.yhazrin.xyz/motion-icons/",
+  "homepage": "https://icon.yhazrin.xyz/motion/",
   "keywords": ["icons", "svg", "animation", "spring", "sf-symbols", "apple", "micro-interaction", "web-components"],
   "type": "commonjs",
   "main": "dist/motion-icons.js",
